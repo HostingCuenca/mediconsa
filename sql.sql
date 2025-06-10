@@ -255,3 +255,85 @@ CREATE POLICY "progreso_propio" ON progreso_clases
 -- Intentos: usuarios solo ven sus intentos
 CREATE POLICY "intentos_propios" ON intentos_simulacro
   FOR ALL USING (auth.uid() = usuario_id);
+
+
+
+
+
+       -- =============================================
+-- LIMPIAR TODO EL RLS Y CONFIGURAR CORRECTAMENTE
+-- =============================================
+
+-- 1. DESHABILITAR RLS EN TODAS LAS TABLAS
+ALTER TABLE perfiles_usuario DISABLE ROW LEVEL SECURITY;
+ALTER TABLE cursos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE modulos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE clases DISABLE ROW LEVEL SECURITY;
+ALTER TABLE materiales DISABLE ROW LEVEL SECURITY;
+ALTER TABLE simulacros DISABLE ROW LEVEL SECURITY;
+ALTER TABLE preguntas DISABLE ROW LEVEL SECURITY;
+ALTER TABLE opciones_respuesta DISABLE ROW LEVEL SECURITY;
+ALTER TABLE inscripciones DISABLE ROW LEVEL SECURITY;
+ALTER TABLE progreso_clases DISABLE ROW LEVEL SECURITY;
+ALTER TABLE intentos_simulacro DISABLE ROW LEVEL SECURITY;
+ALTER TABLE respuestas_usuario DISABLE ROW LEVEL SECURITY;
+
+-- 2. ELIMINAR TODAS LAS POLÍTICAS EXISTENTES
+DO $$
+DECLARE
+pol RECORD;
+BEGIN
+FOR pol IN
+SELECT schemaname, tablename, policyname
+FROM pg_policies
+WHERE schemaname = 'public'
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I',
+                      pol.policyname, pol.schemaname, pol.tablename);
+END LOOP;
+END $$;
+
+-- 3. HABILITAR RLS SOLO EN TABLAS CRÍTICAS
+ALTER TABLE perfiles_usuario ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inscripciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE progreso_clases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE intentos_simulacro ENABLE ROW LEVEL SECURITY;
+ALTER TABLE respuestas_usuario ENABLE ROW LEVEL SECURITY;
+
+-- 4. POLÍTICAS SIMPLES Y FUNCIONALES
+-- Perfiles: usuarios ven solo su perfil
+CREATE POLICY "usuarios_su_perfil" ON perfiles_usuario
+  FOR ALL USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
+-- Inscripciones: usuarios ven solo sus inscripciones
+CREATE POLICY "usuarios_sus_inscripciones" ON inscripciones
+  FOR ALL USING (auth.uid() = usuario_id) WITH CHECK (auth.uid() = usuario_id);
+
+-- Progreso: usuarios ven solo su progreso
+CREATE POLICY "usuarios_su_progreso" ON progreso_clases
+  FOR ALL USING (auth.uid() = usuario_id) WITH CHECK (auth.uid() = usuario_id);
+
+-- Intentos: usuarios ven solo sus intentos
+CREATE POLICY "usuarios_sus_intentos" ON intentos_simulacro
+  FOR ALL USING (auth.uid() = usuario_id) WITH CHECK (auth.uid() = usuario_id);
+
+-- Respuestas: usuarios ven solo sus respuestas
+CREATE POLICY "usuarios_sus_respuestas" ON respuestas_usuario
+  FOR ALL USING (
+    auth.uid() = (
+      SELECT usuario_id FROM intentos_simulacro
+      WHERE id = intento_simulacro_id
+    )
+  );
+
+-- 5. VERIFICAR QUE TODO ESTÉ LIMPIO
+SELECT
+    schemaname,
+    tablename,
+    CASE WHEN rowsecurity THEN 'ENABLED' ELSE 'DISABLED' END as rls_status
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY tablename;
+
+-- 6. VERIFICAR POLÍTICAS RESTANTES
+SELECT tablename, policyname FROM pg_policies WHERE schemaname = 'public';
