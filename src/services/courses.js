@@ -1,92 +1,126 @@
-// src/services/courses.js - Servicio de cursos
+// src/services/courses.js - Servicio de cursos refactorizado para Node.js Backend
 import apiService from './api'
 
 class CoursesService {
+
     // =============================================
-    // OBTENER CURSOS
+    // OBTENER TODOS LOS CURSOS (PÚBLICO)
     // =============================================
     async getCourses(filters = {}) {
         try {
-            const params = new URLSearchParams()
+            const queryString = apiService.buildQueryString(filters)
+            const response = await apiService.get(`/courses${queryString}`, false)
 
-            Object.keys(filters).forEach(key => {
-                if (filters[key] !== undefined && filters[key] !== '') {
-                    params.append(key, filters[key])
-                }
-            })
-
-            const queryString = params.toString()
-            const endpoint = queryString ? `/courses?${queryString}` : '/courses'
-
-            return await apiService.get(endpoint, false)
+            return {
+                success: true,
+                data: response.data || response,
+                cursos: response.data?.cursos || response.cursos || [],
+                total: response.data?.total || response.total || 0
+            }
         } catch (error) {
-            return { success: false, error: error.message }
+            return {
+                success: false,
+                error: error.message,
+                cursos: []
+            }
         }
     }
 
     // =============================================
-    // OBTENER CURSO POR ID
+    // OBTENER CURSO POR ID (PÚBLICO)
     // =============================================
     async getCourseById(courseId) {
         try {
-            return await apiService.get(`/courses/${courseId}`, false)
+            const response = await apiService.get(`/courses/${courseId}`, false)
+
+            return {
+                success: true,
+                data: response.data || response,
+                curso: response.data?.curso || response.curso || null
+            }
         } catch (error) {
-            return { success: false, error: error.message }
+            return {
+                success: false,
+                error: error.message,
+                curso: null
+            }
         }
     }
 
     // =============================================
-    // CREAR CURSO (Admin/Instructor)
+    // CREAR CURSO (ADMIN/INSTRUCTOR)
     // =============================================
     async createCourse(courseData) {
         try {
-            return await apiService.post('/courses', courseData)
+            const response = await apiService.post('/courses', courseData)
+
+            return {
+                success: true,
+                data: response.data || response,
+                curso: response.data?.curso || response.curso || null,
+                message: response.message || 'Curso creado exitosamente'
+            }
         } catch (error) {
-            return { success: false, error: error.message }
+            return {
+                success: false,
+                error: error.message
+            }
         }
     }
 
     // =============================================
-    // GESTIÓN DE CONTENIDO (Admin/Instructor)
+    // BUSCAR CURSOS (con filtros avanzados)
     // =============================================
-    async createModule(moduleData) {
-        try {
-            return await apiService.post('/course-management/modules', moduleData)
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
+    async searchCourses({ search, tipo, gratuito, page = 1, limit = 12 }) {
+        const filters = {}
+
+        if (search) filters.search = search
+        if (tipo) filters.tipo = tipo
+        if (gratuito !== undefined) filters.gratuito = gratuito
+        if (page) filters.page = page
+        if (limit) filters.limit = limit
+
+        return await this.getCourses(filters)
     }
 
-    async createClass(classData) {
-        try {
-            return await apiService.post('/course-management/classes', classData)
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
+    // =============================================
+    // OBTENER CURSOS POR TIPO DE EXAMEN
+    // =============================================
+    async getCoursesByExamType(examType) {
+        return await this.getCourses({ tipo: examType })
     }
 
-    async createSimulacro(simulacroData) {
-        try {
-            return await apiService.post('/course-management/simulacros', simulacroData)
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
+    // =============================================
+    // OBTENER CURSOS GRATUITOS
+    // =============================================
+    async getFreeCourses() {
+        return await this.getCourses({ gratuito: true })
     }
 
-    async createQuestion(questionData) {
-        try {
-            return await apiService.post('/course-management/questions', questionData)
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
+    // =============================================
+    // OBTENER CURSOS DE PAGO
+    // =============================================
+    async getPaidCourses() {
+        return await this.getCourses({ gratuito: false })
     }
 
-    async getCourseContent(courseId) {
-        try {
-            return await apiService.get(`/course-management/course/${courseId}`)
-        } catch (error) {
-            return { success: false, error: error.message }
-        }
+    // =============================================
+    // FUNCIONES LEGACY (para compatibilidad)
+    // =============================================
+    async obtenerCursos(filtros = {}) {
+        return await this.getCourses(filtros)
+    }
+
+    async obtenerCursoPorId(id) {
+        return await this.getCourseById(id)
+    }
+
+    async crearCurso(datos) {
+        return await this.createCourse(datos)
+    }
+
+    async buscarCursos(termino) {
+        return await this.searchCourses({ search: termino })
     }
 }
 

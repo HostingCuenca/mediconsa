@@ -1,19 +1,17 @@
-// src/components/Navbar.jsx
+// src/components/Navbar.jsx - Ajustado para Node.js Backend
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../utils/AuthContext'
-import { logoutUsuario } from '../services/auth'
 
 const Navbar = () => {
-    const { user, perfil, isAuthenticated, isAdmin } = useAuth()
+    const { user, perfil, isAuthenticated, isAdmin, logout } = useAuth()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const navigate = useNavigate()
 
-    const handleLogout = async () => {
-        const result = await logoutUsuario()
-        if (result.success) {
-            navigate('/')
-        }
+    const handleLogout = () => {
+        console.log('Cerrando sesión desde Navbar')
+        logout()
+        navigate('/')
     }
 
     return (
@@ -61,18 +59,18 @@ const Navbar = () => {
                             <div className="relative group">
                                 <button className="flex items-center space-x-2 text-medico-gray hover:text-medico-blue">
                                     <div className="w-8 h-8 bg-medico-blue rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-semibold">
-                      {perfil?.nombre_completo?.charAt(0) || 'U'}
-                    </span>
+                                        <span className="text-white text-sm font-semibold">
+                                            {perfil?.nombreCompleto?.charAt(0) || perfil?.nombreUsuario?.charAt(0) || 'U'}
+                                        </span>
                                     </div>
-                                    <span className="hidden sm:block">{perfil?.nombre_usuario}</span>
+                                    <span className="hidden sm:block">{perfil?.nombreUsuario || 'Usuario'}</span>
                                 </button>
 
                                 {/* Dropdown Menu */}
                                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                                     <div className="p-3 border-b border-gray-100">
-                                        <p className="text-sm font-medium text-gray-900">{perfil?.nombre_completo}</p>
-                                        <p className="text-xs text-medico-gray capitalize">{perfil?.tipo_usuario}</p>
+                                        <p className="text-sm font-medium text-gray-900">{perfil?.nombreCompleto}</p>
+                                        <p className="text-xs text-medico-gray capitalize">{perfil?.tipoUsuario}</p>
                                     </div>
                                     <div className="py-1">
                                         <Link to="/perfil" className="block px-3 py-2 text-sm text-medico-gray hover:bg-medico-light">

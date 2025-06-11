@@ -1,8 +1,7 @@
-// src/pages/LoginPage.jsx
+// src/pages/LoginPage.jsx - Ajustado para Node.js Backend
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../utils/AuthContext'
-import { loginUsuario, registrarUsuario } from '../services/auth'
 import Layout from '../components/Layout'
 
 const LoginPage = ({ mode = 'login' }) => {
@@ -11,7 +10,7 @@ const LoginPage = ({ mode = 'login' }) => {
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
 
-    const { isAuthenticated } = useAuth()
+    const { isAuthenticated, login, register } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
 
@@ -28,6 +27,7 @@ const LoginPage = ({ mode = 'login' }) => {
     useEffect(() => {
         if (isAuthenticated) {
             const from = location.state?.from?.pathname || '/dashboard'
+            console.log('Usuario ya autenticado, redirigiendo a:', from)
             navigate(from, { replace: true })
         }
     }, [isAuthenticated, navigate, location])
@@ -95,37 +95,43 @@ const LoginPage = ({ mode = 'login' }) => {
 
         setLoading(true)
         setError('')
+        setSuccess('')
 
         try {
+            let result
+
             if (isLogin) {
-                // Login
-                const result = await loginUsuario(formData.email, formData.password)
-
-                if (result.success) {
-                    setSuccess('¡Bienvenido de vuelta!')
-                    // La redirección se maneja en useEffect cuando cambie isAuthenticated
-                } else {
-                    setError(result.error || 'Error al iniciar sesión')
-                }
+                // Login usando AuthContext
+                console.log('Iniciando login...')
+                result = await login(formData.email, formData.password)
             } else {
-                // Registro
-                const result = await registrarUsuario(
-                    formData.email,
-                    formData.password,
-                    formData.nombreCompleto,
-                    formData.nombreUsuario
-                )
+                // Registro usando AuthContext
+                console.log('Iniciando registro...')
+                result = await register({
+                    email: formData.email,
+                    password: formData.password,
+                    nombreCompleto: formData.nombreCompleto,
+                    nombreUsuario: formData.nombreUsuario
+                })
+            }
 
-                if (result.success) {
-                    setSuccess('¡Cuenta creada exitosamente! Redirigiendo...')
-                    // La redirección se maneja en useEffect cuando cambie isAuthenticated
-                } else {
-                    setError(result.error || 'Error al crear la cuenta')
-                }
+            console.log('Resultado:', result)
+
+            if (result.success) {
+                const successMessage = isLogin ? '¡Bienvenido de vuelta!' : '¡Cuenta creada exitosamente!'
+                setSuccess(successMessage)
+
+                // La redirección se maneja automáticamente en useEffect cuando cambie isAuthenticated
+                setTimeout(() => {
+                    const from = location.state?.from?.pathname || '/dashboard'
+                    navigate(from, { replace: true })
+                }, 1000)
+            } else {
+                setError(result.error || `Error al ${isLogin ? 'iniciar sesión' : 'crear cuenta'}`)
             }
         } catch (error) {
-            setError('Error de conexión. Intenta nuevamente.')
-            console.error('Auth error:', error)
+            console.error('Error en autenticación:', error)
+            setError('Error de conexión. Verifica tu internet y que el servidor esté corriendo.')
         } finally {
             setLoading(false)
         }
@@ -337,8 +343,8 @@ const LoginPage = ({ mode = 'login' }) => {
                         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                             <h3 className="text-white font-medium mb-2">👨‍💻 Usuarios de Prueba:</h3>
                             <div className="text-sm text-blue-100 space-y-1">
-                                <p><strong>Admin:</strong> admin@mediconsa.com / admin123med</p>
-                                <p><strong>Estudiante:</strong> estudiante@mediconsa.com / estudiante123</p>
+                                <p><strong>Admin:</strong> admin@med.com / admin123</p>
+                                <p><strong>Estudiante:</strong> test@test.com / test123</p>
                             </div>
                         </div>
                     )}
