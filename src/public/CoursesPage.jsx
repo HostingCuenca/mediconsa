@@ -1,6 +1,6 @@
 // src/pages/CoursesPage.jsx - Catálogo público de cursos
 import React, { useState } from 'react'
-import Layout from '../components/Layout'
+import Layout from '../utils/Layout'
 
 const CoursesPage = () => {
     const [filters, setFilters] = useState({

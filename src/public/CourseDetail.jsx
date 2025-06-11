@@ -1,7 +1,7 @@
 // src/pages/CourseDetail.jsx - Detalle del curso con inscripción
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import Layout from '../components/Layout'
+import Layout from '../utils/Layout'
 import { useAuth } from '../utils/AuthContext'
 
 const CourseDetail = () => {

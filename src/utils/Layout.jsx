@@ -1,9 +1,11 @@
-// src/components/Layout.jsx
+// ==========================================
+// 1. src/utils/Layout.jsx - REFACTORIZADO
+// ==========================================
 import React from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import Sidebar from './Sidebar'
-import { useAuth } from '../utils/AuthContext'
+import { useAuth } from './AuthContext'
 
 const Layout = ({ children, showSidebar = false }) => {
     const { loading } = useAuth()

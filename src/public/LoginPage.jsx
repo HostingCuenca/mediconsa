@@ -1,8 +1,8 @@
-// src/pages/LoginPage.jsx - Ajustado para Node.js Backend
+// src/pages/LoginPage1.jsx - Ajustado para Node.js Backend
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../utils/AuthContext'
-import Layout from '../components/Layout'
+import Layout from '../utils/Layout'
 
 const LoginPage = ({ mode = 'login' }) => {
     const [isLogin, setIsLogin] = useState(mode === 'login')

@@ -1,3 +1,4 @@
+@ -1,631 +0,0 @@
 // src/admin/AdminApiDocs.jsx - Documentación completa e interactiva de la API
 import React, { useState } from 'react'
 import Layout from '../components/Layout'

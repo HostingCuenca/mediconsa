@@ -1,7 +1,7 @@
 // src/pages/LandingPage.jsx
 import React from 'react'
 import { Link } from 'react-router-dom'
-import Layout from '../components/Layout'
+import Layout from '../utils/Layout'
 
 const LandingPage = () => {
     return (
@@ -89,6 +89,12 @@ const LandingPage = () => {
                     <div className="text-center mb-16">
                         <h2 className="text-3xl md:text-4xl font-bold text-medico-blue mb-4">
                             Preparación Especializada para Cada Examen
+                        </h2> <h2 className="text-3xl md:text-4xl font-bold text-medico-blue mb-4">
+                        User (Usuario):
+                        neondb_owner
+
+                        Password (Contraseña):
+                        npg_y40likMaKVQW
                         </h2>
                         <p className="text-xl text-medico-gray max-w-3xl mx-auto">
                             Contenido actualizado y simulacros diseñados específicamente para cada tipo de evaluación médica en Ecuador.
