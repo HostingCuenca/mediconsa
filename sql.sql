@@ -337,3 +337,49 @@ ORDER BY tablename;
 
 -- 6. VERIFICAR POLÍTICAS RESTANTES
 SELECT tablename, policyname FROM pg_policies WHERE schemaname = 'public';
+
+
+
+
+
+--mayores cambios de politicas
+
+-- =============================================
+-- MEDICONSA 2025 - LIMPIEZA TOTAL SUPABASE
+-- =============================================
+
+-- 1. ELIMINAR TODAS LAS POLÍTICAS EXISTENTES
+DROP POLICY IF EXISTS "usuarios_sus_inscripciones" ON inscripciones;
+DROP POLICY IF EXISTS "usuarios_sus_intentos" ON intentos_simulacro;
+DROP POLICY IF EXISTS "usuarios_su_perfil" ON perfiles_usuario;
+DROP POLICY IF EXISTS "usuarios_su_progreso" ON progreso_clases;
+DROP POLICY IF EXISTS "usuarios_sus_respuestas" ON respuestas_usuario;
+
+-- 2. DESHABILITAR RLS EN TODAS LAS TABLAS
+ALTER TABLE perfiles_usuario DISABLE ROW LEVEL SECURITY;
+ALTER TABLE cursos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE modulos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE clases DISABLE ROW LEVEL SECURITY;
+ALTER TABLE materiales DISABLE ROW LEVEL SECURITY;
+ALTER TABLE simulacros DISABLE ROW LEVEL SECURITY;
+ALTER TABLE preguntas DISABLE ROW LEVEL SECURITY;
+ALTER TABLE opciones_respuesta DISABLE ROW LEVEL SECURITY;
+ALTER TABLE inscripciones DISABLE ROW LEVEL SECURITY;
+ALTER TABLE progreso_clases DISABLE ROW LEVEL SECURITY;
+ALTER TABLE intentos_simulacro DISABLE ROW LEVEL SECURITY;
+ALTER TABLE respuestas_usuario DISABLE ROW LEVEL SECURITY;
+
+-- 3. VERIFICAR QUE TODO ESTÉ LIMPIO
+SELECT
+    schemaname,
+    tablename,
+    CASE WHEN rowsecurity THEN 'ENABLED' ELSE 'DISABLED' END as rls_status
+FROM pg_tables
+WHERE schemaname = 'public'
+    AND tablename IN (
+        'perfiles_usuario', 'cursos', 'modulos', 'clases',
+        'inscripciones', 'progreso_clases', 'simulacros',
+        'preguntas', 'intentos_simulacro', 'respuestas_usuario'
+    )
+ORDER BY tablename;
+

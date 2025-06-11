@@ -1,151 +1,152 @@
-// src/services/auth.js
-import { supabase } from './supabase'
+// src/services/auth.js - Servicio de autenticación
+import apiService from './api'
 
-// =============================================
-// REGISTRO DE USUARIO SIN VERIFICACIÓN EMAIL
-// =============================================
-export const registrarUsuario = async (email, password, nombreCompleto, nombreUsuario) => {
-    try {
-        // 1. Registrar en Supabase Auth
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                emailRedirectTo: undefined, // Sin redirect
-                data: {
-                    nombre_completo: nombreCompleto,
-                    nombre_usuario: nombreUsuario
-                }
+class AuthService {
+    constructor() {
+        this.tokenKey = 'mediconsa_token'
+        this.userKey = 'mediconsa_user'
+    }
+
+    // =============================================
+    // REGISTRO
+    // =============================================
+    async register(userData) {
+        try {
+            const response = await apiService.post('/auth/register', userData, false)
+
+            if (response.success && response.data.token) {
+                this.setAuthData(response.data.token, response.data.user)
             }
-        })
 
-        if (authError) throw authError
-
-        // 2. Crear perfil inmediatamente (sin esperar confirmación)
-        const { error: perfilError } = await supabase
-            .from('perfiles_usuario')
-            .insert({
-                id: authData.user.id,
-                nombre_completo: nombreCompleto,
-                nombre_usuario: nombreUsuario,
-                tipo_usuario: 'estudiante'
-            })
-
-        if (perfilError) throw perfilError
-
-        return { success: true, user: authData.user }
-    } catch (error) {
-        console.error('Error registro:', error)
-        return { success: false, error: error.message }
-    }
-}
-
-// =============================================
-// LOGIN DE USUARIO
-// =============================================
-export const loginUsuario = async (email, password) => {
-    try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email,
-            password
-        })
-
-        if (error) throw error
-
-        return { success: true, user: data.user }
-    } catch (error) {
-        console.error('Error login:', error)
-        return { success: false, error: error.message }
-    }
-}
-
-// =============================================
-// LOGOUT
-// =============================================
-export const logoutUsuario = async () => {
-    try {
-        const { error } = await supabase.auth.signOut()
-        if (error) throw error
-        return { success: true }
-    } catch (error) {
-        console.error('Error logout:', error)
-        return { success: false, error: error.message }
-    }
-}
-
-// =============================================
-// OBTENER PERFIL COMPLETO
-// =============================================
-export const obtenerPerfil = async (userId) => {
-    try {
-        const { data, error } = await supabase
-            .from('perfiles_usuario')
-            .select('*')
-            .eq('id', userId)
-            .single()
-
-        if (error) throw error
-        return { success: true, perfil: data }
-    } catch (error) {
-        console.error('Error obtener perfil:', error)
-        return { success: false, error: error.message }
-    }
-}
-
-// =============================================
-// VERIFICAR SESIÓN ACTUAL
-// =============================================
-export const obtenerSesion = async () => {
-    try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        if (error) throw error
-        return { success: true, session }
-    } catch (error) {
-        console.error('Error obtener sesión:', error)
-        return { success: false, error: error.message }
-    }
-}
-
-// =============================================
-// LISTENER DE CAMBIOS DE AUTH
-// =============================================
-export const onAuthStateChange = (callback) => {
-    return supabase.auth.onAuthStateChange(callback)
-}
-
-// =============================================
-// CREAR USUARIOS DE PRUEBA (SOLO DESARROLLO)
-// =============================================
-export const crearUsuariosPrueba = async () => {
-    if (process.env.NODE_ENV !== 'development') return
-
-    try {
-        // Admin
-        const adminResult = await registrarUsuario(
-            'admin@mediconsa.com',
-            'admin123med',
-            'Administrador Mediconsa',
-            'admin.mediconsa'
-        )
-
-        if (adminResult.success) {
-            // Actualizar a admin
-            await supabase
-                .from('perfiles_usuario')
-                .update({ tipo_usuario: 'admin' })
-                .eq('id', adminResult.user.id)
+            return response
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            }
         }
+    }
 
-        // Estudiante
-        await registrarUsuario(
-            'estudiante@mediconsa.com',
-            'estudiante123',
-            'Estudiante Prueba',
-            'estudiante.prueba'
-        )
+    // =============================================
+    // LOGIN
+    // =============================================
+    async login(email, password) {
+        try {
+            const response = await apiService.post('/auth/login', { email, password }, false)
 
-        console.log('✅ Usuarios de prueba creados')
-    } catch (error) {
-        console.error('Error creando usuarios de prueba:', error)
+            if (response.success && response.data.token) {
+                this.setAuthData(response.data.token, response.data.user)
+            }
+
+            return response
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            }
+        }
+    }
+
+    // =============================================
+    // LOGOUT
+    // =============================================
+    logout() {
+        localStorage.removeItem(this.tokenKey)
+        localStorage.removeItem(this.userKey)
+        window.location.href = '/login'
+    }
+
+    // =============================================
+    // OBTENER PERFIL
+    // =============================================
+    async getProfile() {
+        try {
+            const response = await apiService.get('/auth/profile')
+
+            if (response.success) {
+                this.setUserData(response.data.user)
+            }
+
+            return response
+        } catch (error) {
+            // Si el token es inválido, hacer logout
+            if (error.message.includes('inválido') || error.message.includes('expirado')) {
+                this.logout()
+            }
+
+            return {
+                success: false,
+                error: error.message
+            }
+        }
+    }
+
+    // =============================================
+    // VERIFICAR TOKEN
+    // =============================================
+    async verifyToken() {
+        const token = this.getToken()
+        if (!token) return { success: false, error: 'No token found' }
+
+        try {
+            const response = await apiService.get('/auth/verify')
+            return response
+        } catch (error) {
+            this.logout()
+            return { success: false, error: error.message }
+        }
+    }
+
+    // =============================================
+    // GESTIÓN DE DATOS LOCALES
+    // =============================================
+    setAuthData(token, user) {
+        localStorage.setItem(this.tokenKey, token)
+        localStorage.setItem(this.userKey, JSON.stringify(user))
+    }
+
+    setUserData(user) {
+        localStorage.setItem(this.userKey, JSON.stringify(user))
+    }
+
+    getToken() {
+        return localStorage.getItem(this.tokenKey)
+    }
+
+    getUser() {
+        const userData = localStorage.getItem(this.userKey)
+        return userData ? JSON.parse(userData) : null
+    }
+
+    isAuthenticated() {
+        return !!this.getToken()
+    }
+
+    isAdmin() {
+        const user = this.getUser()
+        return user?.tipoUsuario === 'admin'
+    }
+
+    isInstructor() {
+        const user = this.getUser()
+        return user?.tipoUsuario === 'instructor'
+    }
+
+    // =============================================
+    // FUNCIONES LEGACY (para compatibilidad)
+    // =============================================
+    async registrarUsuario(email, password, nombreCompleto, nombreUsuario) {
+        return await this.register({ email, password, nombreCompleto, nombreUsuario })
+    }
+
+    async loginUsuario(email, password) {
+        return await this.login(email, password)
+    }
+
+    async logoutUsuario() {
+        this.logout()
+        return { success: true }
     }
 }
+
+export default new AuthService()
