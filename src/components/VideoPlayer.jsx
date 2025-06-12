@@ -50,15 +50,29 @@ const VideoPlayer = ({
 
     // Cargar API de YouTube cuando se monte el componente
     useEffect(() => {
-        if (!window.YT) {
-            const tag = document.createElement('script')
-            tag.src = 'https://www.youtube.com/iframe_api'
-            const firstScriptTag = document.getElementsByTagName('script')[0]
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
+        const loadYouTubeAPI = () => {
+            if (!window.YT) {
+                const tag = document.createElement('script')
+                tag.src = 'https://www.youtube.com/iframe_api'
+                tag.async = true
+                tag.defer = true
+                const firstScriptTag = document.getElementsByTagName('script')[0]
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
 
-            window.onYouTubeIframeAPIReady = initializePlayer
-        } else {
-            initializePlayer()
+                window.onYouTubeIframeAPIReady = () => {
+                    initializePlayer()
+                }
+            } else {
+                initializePlayer()
+            }
+        }
+
+        loadYouTubeAPI()
+
+        return () => {
+            if (window.currentPlayer) {
+                window.currentPlayer.destroy()
+            }
         }
     }, [videoId])
 
@@ -79,7 +93,10 @@ const VideoPlayer = ({
                     fs: 1,
                     cc_load_policy: 0,
                     iv_load_policy: 3,
-                    autohide: 0
+                    autohide: 0,
+                    origin: window.location.origin,
+                    enablejsapi: 1,
+                    widget_referrer: window.location.href
                 },
                 events: {
                     onReady: onPlayerReady,

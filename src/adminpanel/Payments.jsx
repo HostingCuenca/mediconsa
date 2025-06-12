@@ -1,4 +1,4 @@
-// src/adminpanel/Payments.jsx - ADMINISTRACIÓN COMPLETA DE PAGOS
+// src/adminpanel/Payments.jsx - GESTIÓN COMPLETA DE INSCRIPCIONES
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
@@ -32,12 +32,12 @@ const AdminPayments = () => {
     })
     const [pagination, setPagination] = useState({})
 
-    // ========== CONFIGURACIONES ==========
+    // ========== CONFIGURACIONES ACTUALIZADAS ==========
     const estadosPago = [
-        { value: '', label: 'Todos los estados' },
+        { value: '', label: 'Todas las inscripciones' },
         { value: 'pendiente', label: 'Pendientes' },
-        { value: 'habilitado', label: 'Aprobados' },
-        { value: 'rechazado', label: 'Rechazados' }
+        { value: 'habilitado', label: 'Habilitadas' },
+        { value: 'rechazado', label: 'Rechazadas' }
     ]
 
     // ========== EFECTOS ==========
@@ -52,19 +52,23 @@ const AdminPayments = () => {
         }
     }, [success])
 
-    // ========== FUNCIONES DE CARGA ==========
+    // ========== FUNCIONES DE CARGA ACTUALIZADAS ==========
     const loadPayments = async () => {
         try {
             setLoading(true)
             setError('')
 
-            const result = await enrollmentsService.getPendingPayments(filters)
+            // ✅ CAMBIO PRINCIPAL: Usar getAllEnrollments
+            const result = await enrollmentsService.getAllEnrollments(filters)
 
             if (result.success) {
-                setPayments(result.data.pagosPendientes || [])
+                setPayments(result.data.inscripciones || [])
                 setPagination(result.data.pagination || {})
+
+                // Calcular estadísticas locales
+                calculateLocalStats(result.data.inscripciones || [])
             } else {
-                setError(result.error || 'Error cargando pagos')
+                setError(result.error || 'Error cargando inscripciones')
             }
         } catch (error) {
             console.error('Error:', error)
@@ -72,6 +76,44 @@ const AdminPayments = () => {
         } finally {
             setLoading(false)
         }
+    }
+
+    // ========== NUEVA FUNCIÓN: CALCULAR ESTADÍSTICAS ==========
+    const calculateLocalStats = (inscripciones) => {
+        const stats = {
+            total: inscripciones.length,
+            pendientes: 0,
+            habilitadas: 0,
+            rechazadas: 0,
+            gratuitas: 0,
+            pagadas: 0,
+            ingresosTotales: 0,
+            ingresosPendientes: 0
+        }
+
+        inscripciones.forEach(inscripcion => {
+            // Contar por estado
+            if (inscripcion.estado_pago === 'pendiente') stats.pendientes++
+            if (inscripcion.estado_pago === 'habilitado') stats.habilitadas++
+            if (inscripcion.estado_pago === 'rechazado') stats.rechazadas++
+
+            // Contar por tipo
+            if (inscripcion.es_gratuito) {
+                stats.gratuitas++
+            } else {
+                stats.pagadas++
+
+                // Calcular ingresos
+                const precio = parseFloat(inscripcion.precio) || 0
+                if (inscripcion.estado_pago === 'habilitado') {
+                    stats.ingresosTotales += precio
+                } else if (inscripcion.estado_pago === 'pendiente') {
+                    stats.ingresosPendientes += precio
+                }
+            }
+        })
+
+        setPaymentStats(stats)
     }
 
     // ========== FUNCIONES DE FILTROS ==========
@@ -82,6 +124,16 @@ const AdminPayments = () => {
             [name]: value,
             page: 1 // Reset página al cambiar filtros
         }))
+    }
+
+    const clearFilters = () => {
+        setFilters({
+            search: '',
+            estado: '',
+            curso: '',
+            page: 1,
+            limit: 20
+        })
     }
 
     // ========== ACCIONES DE PAGO ==========
@@ -132,9 +184,12 @@ const AdminPayments = () => {
 
         try {
             setFormLoading(true)
-            const result = await enrollmentsService.rejectPayment(selectedPayment.id, {
-                motivo: rejectReason
-            })
+            // Nota: Este método necesitaría implementarse en el servicio
+            // const result = await enrollmentsService.rejectPayment?.(selectedPayment.id, {
+            //     motivo: rejectReason
+            // }) || { success: false, error: 'Método no implementado' }
+
+            const result = { success: false, error: 'Función de rechazo no implementada aún' }
 
             if (result.success) {
                 setShowRejectConfirm(false)
@@ -192,7 +247,7 @@ const AdminPayments = () => {
     const getStatusText = (status) => {
         const labels = {
             'pendiente': 'Pendiente',
-            'habilitado': 'Aprobado',
+            'habilitado': 'Habilitado',
             'rechazado': 'Rechazado'
         }
         return labels[status] || status
@@ -207,11 +262,11 @@ const AdminPayments = () => {
     return (
         <Layout showSidebar={true}>
             <div className="p-8">
-                {/* ========== HEADER ========== */}
+                {/* ========== HEADER ACTUALIZADO ========== */}
                 <div className="flex justify-between items-center mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-medico-blue">Gestión de Pagos</h1>
-                        <p className="text-medico-gray mt-2">Administra las inscripciones y pagos de la plataforma</p>
+                        <h1 className="text-3xl font-bold text-medico-blue">Gestión de Inscripciones</h1>
+                        <p className="text-medico-gray mt-2">Administra todas las inscripciones de la plataforma</p>
                     </div>
                 </div>
 
@@ -244,66 +299,64 @@ const AdminPayments = () => {
                     </div>
                 )}
 
-                {/* ========== ESTADÍSTICAS ========== */}
-                {paymentStats && Object.keys(paymentStats).length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">Pagos Pendientes</h3>
-                                    <p className="text-3xl font-bold text-yellow-600">{paymentStats.pendientes || 0}</p>
-                                </div>
-                                <div className="bg-yellow-100 rounded-full p-3">
-                                    <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
+                {/* ========== ESTADÍSTICAS ACTUALIZADAS ========== */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Total Inscripciones</h3>
+                                <p className="text-3xl font-bold text-medico-blue">{paymentStats.total || 0}</p>
                             </div>
-                        </div>
-
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">Aprobados</h3>
-                                    <p className="text-3xl font-bold text-green-600">{paymentStats.aprobados || 0}</p>
-                                </div>
-                                <div className="bg-green-100 rounded-full p-3">
-                                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">Ingresos del Mes</h3>
-                                    <p className="text-3xl font-bold text-medico-blue">{formatCurrency(paymentStats.ingresosMes || 0)}</p>
-                                </div>
-                                <div className="bg-medico-blue bg-opacity-10 rounded-full p-3">
-                                    <svg className="w-8 h-8 text-medico-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">Total Ingresos</h3>
-                                    <p className="text-3xl font-bold text-purple-600">{formatCurrency(paymentStats.ingresosTotal || 0)}</p>
-                                </div>
-                                <div className="bg-purple-100 rounded-full p-3">
-                                    <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                    </svg>
-                                </div>
+                            <div className="bg-medico-blue bg-opacity-10 rounded-full p-3">
+                                <svg className="w-8 h-8 text-medico-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                </svg>
                             </div>
                         </div>
                     </div>
-                )}
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Pendientes</h3>
+                                <p className="text-3xl font-bold text-yellow-600">{paymentStats.pendientes || 0}</p>
+                            </div>
+                            <div className="bg-yellow-100 rounded-full p-3">
+                                <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Habilitadas</h3>
+                                <p className="text-3xl font-bold text-green-600">{paymentStats.habilitadas || 0}</p>
+                            </div>
+                            <div className="bg-green-100 rounded-full p-3">
+                                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-lg font-semibold text-gray-900">Ingresos Totales</h3>
+                                <p className="text-3xl font-bold text-purple-600">{formatCurrency(paymentStats.ingresosTotales || 0)}</p>
+                            </div>
+                            <div className="bg-purple-100 rounded-full p-3">
+                                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* ========== FILTROS ========== */}
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
@@ -348,13 +401,7 @@ const AdminPayments = () => {
 
                         <div className="flex items-end">
                             <button
-                                onClick={() => setFilters({
-                                    search: '',
-                                    estado: '',
-                                    curso: '',
-                                    page: 1,
-                                    limit: 20
-                                })}
+                                onClick={clearFilters}
                                 className="w-full px-3 py-2 text-medico-blue border border-medico-blue rounded-lg hover:bg-medico-blue hover:text-white transition-colors"
                             >
                                 Limpiar Filtros
@@ -363,19 +410,19 @@ const AdminPayments = () => {
                     </div>
                 </div>
 
-                {/* ========== LISTA DE PAGOS ========== */}
+                {/* ========== LISTA DE INSCRIPCIONES ========== */}
                 {loading ? (
                     <div className="flex items-center justify-center py-12">
                         <div className="text-center">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medico-blue mx-auto"></div>
-                            <p className="mt-4 text-medico-gray">Cargando pagos...</p>
+                            <p className="mt-4 text-medico-gray">Cargando inscripciones...</p>
                         </div>
                     </div>
                 ) : (
                     <>
                         {payments.length > 0 ? (
                             <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                                {/* Tabla de pagos */}
+                                {/* Tabla de inscripciones */}
                                 <div className="overflow-x-auto">
                                     <table className="min-w-full divide-y divide-gray-200">
                                         <thead className="bg-gray-50">
@@ -427,11 +474,18 @@ const AdminPayments = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-medium text-gray-900">{payment.curso_titulo}</div>
-                                                    <div className="text-sm text-gray-500">ID: {payment.id}</div>
+                                                    <div className="text-sm text-gray-500 flex items-center gap-2">
+                                                        <span>ID: {payment.id}</span>
+                                                        {payment.es_gratuito && (
+                                                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                                Gratuito
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-bold text-medico-blue">
-                                                        {formatCurrency(payment.precio)}
+                                                        {payment.es_gratuito ? 'Gratuito' : formatCurrency(payment.precio)}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -456,7 +510,7 @@ const AdminPayments = () => {
                                                             </svg>
                                                         </button>
 
-                                                        {/* Aprobar pago */}
+                                                        {/* Aprobar pago - Solo si está pendiente */}
                                                         {payment.estado_pago === 'pendiente' && (
                                                             <button
                                                                 onClick={() => handleApprovePayment(payment)}
@@ -469,7 +523,7 @@ const AdminPayments = () => {
                                                             </button>
                                                         )}
 
-                                                        {/* Rechazar pago */}
+                                                        {/* Rechazar pago - Solo si está pendiente */}
                                                         {payment.estado_pago === 'pendiente' && (
                                                             <button
                                                                 onClick={() => handleRejectPayment(payment)}
@@ -484,47 +538,131 @@ const AdminPayments = () => {
 
                                                         {/* WhatsApp */}
                                                         <a
-                                                        href={generateWhatsAppURL('593985036066', `Hola ${payment.nombre_completo}, te contacto sobre tu inscripción al curso "${payment.curso_titulo}".`)}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-green-600 hover:text-green-800"
-                                                        title="Contactar por WhatsApp"
+                                                            href={generateWhatsAppURL('593985036066', `Hola ${payment.nombre_completo}, te contacto sobre tu inscripción al curso "${payment.curso_titulo}".`)}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-green-600 hover:text-green-800"
+                                                            title="Contactar por WhatsApp"
                                                         >
-                                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-                                                        </svg>
-                                                    </a>
-                                                </div>
-                                            </td>
+                                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                                                            </svg>
+                                                        </a>
+                                                    </div>
+                                                </td>
                                             </tr>
-                                            ))}
+                                        ))}
                                         </tbody>
                                     </table>
                                 </div>
+
+                                {/* Paginación */}
+                                {pagination.totalPages > 1 && (
+                                    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                                        <div className="flex-1 flex justify-between sm:hidden">
+                                            <button
+                                                onClick={() => handlePageChange(pagination.page - 1)}
+                                                disabled={pagination.page <= 1}
+                                                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                            >
+                                                Anterior
+                                            </button>
+                                            <button
+                                                onClick={() => handlePageChange(pagination.page + 1)}
+                                                disabled={pagination.page >= pagination.totalPages}
+                                                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                                            >
+                                                Siguiente
+                                            </button>
+                                        </div>
+                                        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                            <div>
+                                                <p className="text-sm text-gray-700">
+                                                    Mostrando{' '}
+                                                    <span className="font-medium">{((pagination.page - 1) * pagination.limit) + 1}</span>
+                                                    {' '}a{' '}
+                                                    <span className="font-medium">
+                                                        {Math.min(pagination.page * pagination.limit, pagination.total)}
+                                                    </span>
+                                                    {' '}de{' '}
+                                                    <span className="font-medium">{pagination.total}</span>
+                                                    {' '}resultados
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                                    <button
+                                                        onClick={() => handlePageChange(pagination.page - 1)}
+                                                        disabled={pagination.page <= 1}
+                                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                                                    >
+                                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </button>
+
+                                                    {/* Páginas */}
+                                                    {[...Array(Math.min(5, pagination.totalPages))].map((_, i) => {
+                                                        const pageNum = i + 1
+                                                        return (
+                                                            <button
+                                                                key={pageNum}
+                                                                onClick={() => handlePageChange(pageNum)}
+                                                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                                                    pageNum === pagination.page
+                                                                        ? 'z-10 bg-medico-blue border-medico-blue text-white'
+                                                                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                                                }`}
+                                                            >
+                                                                {pageNum}
+                                                            </button>
+                                                        )
+                                                    })}
+
+                                                    <button
+                                                        onClick={() => handlePageChange(pagination.page + 1)}
+                                                        disabled={pagination.page >= pagination.totalPages}
+                                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                                                    >
+                                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                                        </svg>
+                                                    </button>
+                                                </nav>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="text-center py-12">
                                 <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                                 </svg>
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay pagos disponibles</h3>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay inscripciones disponibles</h3>
                                 <p className="text-gray-500 mb-4">
                                     {filters.search || filters.estado || filters.curso
-                                        ? 'No se encontraron pagos con los filtros aplicados'
-                                        : 'No hay pagos pendientes por revisar'
+                                        ? 'No se encontraron inscripciones con los filtros aplicados'
+                                        : 'No hay inscripciones registradas en el sistema'
                                     }
                                 </p>
+                                <button
+                                    onClick={clearFilters}
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-medico-blue bg-medico-blue bg-opacity-10 hover:bg-opacity-20"
+                                >
+                                    Limpiar filtros
+                                </button>
                             </div>
                         )}
                     </>
-                    )}
+                )}
 
                 {/* ========== MODAL DE VISUALIZACIÓN ========== */}
                 {showViewModal && selectedPayment && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-medico-blue">Detalles del Pago</h2>
+                                <h2 className="text-2xl font-bold text-medico-blue">Detalles de la Inscripción</h2>
                                 <button
                                     onClick={() => setShowViewModal(false)}
                                     className="text-gray-400 hover:text-gray-600"
@@ -554,10 +692,8 @@ const AdminPayments = () => {
                                                 <p className="text-gray-600">@{selectedPayment.nombre_usuario}</p>
                                             </div>
                                             <div>
-                                                <span className="font-medium text-gray-700">Estado:</span>
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedPayment.estado_pago)}`}>
-                                                   {getStatusText(selectedPayment.estado_pago)}
-                                               </span>
+                                                <span className="font-medium text-gray-700">Teléfono:</span>
+                                                <p className="text-gray-600">{selectedPayment.telefono || 'No registrado'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -573,17 +709,51 @@ const AdminPayments = () => {
                                                 <p className="text-gray-600">{selectedPayment.curso_titulo}</p>
                                             </div>
                                             <div>
-                                                <span className="font-medium text-gray-700">Precio:</span>
-                                                <p className="text-gray-600 font-bold text-medico-blue">{formatCurrency(selectedPayment.precio)}</p>
+                                                <span className="font-medium text-gray-700">Tipo:</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-gray-600">
+                                                        {selectedPayment.es_gratuito ? 'Gratuito' : formatCurrency(selectedPayment.precio)}
+                                                    </span>
+                                                    {selectedPayment.es_gratuito && (
+                                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                            Gratuito
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                             <div>
                                                 <span className="font-medium text-gray-700">Fecha Inscripción:</span>
                                                 <p className="text-gray-600">{formatDate(selectedPayment.fecha_inscripcion)}</p>
                                             </div>
                                             <div>
+                                                <span className="font-medium text-gray-700">Estado:</span>
+                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedPayment.estado_pago)}`}>
+                                                    {getStatusText(selectedPayment.estado_pago)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Información adicional */}
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Información Adicional</h3>
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <div className="grid grid-cols-2 gap-4 text-sm">
+                                            <div>
                                                 <span className="font-medium text-gray-700">ID Inscripción:</span>
                                                 <p className="text-gray-600 font-mono">{selectedPayment.id}</p>
                                             </div>
+                                            <div>
+                                                <span className="font-medium text-gray-700">Fecha Habilitación:</span>
+                                                <p className="text-gray-600">{formatDate(selectedPayment.fecha_habilitacion)}</p>
+                                            </div>
+                                            {selectedPayment.aprobado_por_nombre && (
+                                                <div className="col-span-2">
+                                                    <span className="font-medium text-gray-700">Aprobado por:</span>
+                                                    <p className="text-gray-600">{selectedPayment.aprobado_por_nombre}</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -593,154 +763,159 @@ const AdminPayments = () => {
                                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Mensaje WhatsApp Sugerido</h3>
                                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                                         <p className="text-sm text-green-800">
-                                            Hola {selectedPayment.nombre_completo}, te contacto sobre tu inscripción al curso "{selectedPayment.curso_titulo}".
-                                            El monto a pagar es de {formatCurrency(selectedPayment.precio)}.
-                                            ¿Podrías enviarme el comprobante de pago?
+                                            {selectedPayment.es_gratuito
+                                                ? `Hola ${selectedPayment.nombre_completo}, confirmamos tu inscripción al curso gratuito "${selectedPayment.curso_titulo}". Ya tienes acceso completo al contenido.`
+                                                : `Hola ${selectedPayment.nombre_completo}, te contacto sobre tu inscripción al curso "${selectedPayment.curso_titulo}". El monto a pagar es de ${formatCurrency(selectedPayment.precio)}. ¿Podrías enviarme el comprobante de pago?`
+                                            }
                                         </p>
                                         <div className="mt-3">
-                                        <a
-                                            href={generateWhatsAppURL('593985036066', `Hola ${selectedPayment.nombre_completo}, te contacto sobre tu inscripción al curso "${selectedPayment.curso_titulo}". El monto a pagar es de ${formatCurrency(selectedPayment.precio)}. ¿Podrías enviarme el comprobante de pago?`)}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                            <a
+                                                href={generateWhatsAppURL('593985036066',
+                                                    selectedPayment.es_gratuito
+                                                        ? `Hola ${selectedPayment.nombre_completo}, confirmamos tu inscripción al curso gratuito "${selectedPayment.curso_titulo}". Ya tienes acceso completo al contenido.`
+                                                        : `Hola ${selectedPayment.nombre_completo}, te contacto sobre tu inscripción al curso "${selectedPayment.curso_titulo}". El monto a pagar es de ${formatCurrency(selectedPayment.precio)}. ¿Podrías enviarme el comprobante de pago?`
+                                                )}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                                             >
-                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-                                            </svg>
-                                            <span>Abrir WhatsApp</span>
-                                        </a>
+                                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                                                </svg>
+                                                <span>Abrir WhatsApp</span>
+                                            </a>
+                                        </div>
                                     </div>
+                                </div>
+
+                                {/* Acciones */}
+                                {selectedPayment.estado_pago === 'pendiente' && (
+                                    <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                                        <button
+                                            onClick={() => {
+                                                setShowViewModal(false)
+                                                handleRejectPayment(selectedPayment)
+                                            }}
+                                            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                        >
+                                            Rechazar Pago
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowViewModal(false)
+                                                handleApprovePayment(selectedPayment)
+                                            }}
+                                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                        >
+                                            Aprobar Pago
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ========== MODAL DE CONFIRMACIÓN DE APROBACIÓN ========== */}
+                {showApproveConfirm && selectedPayment && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">Confirmar Aprobación</h3>
+                                <p className="text-gray-600 mt-2">
+                                    ¿Estás seguro de que quieres aprobar el pago de <strong>"{selectedPayment.nombre_completo}"</strong>
+                                    para el curso <strong>"{selectedPayment.curso_titulo}"</strong>?
+                                </p>
+                                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                    <p className="text-sm text-green-800">
+                                        <strong>Monto:</strong> {selectedPayment.es_gratuito ? 'Gratuito' : formatCurrency(selectedPayment.precio)}
+                                    </p>
+                                    <p className="text-sm text-green-800">
+                                        El estudiante tendrá acceso inmediato al curso tras la aprobación.
+                                    </p>
                                 </div>
                             </div>
 
-                            {/* Acciones */}
-                            {selectedPayment.estado_pago === 'pendiente' && (
-                                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-                                    <button
-                                        onClick={() => {
-                                            setShowViewModal(false)
-                                            handleRejectPayment(selectedPayment)
-                                        }}
-                                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                                    >
-                                        Rechazar Pago
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowViewModal(false)
-                                            handleApprovePayment(selectedPayment)
-                                        }}
-                                        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                                    >
-                                        Aprobar Pago
-                                    </button>
-                                </div>
-                            )}
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => {
+                                        setShowApproveConfirm(false)
+                                        setSelectedPayment(null)
+                                    }}
+                                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmApprovePayment}
+                                    disabled={formLoading}
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center space-x-2"
+                                >
+                                    {formLoading && (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    )}
+                                    <span>{formLoading ? 'Aprobando...' : 'Aprobar Pago'}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
+                )}
+
+                {/* ========== MODAL DE CONFIRMACIÓN DE RECHAZO ========== */}
+                {showRejectConfirm && selectedPayment && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">Confirmar Rechazo</h3>
+                                <p className="text-gray-600 mt-2">
+                                    ¿Estás seguro de que quieres rechazar el pago de <strong>"{selectedPayment.nombre_completo}"</strong>?
+                                </p>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Motivo del Rechazo *
+                                </label>
+                                <textarea
+                                    value={rejectReason}
+                                    onChange={(e) => setRejectReason(e.target.value)}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    placeholder="Explica por qué se rechaza el pago..."
+                                />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Este motivo será comunicado al estudiante
+                                </p>
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => {
+                                        setShowRejectConfirm(false)
+                                        setSelectedPayment(null)
+                                        setRejectReason('')
+                                    }}
+                                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmRejectPayment}
+                                    disabled={formLoading || !rejectReason.trim()}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center space-x-2"
+                                >
+                                    {formLoading && (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    )}
+                                    <span>{formLoading ? 'Rechazando...' : 'Rechazar Pago'}</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    )}
-
-{/* ========== MODAL DE CONFIRMACIÓN DE APROBACIÓN ========== */}
-{showApproveConfirm && selectedPayment && (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Confirmar Aprobación</h3>
-                <p className="text-gray-600 mt-2">
-                    ¿Estás seguro de que quieres aprobar el pago de <strong>"{selectedPayment.nombre_completo}"</strong>
-                    para el curso <strong>"{selectedPayment.curso_titulo}"</strong>?
-                </p>
-                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-800">
-                        <strong>Monto:</strong> {formatCurrency(selectedPayment.precio)}
-                    </p>
-                    <p className="text-sm text-green-800">
-                        El estudiante tendrá acceso inmediato al curso tras la aprobación.
-                    </p>
-                </div>
+                )}
             </div>
-
-            <div className="flex justify-end space-x-3">
-                <button
-                    onClick={() => {
-                        setShowApproveConfirm(false)
-                        setSelectedPayment(null)
-                    }}
-                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                    Cancelar
-                </button>
-                <button
-                    onClick={confirmApprovePayment}
-                    disabled={formLoading}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center space-x-2"
-                >
-                    {formLoading && (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    )}
-                    <span>{formLoading ? 'Aprobando...' : 'Aprobar Pago'}</span>
-                </button>
-            </div>
-        </div>
-    </div>
-)}
-
-{/* ========== MODAL DE CONFIRMACIÓN DE RECHAZO ========== */}
-{showRejectConfirm && selectedPayment && (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Confirmar Rechazo</h3>
-                <p className="text-gray-600 mt-2">
-                    ¿Estás seguro de que quieres rechazar el pago de <strong>"{selectedPayment.nombre_completo}"</strong>?
-                </p>
-            </div>
-
-            <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Motivo del Rechazo *
-                </label>
-                <textarea
-                    value={rejectReason}
-                    onChange={(e) => setRejectReason(e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                    placeholder="Explica por qué se rechaza el pago..."
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                    Este motivo será comunicado al estudiante
-                </p>
-            </div>
-
-            <div className="flex justify-end space-x-3">
-                <button
-                    onClick={() => {
-                        setShowRejectConfirm(false)
-                        setSelectedPayment(null)
-                        setRejectReason('')
-                    }}
-                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                    Cancelar
-                </button>
-                <button
-                    onClick={confirmRejectPayment}
-                    disabled={formLoading || !rejectReason.trim()}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center space-x-2"
-                >
-                    {formLoading && (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    )}
-                    <span>{formLoading ? 'Rechazando...' : 'Rechazar Pago'}</span>
-                </button>
-            </div>
-        </div>
-    </div>
-)}
-</div>
-</Layout>
-)
+        </Layout>
+    )
 }
 
 export default AdminPayments

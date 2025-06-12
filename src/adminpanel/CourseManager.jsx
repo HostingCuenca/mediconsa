@@ -405,7 +405,7 @@ const CourseManager = () => {
                     <div>
                         <div className="flex items-center space-x-4 mb-2">
                             <button
-                                onClick={() => navigate('/admin/courses')}
+                                onClick={() => navigate('/admin/cursos')}
                                 className="text-medico-blue hover:text-blue-700"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
