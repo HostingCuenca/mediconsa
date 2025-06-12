@@ -341,5 +341,5 @@ class CoursesService {
     }
 }
 
-// ✅ EXPORT DEFAULT CORRECTO
+// ✅ EXPORT DEFAULT CORRECTOx
 export default new CoursesService()

@@ -239,40 +239,64 @@ class DashboardService {
     // =============================================
     // DASHBOARD ESTUDIANTE - CORREGIDO
     // =============================================
+    // async getStudentDashboard() {
+    //     try {
+    //         console.log('Llamando a dashboard estudiante...')
+    //         const response = await apiService.get('/dashboard/student')
+    //         console.log('Respuesta dashboard estudiante:', response)
+    //
+    //         if (response.success && response.data) {
+    //             const normalizedData = {
+    //                 estadisticas: {
+    //                     cursosInscritos: parseInt(response.data.estadisticas.cursos_inscritos) || 0,
+    //                     clasesCompletadas: parseInt(response.data.estadisticas.clases_completadas) || 0,
+    //                     simulacrosRealizados: parseInt(response.data.estadisticas.simulacros_realizados) || 0,
+    //                     progresoPromedio: Math.round(response.data.estadisticas.promedio_simulacros || 0)
+    //                 },
+    //                 cursosRecientes: response.data.cursosRecientes || [],
+    //                 actividadReciente: response.data.actividadReciente || []
+    //             }
+    //
+    //             return {
+    //                 success: true,
+    //                 data: normalizedData
+    //             }
+    //         }
+    //
+    //         return {
+    //             success: false,
+    //             error: 'Respuesta inválida del servidor'
+    //         }
+    //
+    //     } catch (error) {
+    //         console.error('Error en getStudentDashboard:', error)
+    //         return {
+    //             success: false,
+    //             error: error.message || 'Error de conexión con el servidor'
+    //         }
+    //     }
+    // }
+
     async getStudentDashboard() {
         try {
-            console.log('Llamando a dashboard estudiante...')
-            const response = await apiService.get('/dashboard/student')
-            console.log('Respuesta dashboard estudiante:', response)
+            const response = await apiService.get('/dashboard')
 
-            if (response.success && response.data) {
-                const normalizedData = {
-                    estadisticas: {
-                        cursosInscritos: parseInt(response.data.estadisticas.cursos_inscritos) || 0,
-                        clasesCompletadas: parseInt(response.data.estadisticas.clases_completadas) || 0,
-                        simulacrosRealizados: parseInt(response.data.estadisticas.simulacros_realizados) || 0,
-                        progresoPromedio: Math.round(response.data.estadisticas.promedio_simulacros || 0)
-                    },
-                    cursosRecientes: response.data.cursosRecientes || [],
-                    actividadReciente: response.data.actividadReciente || []
-                }
-
+            if (response.success) {
                 return {
                     success: true,
-                    data: normalizedData
+                    data: response.data
                 }
             }
 
             return {
                 success: false,
-                error: 'Respuesta inválida del servidor'
+                error: response.message || 'Error cargando dashboard'
             }
-
         } catch (error) {
-            console.error('Error en getStudentDashboard:', error)
+            console.error('Error dashboard:', error)
             return {
                 success: false,
-                error: error.message || 'Error de conexión con el servidor'
+                error: error.message || 'Error de conexión'
             }
         }
     }

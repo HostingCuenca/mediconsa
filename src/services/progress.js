@@ -1,4 +1,4 @@
-// src/services/progress.js - Servicio de progreso refactorizado para Node.js Backend
+// src/services/progress.js - CORREGIDO COMPLETAMENTE
 import apiService from './api'
 
 class ProgressService {
@@ -8,21 +8,30 @@ class ProgressService {
     // =============================================
     async updateClassProgress(claseId, porcentajeVisto, completada = false) {
         try {
+            console.log('Actualizando progreso:', { claseId, porcentajeVisto, completada })
             const response = await apiService.patch(`/progress/class/${claseId}`, {
                 porcentajeVisto,
                 completada
             })
 
-            return {
-                success: true,
-                data: response.data || response,
-                progreso: response.data?.progreso || response.progreso || null,
-                message: response.message || 'Progreso actualizado'
+            if (response.success) {
+                return {
+                    success: true,
+                    data: response.data,
+                    progreso: response.data?.progreso,
+                    message: response.message || 'Progreso actualizado'
+                }
             }
-        } catch (error) {
+
             return {
                 success: false,
-                error: error.message
+                error: response.message || 'Error actualizando progreso'
+            }
+        } catch (error) {
+            console.error('Error actualizando progreso:', error)
+            return {
+                success: false,
+                error: error.message || 'Error de conexión'
             }
         }
     }
@@ -32,22 +41,28 @@ class ProgressService {
     // =============================================
     async getCourseProgress(cursoId) {
         try {
+            console.log('Obteniendo progreso del curso:', cursoId)
             const response = await apiService.get(`/progress/course/${cursoId}`)
 
-            return {
-                success: true,
-                data: response.data || response,
-                curso: response.data?.curso || response.curso || null,
-                resumen: response.data?.resumen || response.resumen || {},
-                modulos: response.data?.modulos || response.modulos || []
+            if (response.success && response.data) {
+                return {
+                    success: true,
+                    data: response.data,
+                    curso: response.data.curso,
+                    resumen: response.data.resumen,
+                    modulos: response.data.modulos
+                }
             }
-        } catch (error) {
+
             return {
                 success: false,
-                error: error.message,
-                curso: null,
-                resumen: {},
-                modulos: []
+                error: response.message || 'Error obteniendo progreso del curso'
+            }
+        } catch (error) {
+            console.error('Error obteniendo progreso:', error)
+            return {
+                success: false,
+                error: error.message || 'Error de conexión'
             }
         }
     }
@@ -59,18 +74,24 @@ class ProgressService {
         try {
             const response = await apiService.get('/progress/my-overall')
 
-            return {
-                success: true,
-                data: response.data || response,
-                estadisticas: response.data?.estadisticas || response.estadisticas || {},
-                cursos: response.data?.cursos || response.cursos || []
+            if (response.success && response.data) {
+                return {
+                    success: true,
+                    data: response.data,
+                    estadisticas: response.data.estadisticas,
+                    cursos: response.data.cursos
+                }
             }
-        } catch (error) {
+
             return {
                 success: false,
-                error: error.message,
-                estadisticas: {},
-                cursos: []
+                error: response.message || 'Error obteniendo progreso general'
+            }
+        } catch (error) {
+            console.error('Error obteniendo progreso general:', error)
+            return {
+                success: false,
+                error: error.message || 'Error de conexión'
             }
         }
     }
@@ -88,6 +109,20 @@ class ProgressService {
     async markClassAsPartiallyViewed(claseId, porcentaje) {
         const completada = porcentaje >= 95
         return await this.updateClassProgress(claseId, porcentaje, completada)
+    }
+
+    // =============================================
+    // TRACKING DE VIDEO (Para YouTube)
+    // =============================================
+    async trackVideoProgress(claseId, currentTime, duration) {
+        if (!duration || duration === 0) return
+
+        const porcentaje = Math.min(Math.round((currentTime / duration) * 100), 100)
+
+        // Solo actualizar si hay un cambio significativo (cada 5%)
+        if (porcentaje > 0 && porcentaje % 5 === 0) {
+            return await this.updateClassProgress(claseId, porcentaje)
+        }
     }
 
     // =============================================
@@ -131,16 +166,62 @@ class ProgressService {
     // =============================================
     // HELPER: OBTENER SIGUIENTE CLASE
     // =============================================
-    getNextClass(modulos) {
+    getNextClass(modulos, currentClaseId = null) {
+        let foundCurrent = !currentClaseId // Si no hay clase actual, empezar desde el principio
+
         for (const modulo of modulos) {
             if (modulo.clases) {
                 for (const clase of modulo.clases) {
-                    if (!clase.completada && clase.puede_acceder) {
+                    // Si encontramos la clase actual, marcar para buscar la siguiente
+                    if (clase.id === currentClaseId) {
+                        foundCurrent = true
+                        continue
+                    }
+
+                    // Si ya pasamos la clase actual, buscar la siguiente disponible
+                    if (foundCurrent && clase.puede_acceder && !clase.completada) {
                         return {
-                            modulo: modulo.titulo,
+                            modulo: modulo.modulo_titulo,
                             clase: clase.titulo,
                             claseId: clase.id,
-                            moduloId: modulo.id
+                            moduloId: modulo.modulo_id
+                        }
+                    }
+
+                    // Si no hay clase actual, buscar la primera disponible
+                    if (!currentClaseId && clase.puede_acceder) {
+                        return {
+                            modulo: modulo.modulo_titulo,
+                            clase: clase.titulo,
+                            claseId: clase.id,
+                            moduloId: modulo.modulo_id
+                        }
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    // =============================================
+    // HELPER: OBTENER CLASE ANTERIOR
+    // =============================================
+    getPreviousClass(modulos, currentClaseId) {
+        let previousClass = null
+
+        for (const modulo of modulos) {
+            if (modulo.clases) {
+                for (const clase of modulo.clases) {
+                    if (clase.id === currentClaseId) {
+                        return previousClass
+                    }
+
+                    if (clase.puede_acceder) {
+                        previousClass = {
+                            modulo: modulo.modulo_titulo,
+                            clase: clase.titulo,
+                            claseId: clase.id,
+                            moduloId: modulo.modulo_id
                         }
                     }
                 }
@@ -156,7 +237,9 @@ class ProgressService {
         const stats = {
             nivel: 'Principiante',
             mensaje: 'Recién comenzando',
-            color: 'gray'
+            color: 'gray',
+            bgColor: 'bg-gray-100',
+            textColor: 'text-gray-800'
         }
 
         const porcentaje = resumen.porcentaje_progreso || 0
@@ -165,18 +248,26 @@ class ProgressService {
             stats.nivel = 'Experto'
             stats.mensaje = '¡Casi terminado!'
             stats.color = 'green'
+            stats.bgColor = 'bg-green-100'
+            stats.textColor = 'text-green-800'
         } else if (porcentaje >= 70) {
             stats.nivel = 'Avanzado'
             stats.mensaje = 'Excelente progreso'
             stats.color = 'blue'
+            stats.bgColor = 'bg-blue-100'
+            stats.textColor = 'text-blue-800'
         } else if (porcentaje >= 40) {
             stats.nivel = 'Intermedio'
             stats.mensaje = 'Buen avance'
             stats.color = 'yellow'
+            stats.bgColor = 'bg-yellow-100'
+            stats.textColor = 'text-yellow-800'
         } else if (porcentaje >= 10) {
             stats.nivel = 'Iniciando'
             stats.mensaje = 'Primer paso dado'
             stats.color = 'orange'
+            stats.bgColor = 'bg-orange-100'
+            stats.textColor = 'text-orange-800'
         }
 
         return stats
@@ -185,15 +276,42 @@ class ProgressService {
     // =============================================
     // HELPER: VALIDAR ACCESO A CLASE
     // =============================================
-    canAccessClass(clase, inscripcion) {
+    canAccessClass(clase, cursoData) {
         // Clase gratuita = acceso libre
         if (clase.es_gratuita) return true
 
         // Curso gratuito = acceso libre
-        if (inscripcion?.es_gratuito) return true
+        if (cursoData?.es_gratuito) return true
 
         // Curso pago con inscripción habilitada
-        return inscripcion?.estado_pago === 'habilitado'
+        return cursoData?.estado_pago === 'habilitado'
+    }
+
+    // =============================================
+    // HELPER: FORMATEAR DURACIÓN
+    // =============================================
+    formatDuration(minutos) {
+        if (!minutos) return 'No disponible'
+
+        if (minutos < 60) {
+            return `${minutos} min`
+        }
+
+        const horas = Math.floor(minutos / 60)
+        const mins = minutos % 60
+        return `${horas}h ${mins}min`
+    }
+
+    // =============================================
+    // HELPER: EXTRAER ID DE VIDEO DE YOUTUBE
+    // =============================================
+    extractYouTubeVideoId(url) {
+        if (!url) return null
+
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
+        const match = url.match(regExp)
+
+        return (match && match[2].length === 11) ? match[2] : null
     }
 
     // =============================================
