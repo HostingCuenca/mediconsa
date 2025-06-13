@@ -1,4 +1,4 @@
-// src/services/simulacros.js - COMPLETO AL 100%
+// src/services/simulacros.js - ALINEADO CON BACKEND
 import apiService from './api'
 
 class SimulacrosService {
@@ -56,8 +56,7 @@ class SimulacrosService {
             console.log('Enviando respuestas del simulacro:', simulacroId)
             const response = await apiService.post(`/simulacros/${simulacroId}/submit`, {
                 respuestas: submissionData.respuestas,
-                tiempoEmpleadoMinutos: submissionData.tiempoEmpleadoMinutos,
-                configuracion: submissionData.configuracion
+                tiempoEmpleadoMinutos: submissionData.tiempoEmpleadoMinutos
             })
 
             if (response.success && response.data) {
@@ -68,10 +67,11 @@ class SimulacrosService {
                         puntaje: response.data.puntaje,
                         respuestasCorrectas: response.data.respuestasCorrectas,
                         totalPreguntas: response.data.totalPreguntas,
+                        tiempoEmpleado: response.data.tiempoEmpleado,
                         modoEvaluacion: response.data.modoEvaluacion,
                         detalle: response.data.detalle || [],
-                        estadisticas: response.data.estadisticas || {},
-                        recomendaciones: response.data.recomendaciones || []
+                        resumen: response.data.resumen || '',
+                        estadisticas: response.data.estadisticas || {}
                     }
                 }
             }
@@ -87,7 +87,18 @@ class SimulacrosService {
     async getMyAttempts(filters = {}) {
         try {
             console.log('Obteniendo mis intentos:', filters)
-            const response = await apiService.get('/simulacros/my-attempts', filters)
+
+            // ✅ CORREGIDO: Usar query parameters correctamente
+            const params = new URLSearchParams()
+            if (filters.simulacroId) params.append('simulacroId', filters.simulacroId)
+            if (filters.cursoId) params.append('cursoId', filters.cursoId)
+            if (filters.page) params.append('page', filters.page)
+            if (filters.limit) params.append('limit', filters.limit)
+
+            const queryString = params.toString()
+            const url = `/simulacros/my-attempts${queryString ? `?${queryString}` : ''}`
+
+            const response = await apiService.get(url)
 
             if (response.success && response.data) {
                 return {
@@ -95,7 +106,7 @@ class SimulacrosService {
                     data: {
                         intentos: response.data.intentos || [],
                         estadisticas: response.data.estadisticas || {},
-                        progreso: response.data.progreso || {}
+                        pagination: response.data.pagination || {}
                     }
                 }
             }
@@ -132,6 +143,7 @@ class SimulacrosService {
     }
 
     // ==================== ADMINISTRACIÓN DE SIMULACROS ====================
+    // Nota: Estos métodos pueden no estar implementados en el backend actual
     async getAllSimulacros(filters = {}) {
         try {
             console.log('Obteniendo todos los simulacros:', filters)
@@ -156,270 +168,7 @@ class SimulacrosService {
         }
     }
 
-    async createSimulacro(simulacroData) {
-        try {
-            console.log('Creando simulacro:', simulacroData)
-            const response = await apiService.post('/course-management/simulacros', simulacroData)
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudo crear el simulacro' }
-        } catch (error) {
-            console.error('Error creando simulacro:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    async updateSimulacro(simulacroId, simulacroData) {
-        try {
-            console.log('Actualizando simulacro:', simulacroId, simulacroData)
-            const response = await apiService.patch(`/course-management/simulacros/${simulacroId}`, simulacroData)
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudo actualizar el simulacro' }
-        } catch (error) {
-            console.error('Error actualizando simulacro:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    async deleteSimulacro(simulacroId) {
-        try {
-            console.log('Eliminando simulacro:', simulacroId)
-            const response = await apiService.delete(`/course-management/simulacros/${simulacroId}`)
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudo eliminar el simulacro' }
-        } catch (error) {
-            console.error('Error eliminando simulacro:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    async duplicateSimulacro(simulacroId, newTitle) {
-        try {
-            console.log('Duplicando simulacro:', simulacroId, newTitle)
-            const response = await apiService.post(`/course-management/simulacros/${simulacroId}/duplicate`, {
-                titulo: newTitle
-            })
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudo duplicar el simulacro' }
-        } catch (error) {
-            console.error('Error duplicando simulacro:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    // ==================== GESTIÓN DE PREGUNTAS ====================
-    async createQuestion(questionData) {
-        try {
-            console.log('Creando pregunta:', questionData)
-            const response = await apiService.post('/course-management/questions', questionData)
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudo crear la pregunta' }
-        } catch (error) {
-            console.error('Error creando pregunta:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    async updateQuestion(preguntaId, questionData) {
-        try {
-            console.log('Actualizando pregunta:', preguntaId, questionData)
-            const response = await apiService.patch(`/course-management/questions/${preguntaId}`, questionData)
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudo actualizar la pregunta' }
-        } catch (error) {
-            console.error('Error actualizando pregunta:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    async deleteQuestion(preguntaId) {
-        try {
-            console.log('Eliminando pregunta:', preguntaId)
-            const response = await apiService.delete(`/course-management/questions/${preguntaId}`)
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudo eliminar la pregunta' }
-        } catch (error) {
-            console.error('Error eliminando pregunta:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    async importQuestions(simulacroId, questions) {
-        try {
-            console.log('Importando preguntas:', simulacroId, questions.length)
-            const response = await apiService.post('/course-management/questions/bulk', {
-                simulacroId,
-                questions
-            })
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudieron importar las preguntas' }
-        } catch (error) {
-            console.error('Error importando preguntas:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    async exportQuestions(simulacroId, format = 'json') {
-        try {
-            console.log('Exportando preguntas:', simulacroId, format)
-            const response = await apiService.get(`/course-management/simulacros/${simulacroId}/export`, {
-                format
-            })
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudieron exportar las preguntas' }
-        } catch (error) {
-            console.error('Error exportando preguntas:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    // ==================== ESTADÍSTICAS Y ANÁLISIS ====================
-    async getSimulacroStats(simulacroId) {
-        try {
-            console.log('Obteniendo estadísticas del simulacro:', simulacroId)
-            const response = await apiService.get(`/admin/simulacros/${simulacroId}/stats`)
-
-            if (response.success && response.data) {
-                return {
-                    success: true,
-                    data: {
-                        intentosTotales: response.data.intentos_totales || 0,
-                        promedioGeneral: response.data.promedio_general || 0,
-                        mejorPuntaje: response.data.mejor_puntaje || 0,
-                        peorPuntaje: response.data.peor_puntaje || 0,
-                        tiempoPromedio: response.data.tiempo_promedio || 0,
-                        preguntasDificiles: response.data.preguntas_dificiles || [],
-                        distribucionPuntajes: response.data.distribucion_puntajes || [],
-                        tendencias: response.data.tendencias || []
-                    }
-                }
-            }
-
-            return { success: false, error: 'No se pudieron cargar las estadísticas' }
-        } catch (error) {
-            console.error('Error obteniendo estadísticas:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    async getUserSimulacroStats(userId, simulacroId) {
-        try {
-            console.log('Obteniendo estadísticas de usuario:', userId, simulacroId)
-            const response = await apiService.get(`/admin/simulacros/${simulacroId}/user/${userId}/stats`)
-
-            if (response.success) {
-                return { success: true, data: response.data }
-            }
-
-            return { success: false, error: 'No se pudieron cargar las estadísticas' }
-        } catch (error) {
-            console.error('Error obteniendo estadísticas de usuario:', error)
-            return { success: false, error: error.message }
-        }
-    }
-
-    // ==================== CONFIGURACIÓN Y VALIDACIÓN ====================
-    async validateSimulacroConfig(config) {
-        const errors = {}
-
-        if (!config.titulo?.trim()) {
-            errors.titulo = 'El título es requerido'
-        }
-
-        if (!config.cursoId) {
-            errors.cursoId = 'El curso es requerido'
-        }
-
-        if (!config.modoEvaluacion) {
-            errors.modoEvaluacion = 'El modo de evaluación es requerido'
-        } else if (!['practica', 'realista', 'examen'].includes(config.modoEvaluacion)) {
-            errors.modoEvaluacion = 'Modo de evaluación inválido'
-        }
-
-        if (!config.numeroPreguntas || config.numeroPreguntas < 1) {
-            errors.numeroPreguntas = 'Debe tener al menos 1 pregunta'
-        }
-
-        if (config.tiempoLimiteMinutos && config.tiempoLimiteMinutos < 1) {
-            errors.tiempoLimiteMinutos = 'El tiempo límite debe ser mayor a 0'
-        }
-
-        if (config.intentosPermitidos && config.intentosPermitidos < -1) {
-            errors.intentosPermitidos = 'Los intentos permitidos deben ser -1 (ilimitados) o mayor a 0'
-        }
-
-        return {
-            isValid: Object.keys(errors).length === 0,
-            errors
-        }
-    }
-
-    async validateQuestionData(questionData) {
-        const errors = {}
-
-        if (!questionData.enunciado?.trim()) {
-            errors.enunciado = 'El enunciado es requerido'
-        }
-
-        if (!questionData.simulacroId) {
-            errors.simulacroId = 'El simulacro es requerido'
-        }
-
-        if (!questionData.tipoPregunta) {
-            errors.tipoPregunta = 'El tipo de pregunta es requerido'
-        }
-
-        if (!questionData.opciones || questionData.opciones.length < 2) {
-            errors.opciones = 'Debe tener al menos 2 opciones'
-        }
-
-        const correctAnswers = questionData.opciones?.filter(op => op.esCorrecta) || []
-        if (correctAnswers.length === 0) {
-            errors.respuestaCorrecta = 'Debe tener al menos una respuesta correcta'
-        }
-
-        return {
-            isValid: Object.keys(errors).length === 0,
-            errors
-        }
-    }
-
-    // ==================== HELPERS ====================
+    // ==================== HELPERS ALINEADOS CON BACKEND ====================
     getModoEvaluacionLabel(modo) {
         const labels = {
             'practica': 'Práctica',
@@ -455,9 +204,9 @@ class SimulacrosService {
     }
 
     getGradeColor(grade) {
-        if (grade >= 80) return 'text-green-600'
-        if (grade >= 60) return 'text-yellow-600'
-        return 'text-red-600'
+        if (grade >= 80) return 'text-green-600 bg-green-50'
+        if (grade >= 60) return 'text-yellow-600 bg-yellow-50'
+        return 'text-red-600 bg-red-50'
     }
 
     getGradeLabel(grade) {
@@ -469,6 +218,8 @@ class SimulacrosService {
     }
 
     formatTime(minutes) {
+        if (!minutes || minutes === 0) return '0m'
+
         const hours = Math.floor(minutes / 60)
         const mins = minutes % 60
 
@@ -479,6 +230,8 @@ class SimulacrosService {
     }
 
     formatTimeSeconds(seconds) {
+        if (!seconds || seconds === 0) return '0:00'
+
         const minutes = Math.floor(seconds / 60)
         const secs = seconds % 60
 
@@ -488,6 +241,73 @@ class SimulacrosService {
         return `0:${secs.toString().padStart(2, '0')}`
     }
 
+    // ==================== VALIDACIÓN ESPECÍFICA PARA BACKEND ====================
+    async validateSimulacroConfig(config) {
+        const errors = {}
+
+        if (!config.titulo?.trim()) {
+            errors.titulo = 'El título es requerido'
+        }
+
+        if (!config.cursoId) {
+            errors.cursoId = 'El curso es requerido'
+        }
+
+        if (!config.modo_evaluacion) {
+            errors.modo_evaluacion = 'El modo de evaluación es requerido'
+        } else if (!['practica', 'realista', 'examen'].includes(config.modo_evaluacion)) {
+            errors.modo_evaluacion = 'Modo de evaluación inválido'
+        }
+
+        if (!config.numero_preguntas || config.numero_preguntas < 1) {
+            errors.numero_preguntas = 'Debe tener al menos 1 pregunta'
+        }
+
+        if (config.tiempo_limite_minutos && config.tiempo_limite_minutos < 1) {
+            errors.tiempo_limite_minutos = 'El tiempo límite debe ser mayor a 0'
+        }
+
+        if (config.intentos_permitidos && config.intentos_permitidos < -1) {
+            errors.intentos_permitidos = 'Los intentos permitidos deben ser -1 (ilimitados) o mayor a 0'
+        }
+
+        return {
+            isValid: Object.keys(errors).length === 0,
+            errors
+        }
+    }
+
+    async validateQuestionData(questionData) {
+        const errors = {}
+
+        if (!questionData.enunciado?.trim()) {
+            errors.enunciado = 'El enunciado es requerido'
+        }
+
+        if (!questionData.simulacro_id) {
+            errors.simulacro_id = 'El simulacro es requerido'
+        }
+
+        if (!questionData.tipo_pregunta) {
+            errors.tipo_pregunta = 'El tipo de pregunta es requerido'
+        }
+
+        if (!questionData.opciones || questionData.opciones.length < 2) {
+            errors.opciones = 'Debe tener al menos 2 opciones'
+        }
+
+        const correctAnswers = questionData.opciones?.filter(op => op.es_correcta) || []
+        if (correctAnswers.length === 0) {
+            errors.respuesta_correcta = 'Debe tener al menos una respuesta correcta'
+        }
+
+        return {
+            isValid: Object.keys(errors).length === 0,
+            errors
+        }
+    }
+
+    // ==================== FUNCIONES DE UTILIDAD ====================
     shuffleArray(array) {
         const shuffled = [...array]
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -501,7 +321,61 @@ class SimulacrosService {
         return 'q_' + Math.random().toString(36).substr(2, 9)
     }
 
-    // ==================== EXPORTAR/IMPORTAR ====================
+    // ==================== FUNCIONES DE ANÁLISIS ====================
+    analyzeAttemptResults(intento) {
+        const puntaje = intento.puntaje || 0
+        const comentarios = []
+        const recomendaciones = []
+
+        if (puntaje >= 90) {
+            comentarios.push('¡Excelente desempeño! Dominas muy bien el tema.')
+        } else if (puntaje >= 80) {
+            comentarios.push('Muy buen trabajo. Solo algunos detalles por mejorar.')
+        } else if (puntaje >= 70) {
+            comentarios.push('Buen resultado. Con un poco más de estudio puedes mejorar.')
+            recomendaciones.push('Repasa los temas donde tuviste errores')
+        } else if (puntaje >= 60) {
+            comentarios.push('Resultado regular. Necesitas estudiar más algunos temas.')
+            recomendaciones.push('Dedica más tiempo al estudio de los conceptos básicos')
+            recomendaciones.push('Practica más simulacros')
+        } else {
+            comentarios.push('Necesitas mejorar significativamente. Te recomendamos repasar todo el material.')
+            recomendaciones.push('Revisa todo el material del curso')
+            recomendaciones.push('Considera solicitar ayuda adicional')
+            recomendaciones.push('Practica regularmente con simulacros')
+        }
+
+        return {
+            comentario: comentarios.join(' '),
+            recomendaciones,
+            nivel: this.getGradeLabel(puntaje)
+        }
+    }
+
+    // ==================== FUNCIONES DE FORMATEO ====================
+    formatAttemptForDisplay(intento) {
+        return {
+            ...intento,
+            puntaje_formateado: `${intento.puntaje}%`,
+            fecha_formateada: this.formatDate(intento.fecha_intento),
+            tiempo_formateado: this.formatTime(intento.tiempo_empleado_minutos),
+            estado_color: this.getGradeColor(intento.puntaje),
+            estado_label: this.getGradeLabel(intento.puntaje)
+        }
+    }
+
+    formatDate(dateString) {
+        if (!dateString) return 'No disponible'
+        return new Date(dateString).toLocaleString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+    }
+
+    // ==================== FUNCIONES DE EXPORTACIÓN ====================
     async exportSimulacroTemplate() {
         return {
             success: true,
@@ -509,24 +383,25 @@ class SimulacrosService {
                 template: {
                     titulo: '',
                     descripcion: '',
-                    modoEvaluacion: 'practica',
-                    numeroPreguntas: 10,
-                    tiempoLimiteMinutos: 60,
-                    intentosPermitidos: -1,
-                    randomizarPreguntas: true,
-                    randomizarOpciones: true,
-                    mostrarRespuestasDespues: 1,
+                    modo_evaluacion: 'practica',
+                    numero_preguntas: 10,
+                    tiempo_limite_minutos: 60,
+                    tiempo_por_pregunta_segundos: null,
+                    intentos_permitidos: -1,
+                    randomizar_preguntas: true,
+                    randomizar_opciones: true,
+                    mostrar_respuestas_despues: 1,
                     preguntas: [
                         {
                             enunciado: '',
-                            tipoPregunta: 'multiple',
+                            tipo_pregunta: 'multiple',
                             explicacion: '',
-                            imagenUrl: '',
+                            imagen_url: '',
                             opciones: [
-                                { textoOpcion: '', esCorrecta: false },
-                                { textoOpcion: '', esCorrecta: true },
-                                { textoOpcion: '', esCorrecta: false },
-                                { textoOpcion: '', esCorrecta: false }
+                                { texto_opcion: '', es_correcta: false, orden: 1 },
+                                { texto_opcion: '', es_correcta: true, orden: 2 },
+                                { texto_opcion: '', es_correcta: false, orden: 3 },
+                                { texto_opcion: '', es_correcta: false, orden: 4 }
                             ]
                         }
                     ]
@@ -535,59 +410,31 @@ class SimulacrosService {
         }
     }
 
-    parseImportedQuestions(data) {
-        try {
-            const questions = []
-
-            if (Array.isArray(data)) {
-                data.forEach((item, index) => {
-                    const question = this.validateImportedQuestion(item, index)
-                    if (question) questions.push(question)
-                })
-            }
-
-            return {
-                success: true,
-                data: { questions, total: questions.length }
-            }
-        } catch (error) {
-            return {
-                success: false,
-                error: 'Error procesando el archivo: ' + error.message
-            }
+    // ==================== CONSTANTES Y CONFIGURACIÓN ====================
+    get MODOS_EVALUACION() {
+        return {
+            PRACTICA: 'practica',
+            REALISTA: 'realista',
+            EXAMEN: 'examen'
         }
     }
 
-    validateImportedQuestion(item, index) {
-        const errors = []
-
-        if (!item.enunciado?.trim()) {
-            errors.push(`Pregunta ${index + 1}: Enunciado requerido`)
-        }
-
-        if (!item.opciones || !Array.isArray(item.opciones) || item.opciones.length < 2) {
-            errors.push(`Pregunta ${index + 1}: Debe tener al menos 2 opciones`)
-        }
-
-        const correctAnswers = item.opciones?.filter(op => op.esCorrecta) || []
-        if (correctAnswers.length === 0) {
-            errors.push(`Pregunta ${index + 1}: Debe tener al menos una respuesta correcta`)
-        }
-
-        if (errors.length > 0) {
-            console.warn('Errores en importación:', errors)
-            return null
-        }
-
+    get TIPOS_PREGUNTA() {
         return {
-            enunciado: item.enunciado.trim(),
-            tipoPregunta: item.tipoPregunta || 'multiple',
-            explicacion: item.explicacion || '',
-            imagenUrl: item.imagenUrl || '',
-            opciones: item.opciones.map(op => ({
-                textoOpcion: op.textoOpcion?.trim() || '',
-                esCorrecta: Boolean(op.esCorrecta)
-            }))
+            MULTIPLE: 'multiple',
+            MULTIPLE_RESPUESTA: 'multiple_respuesta',
+            COMPLETAR: 'completar',
+            UNIR: 'unir',
+            RELLENAR: 'rellenar'
+        }
+    }
+
+    get ESTADOS_INTENTO() {
+        return {
+            INICIADO: 'iniciado',
+            EN_PROGRESO: 'en_progreso',
+            COMPLETADO: 'completado',
+            ABANDONADO: 'abandonado'
         }
     }
 }

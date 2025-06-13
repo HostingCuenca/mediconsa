@@ -316,6 +316,72 @@ class AuthService {
         }
     }
 
+
+    // src/services/auth.js - AGREGAR estas funciones:
+
+    async updateProfile(profileData) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+                method: 'PUT',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify(profileData)
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    error: data.message || 'Error actualizando perfil'
+                }
+            }
+
+            if (data.success && data.data) {
+                const normalizedUser = this.normalizeUser(data.data.user)
+                this.setUserData(normalizedUser)
+
+                return {
+                    success: true,
+                    data: { user: normalizedUser }
+                }
+            }
+
+            return { success: false, error: 'Respuesta inesperada' }
+
+        } catch (error) {
+            console.error('Error actualizando perfil:', error)
+            return { success: false, error: 'Error de conexión' }
+        }
+    }
+
+    async changePassword(currentPassword, newPassword) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+                method: 'PUT',
+                headers: this.getAuthHeaders(),
+                body: JSON.stringify({ currentPassword, newPassword })
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                return {
+                    success: false,
+                    error: data.message || 'Error cambiando contraseña'
+                }
+            }
+
+            return {
+                success: true,
+                message: data.message || 'Contraseña cambiada exitosamente'
+            }
+
+        } catch (error) {
+            console.error('Error cambiando contraseña:', error)
+            return { success: false, error: 'Error de conexión' }
+        }
+    }
+
     async obtenerPerfil(userId) {
         const result = await this.getProfile()
 
