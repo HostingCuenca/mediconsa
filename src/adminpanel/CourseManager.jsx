@@ -1,4 +1,1124 @@
-// src/adminpanel/CourseManager.jsx - GESTIÓN COMPLETA DE CURSO
+// // src/adminpanel/CourseManager.jsx - GESTIÓN COMPLETA DE CURSO
+// import React, { useState, useEffect } from 'react'
+// import { useParams, useNavigate } from 'react-router-dom'
+// import Layout from '../utils/Layout'
+// import courseManagementService from '../services/courseManagement'
+//
+// const CourseManager = () => {
+//     const { cursoId } = useParams()
+//     const navigate = useNavigate()
+//
+//     // ========== ESTADOS PRINCIPALES ==========
+//     const [course, setCourse] = useState(null)
+//     const [modules, setModules] = useState([])
+//     const [simulacros, setSimulacros] = useState([])
+//     const [loading, setLoading] = useState(true)
+//     const [error, setError] = useState('')
+//     const [success, setSuccess] = useState('')
+//
+//     // Estados de modales
+//     const [showModuleForm, setShowModuleForm] = useState(false)
+//     const [showClassForm, setShowClassForm] = useState(false)
+//     const [showSimulacroForm, setShowSimulacroForm] = useState(false)
+//     const [selectedModule, setSelectedModule] = useState(null)
+//     const [selectedClass, setSelectedClass] = useState(null)
+//     const [selectedSimulacro, setSelectedSimulacro] = useState(null)
+//     const [formLoading, setFormLoading] = useState(false)
+//
+//     // Estados del tab activo
+//     const [activeTab, setActiveTab] = useState('modules') // modules, simulacros, settings
+//
+//     // Estados de formularios
+//     const [moduleForm, setModuleForm] = useState({
+//         titulo: '',
+//         descripcion: '',
+//         orden: 1
+//     })
+//
+//     const [classForm, setClassForm] = useState({
+//         titulo: '',
+//         descripcion: '',
+//         videoYoutubeUrl: '',
+//         duracionMinutos: 0,
+//         esGratuita: false,
+//         orden: 1
+//     })
+//
+//     const [simulacroForm, setSimulacroForm] = useState({
+//         titulo: '',
+//         descripcion: '',
+//         modoEvaluacion: 'practica',
+//         tiempoLimiteMinutos: 30,
+//         tiempoPorPreguntaSegundos: 60,
+//         numeroPreguntas: 10,
+//         intentosPermitidos: -1,
+//         randomizarPreguntas: true,
+//         randomizarOpciones: true,
+//         mostrarRespuestasDespues: 1
+//     })
+//
+//     // ========== EFECTOS ==========
+//     useEffect(() => {
+//         if (cursoId) {
+//             loadCourseContent()
+//         }
+//     }, [cursoId])
+//
+//     useEffect(() => {
+//         if (success) {
+//             const timer = setTimeout(() => setSuccess(''), 3000)
+//             return () => clearTimeout(timer)
+//         }
+//     }, [success])
+//
+//     // ========== FUNCIONES DE CARGA ==========
+//     const loadCourseContent = async () => {
+//         try {
+//             setLoading(true)
+//             setError('')
+//
+//             const result = await courseManagementService.getCourseForEditing(cursoId)
+//
+//             if (result.success) {
+//                 setCourse(result.data.curso)
+//                 setModules(result.data.modulos || [])
+//                 setSimulacros(result.data.simulacros || [])
+//             } else {
+//                 setError(result.error || 'Error cargando el curso')
+//             }
+//         } catch (error) {
+//             console.error('Error:', error)
+//             setError('Error de conexión')
+//         } finally {
+//             setLoading(false)
+//         }
+//     }
+//
+//     // ========== GESTIÓN DE MÓDULOS ==========
+//     const handleCreateModule = () => {
+//         setSelectedModule(null)
+//         setModuleForm({
+//             titulo: '',
+//             descripcion: '',
+//             orden: modules.length + 1
+//         })
+//         setShowModuleForm(true)
+//     }
+//
+//     const handleEditModule = (module) => {
+//         setSelectedModule(module)
+//         setModuleForm({
+//             titulo: module.titulo,
+//             descripcion: module.descripcion || '',
+//             orden: module.orden
+//         })
+//         setShowModuleForm(true)
+//     }
+//
+//     const handleSubmitModule = async (e) => {
+//         e.preventDefault()
+//         setFormLoading(true)
+//
+//         try {
+//             const moduleData = {
+//                 ...moduleForm,
+//                 cursoId: cursoId
+//             }
+//
+//             let result
+//             if (selectedModule) {
+//                 result = await courseManagementService.updateModule(selectedModule.id, moduleData)
+//             } else {
+//                 result = await courseManagementService.createModule(moduleData)
+//             }
+//
+//             if (result.success) {
+//                 setShowModuleForm(false)
+//                 setSelectedModule(null)
+//                 await loadCourseContent()
+//                 setSuccess(result.message || (selectedModule ? 'Módulo actualizado' : 'Módulo creado'))
+//             } else {
+//                 setError(result.error || 'Error procesando módulo')
+//             }
+//         } catch (error) {
+//             setError('Error de conexión')
+//         } finally {
+//             setFormLoading(false)
+//         }
+//     }
+//
+//     const handleDeleteModule = async (moduleId) => {
+//         if (!window.confirm('¿Estás seguro de eliminar este módulo? Se eliminarán también todas sus clases.')) return
+//
+//         try {
+//             setFormLoading(true)
+//             const result = await courseManagementService.deleteModule(moduleId)
+//
+//             if (result.success) {
+//                 await loadCourseContent()
+//                 setSuccess(result.message || 'Módulo eliminado')
+//             } else {
+//                 setError(result.error || 'Error eliminando módulo')
+//             }
+//         } catch (error) {
+//             setError('Error de conexión')
+//         } finally {
+//             setFormLoading(false)
+//         }
+//     }
+//
+//     // ========== GESTIÓN DE CLASES ==========
+//     const handleCreateClass = (moduleId) => {
+//         const module = modules.find(m => m.id === moduleId)
+//         const classCount = module?.clases?.length || 0
+//
+//         setSelectedClass(null)
+//         setSelectedModule({ id: moduleId })
+//         setClassForm({
+//             titulo: '',
+//             descripcion: '',
+//             videoYoutubeUrl: '',
+//             duracionMinutos: 0,
+//             esGratuita: false,
+//             orden: classCount + 1
+//         })
+//         setShowClassForm(true)
+//     }
+//
+//     const handleEditClass = (clase, moduleId) => {
+//         setSelectedClass(clase)
+//         setSelectedModule({ id: moduleId })
+//         setClassForm({
+//             titulo: clase.titulo,
+//             descripcion: clase.descripcion || '',
+//             videoYoutubeUrl: clase.video_youtube_url || '',
+//             duracionMinutos: clase.duracion_minutos || 0,
+//             esGratuita: clase.es_gratuita || false,
+//             orden: clase.orden
+//         })
+//         setShowClassForm(true)
+//     }
+//
+//     const handleSubmitClass = async (e) => {
+//         e.preventDefault()
+//         setFormLoading(true)
+//
+//         try {
+//             const classData = {
+//                 ...classForm,
+//                 moduloId: selectedModule.id
+//             }
+//
+//             let result
+//             if (selectedClass) {
+//                 result = await courseManagementService.updateClass(selectedClass.id, classData)
+//             } else {
+//                 result = await courseManagementService.createClass(classData)
+//             }
+//
+//             if (result.success) {
+//                 setShowClassForm(false)
+//                 setSelectedClass(null)
+//                 setSelectedModule(null)
+//                 await loadCourseContent()
+//                 setSuccess(result.message || (selectedClass ? 'Clase actualizada' : 'Clase creada'))
+//             } else {
+//                 setError(result.error || 'Error procesando clase')
+//             }
+//         } catch (error) {
+//             setError('Error de conexión')
+//         } finally {
+//             setFormLoading(false)
+//         }
+//     }
+//
+//     const handleDeleteClass = async (classId) => {
+//         if (!window.confirm('¿Estás seguro de eliminar esta clase?')) return
+//
+//         try {
+//             setFormLoading(true)
+//             const result = await courseManagementService.deleteClass(classId)
+//
+//             if (result.success) {
+//                 await loadCourseContent()
+//                 setSuccess(result.message || 'Clase eliminada')
+//             } else {
+//                 setError(result.error || 'Error eliminando clase')
+//             }
+//         } catch (error) {
+//             setError('Error de conexión')
+//         } finally {
+//             setFormLoading(false)
+//         }
+//     }
+//
+//     // ========== GESTIÓN DE SIMULACROS ==========
+//     const handleCreateSimulacro = () => {
+//         setSelectedSimulacro(null)
+//         setSimulacroForm({
+//             titulo: '',
+//             descripcion: '',
+//             modoEvaluacion: 'practica',
+//             tiempoLimiteMinutos: 30,
+//             tiempoPorPreguntaSegundos: 60,
+//             numeroPreguntas: 10,
+//             intentosPermitidos: -1,
+//             randomizarPreguntas: true,
+//             randomizarOpciones: true,
+//             mostrarRespuestasDespues: 1
+//         })
+//         setShowSimulacroForm(true)
+//     }
+//
+//     const handleEditSimulacro = (simulacro) => {
+//         setSelectedSimulacro(simulacro)
+//         setSimulacroForm({
+//             titulo: simulacro.titulo,
+//             descripcion: simulacro.descripcion || '',
+//             modoEvaluacion: simulacro.modo_evaluacion,
+//             tiempoLimiteMinutos: simulacro.tiempo_limite_minutos || 30,
+//             tiempoPorPreguntaSegundos: simulacro.tiempo_por_pregunta_segundos || 60,
+//             numeroPreguntas: simulacro.numero_preguntas,
+//             intentosPermitidos: simulacro.intentos_permitidos,
+//             randomizarPreguntas: simulacro.randomizar_preguntas,
+//             randomizarOpciones: simulacro.randomizar_opciones,
+//             mostrarRespuestasDespues: simulacro.mostrar_respuestas_despues
+//         })
+//         setShowSimulacroForm(true)
+//     }
+//
+//     const handleSubmitSimulacro = async (e) => {
+//         e.preventDefault()
+//         setFormLoading(true)
+//
+//         try {
+//             const simulacroData = {
+//                 ...simulacroForm,
+//                 cursoId: cursoId
+//             }
+//
+//             let result
+//             if (selectedSimulacro) {
+//                 result = await courseManagementService.updateSimulacro(selectedSimulacro.id, simulacroData)
+//             } else {
+//                 result = await courseManagementService.createSimulacro(simulacroData)
+//             }
+//
+//             if (result.success) {
+//                 setShowSimulacroForm(false)
+//                 setSelectedSimulacro(null)
+//                 await loadCourseContent()
+//                 setSuccess(result.message || (selectedSimulacro ? 'Simulacro actualizado' : 'Simulacro creado'))
+//             } else {
+//                 setError(result.error || 'Error procesando simulacro')
+//             }
+//         } catch (error) {
+//             setError('Error de conexión')
+//         } finally {
+//             setFormLoading(false)
+//         }
+//     }
+//
+//     const handleDeleteSimulacro = async (simulacroId) => {
+//         if (!window.confirm('¿Estás seguro de eliminar este simulacro? Se eliminarán también todas sus preguntas.')) return
+//
+//         try {
+//             setFormLoading(true)
+//             const result = await courseManagementService.deleteSimulacro(simulacroId)
+//
+//             if (result.success) {
+//                 await loadCourseContent()
+//                 setSuccess(result.message || 'Simulacro eliminado')
+//             } else {
+//                 setError(result.error || 'Error eliminando simulacro')
+//             }
+//         } catch (error) {
+//             setError('Error de conexión')
+//         } finally {
+//             setFormLoading(false)
+//         }
+//     }
+//
+//     const handleManageQuestions = (simulacroId) => {
+//         navigate(`/admin/simulacro/${simulacroId}/preguntas`)
+//     }
+//
+//     // ========== FUNCIONES DE UTILIDAD ==========
+//     const handleFormChange = (formType, field, value) => {
+//         const setters = {
+//             module: setModuleForm,
+//             class: setClassForm,
+//             simulacro: setSimulacroForm
+//         }
+//
+//         setters[formType]?.(prev => ({
+//             ...prev,
+//             [field]: value
+//         }))
+//     }
+//
+//     const formatDuration = (minutes) => {
+//         if (!minutes) return '0 min'
+//         if (minutes < 60) return `${minutes} min`
+//         const hours = Math.floor(minutes / 60)
+//         const mins = minutes % 60
+//         return `${hours}h ${mins > 0 ? `${mins}min` : ''}`
+//     }
+//
+//     // ========== RENDER ==========
+//     if (loading) {
+//         return (
+//             <Layout showSidebar={true}>
+//                 <div className="flex items-center justify-center min-h-screen">
+//                     <div className="text-center">
+//                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medico-blue mx-auto"></div>
+//                         <p className="mt-4 text-medico-gray">Cargando curso...</p>
+//                     </div>
+//                 </div>
+//             </Layout>
+//         )
+//     }
+//
+//     if (!course) {
+//         return (
+//             <Layout showSidebar={true}>
+//                 <div className="p-8">
+//                     <div className="text-center">
+//                         <h1 className="text-2xl font-bold text-gray-900">Curso no encontrado</h1>
+//                         <button
+//                             onClick={() => navigate('/admin/cursos')}
+//                             className="mt-4 bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+//                         >
+//                             Volver a Cursos
+//                         </button>
+//                     </div>
+//                 </div>
+//             </Layout>
+//         )
+//     }
+//
+//     return (
+//         <Layout showSidebar={true}>
+//             <div className="p-8">
+//                 {/* ========== HEADER ========== */}
+//                 <div className="flex justify-between items-start mb-8">
+//                     <div>
+//                         <div className="flex items-center space-x-4 mb-2">
+//                             <button
+//                                 onClick={() => navigate('/admin/cursos')}
+//                                 className="text-medico-blue hover:text-blue-700"
+//                             >
+//                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+//                                 </svg>
+//                             </button>
+//                             <h1 className="text-3xl font-bold text-medico-blue">{course.titulo}</h1>
+//                         </div>
+//                         <p className="text-medico-gray">{course.descripcion}</p>
+//                         <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+//                             <span>Tipo: {course.tipo_examen || 'General'}</span>
+//                             <span>•</span>
+//                             <span>{course.es_gratuito ? 'Gratuito' : `$${course.precio}`}</span>
+//                             <span>•</span>
+//                             <span>{modules.length} módulos</span>
+//                             <span>•</span>
+//                             <span>{simulacros.length} simulacros</span>
+//                         </div>
+//                     </div>
+//                 </div>
+//
+//                 {/* ========== MENSAJES ========== */}
+//                 {error && (
+//                     <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+//                         <div className="flex items-center">
+//                             <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                             </svg>
+//                             <p className="text-red-600">{error}</p>
+//                         </div>
+//                         <button onClick={() => setError('')} className="mt-2 text-red-700 underline text-sm">
+//                             Cerrar
+//                         </button>
+//                     </div>
+//                 )}
+//
+//                 {success && (
+//                     <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+//                         <div className="flex items-center">
+//                             <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+//                             </svg>
+//                             <p className="text-green-600">{success}</p>
+//                         </div>
+//                     </div>
+//                 )}
+//
+//                 {/* ========== TABS ========== */}
+//                 <div className="border-b border-gray-200 mb-6">
+//                     <nav className="-mb-px flex space-x-8">
+//                         <button
+//                             onClick={() => setActiveTab('modules')}
+//                             className={`py-2 px-1 border-b-2 font-medium text-sm ${
+//                                 activeTab === 'modules'
+//                                     ? 'border-medico-blue text-medico-blue'
+//                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+//                             }`}
+//                         >
+//                             Módulos y Clases ({modules.length})
+//                         </button>
+//                         <button
+//                             onClick={() => setActiveTab('simulacros')}
+//                             className={`py-2 px-1 border-b-2 font-medium text-sm ${
+//                                 activeTab === 'simulacros'
+//                                     ? 'border-medico-blue text-medico-blue'
+//                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+//                             }`}
+//                         >
+//                             Simulacros ({simulacros.length})
+//                         </button>
+//                     </nav>
+//                 </div>
+//
+//                 {/* ========== CONTENIDO DE TABS ========== */}
+//                 {activeTab === 'modules' && (
+//                     <div>
+//                         <div className="flex justify-between items-center mb-6">
+//                             <h2 className="text-xl font-semibold text-gray-900">Módulos del Curso</h2>
+//                             <button
+//                                 onClick={handleCreateModule}
+//                                 className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+//                             >
+//                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+//                                 </svg>
+//                                 <span>Crear Módulo</span>
+//                             </button>
+//                         </div>
+//
+//                         {modules.length > 0 ? (
+//                             <div className="space-y-6">
+//                                 {modules.map((module, moduleIndex) => (
+//                                     <div key={module.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+//                                         {/* Encabezado del módulo */}
+//                                         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+//                                             <div className="flex justify-between items-center">
+//                                                 <div>
+//                                                     <h3 className="text-lg font-semibold text-gray-900">
+//                                                         {moduleIndex + 1}. {module.titulo}
+//                                                     </h3>
+//                                                     {module.descripcion && (
+//                                                         <p className="text-gray-600 mt-1">{module.descripcion}</p>
+//                                                     )}
+//                                                     <p className="text-sm text-gray-500 mt-1">
+//                                                         {module.clases?.length || 0} clase{(module.clases?.length || 0) !== 1 ? 's' : ''}
+//                                                     </p>
+//                                                 </div>
+//                                                 <div className="flex items-center space-x-2">
+//                                                     <button
+//                                                         onClick={() => handleCreateClass(module.id)}
+//                                                         className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+//                                                     >
+//                                                         + Clase
+//                                                     </button>
+//                                                     <button
+//                                                         onClick={() => handleEditModule(module)}
+//                                                         className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+//                                                     >
+//                                                         Editar
+//                                                     </button>
+//                                                     <button
+//                                                         onClick={() => handleDeleteModule(module.id)}
+//                                                         className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+//                                                     >
+//                                                         Eliminar
+//                                                     </button>
+//                                                 </div>
+//                                             </div>
+//                                         </div>
+//
+//                                         {/* Clases del módulo */}
+//                                         {module.clases && module.clases.length > 0 && (
+//                                             <div className="p-6">
+//                                                 <div className="space-y-3">
+//                                                     {module.clases.map((clase, classIndex) => (
+//                                                         <div key={clase.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+//                                                             <div className="flex-1">
+//                                                                 <div className="flex items-center space-x-3">
+//                                                                     <span className="text-sm font-medium text-gray-500">
+//                                                                         {classIndex + 1}.
+//                                                                     </span>
+//                                                                     <div>
+//                                                                         <h4 className="font-medium text-gray-900">{clase.titulo}</h4>
+//                                                                         {clase.descripcion && (
+//                                                                             <p className="text-sm text-gray-600">{clase.descripcion}</p>
+//                                                                         )}
+//                                                                         <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+//                                                                             {clase.duracion_minutos && (
+//                                                                                 <span>{formatDuration(clase.duracion_minutos)}</span>
+//                                                                             )}
+//                                                                             {clase.es_gratuita && (
+//                                                                                 <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+//                                                                                     Gratuita
+//                                                                                 </span>
+//                                                                             )}
+//                                                                             {clase.video_youtube_url && (
+//                                                                                 <span className="bg-red-100 text-red-800 px-2 py-1 rounded">
+//                                                                                     YouTube
+//                                                                                 </span>
+//                                                                             )}
+//                                                                         </div>
+//                                                                     </div>
+//                                                                 </div>
+//                                                             </div>
+//                                                             <div className="flex items-center space-x-2">
+//                                                                 <button
+//                                                                     onClick={() => handleEditClass(clase, module.id)}
+//                                                                     className="text-blue-600 hover:text-blue-800 text-sm"
+//                                                                 >
+//                                                                     Editar
+//                                                                 </button>
+//                                                                 <button
+//                                                                     onClick={() => handleDeleteClass(clase.id)}
+//                                                                     className="text-red-600 hover:text-red-800 text-sm"
+//                                                                 >
+//                                                                     Eliminar
+//                                                                 </button>
+//                                                             </div>
+//                                                         </div>
+//                                                     ))}
+//                                                 </div>
+//                                             </div>
+//                                         )}
+//
+//                                         {(!module.clases || module.clases.length === 0) && (
+//                                             <div className="p-6 text-center text-gray-500">
+//                                                 <p>No hay clases en este módulo</p>
+//                                                 <button
+//                                                     onClick={() => handleCreateClass(module.id)}
+//                                                     className="mt-2 text-medico-blue hover:text-blue-700 text-sm"
+//                                                 >
+//                                                     Crear primera clase
+//                                                 </button>
+//                                             </div>
+//                                         )}
+//                                     </div>
+//                                 ))}
+//                             </div>
+//                         ) : (
+//                             <div className="text-center py-12">
+//                                 <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+//                                 </svg>
+//                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay módulos</h3>
+//                                 <p className="text-gray-500 mb-4">Comienza creando el primer módulo de tu curso</p>
+//                                 <button
+//                                     onClick={handleCreateModule}
+//                                     className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+//                                 >
+//                                     Crear Primer Módulo
+//                                 </button>
+//                             </div>
+//                         )}
+//                     </div>
+//                 )}
+//
+//                 {activeTab === 'simulacros' && (
+//                     <div>
+//                         <div className="flex justify-between items-center mb-6">
+//                             <h2 className="text-xl font-semibold text-gray-900">Simulacros del Curso</h2>
+//                             <button
+//                                 onClick={handleCreateSimulacro}
+//                                 className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+//                             >
+//                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+//                                 </svg>
+//                                 <span>Crear Simulacro</span>
+//                             </button>
+//                         </div>
+//
+//                         {simulacros.length > 0 ? (
+//                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+//                                 {simulacros.map((simulacro) => (
+//                                     <div key={simulacro.id} className="bg-white border border-gray-200 rounded-lg p-6">
+//                                         <div className="mb-4">
+//                                             <h3 className="text-lg font-semibold text-gray-900 mb-2">{simulacro.titulo}</h3>
+//                                             {simulacro.descripcion && (
+//                                                 <p className="text-gray-600 text-sm mb-3">{simulacro.descripcion}</p>
+//                                             )}
+//
+//                                             <div className="space-y-2 text-sm text-gray-500">
+//                                                 <div className="flex justify-between">
+//                                                     <span>Modo:</span>
+//                                                     <span className="capitalize font-medium">{simulacro.modo_evaluacion}</span>
+//                                                 </div>
+//                                                 <div className="flex justify-between">
+//                                                     <span>Preguntas:</span>
+//                                                     <span className="font-medium">{simulacro.numero_preguntas}</span>
+//                                                 </div>
+//                                                 <div className="flex justify-between">
+//                                                     <span>Tiempo límite:</span>
+//                                                     <span className="font-medium">
+//                                                         {simulacro.tiempo_limite_minutos ? `${simulacro.tiempo_limite_minutos} min` : 'Sin límite'}
+//                                                     </span>
+//                                                 </div>
+//                                                 <div className="flex justify-between">
+//                                                     <span>Intentos:</span>
+//                                                     <span className="font-medium">
+//                                                         {simulacro.intentos_permitidos === -1 ? 'Ilimitados' : simulacro.intentos_permitidos}
+//                                                     </span>
+//                                                 </div>
+//                                                 <div className="flex justify-between">
+//                                                     <span>Preguntas creadas:</span>
+//                                                     <span className="font-medium">{simulacro.total_preguntas || 0}</span>
+//                                                 </div>
+//                                             </div>
+//                                         </div>
+//
+//                                         <div className="grid grid-cols-2 gap-2 mb-3">
+//                                             <button
+//                                                 onClick={() => handleEditSimulacro(simulacro)}
+//                                                 className="bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700"
+//                                             >
+//                                                 Editar
+//                                             </button>
+//                                             <button
+//                                                 onClick={() => handleManageQuestions(simulacro.id)}
+//                                                 className="bg-green-600 text-white py-2 px-3 rounded text-sm hover:bg-green-700"
+//                                             >
+//                                                 Preguntas
+//                                             </button>
+//                                         </div>
+//
+//                                         <button
+//                                             onClick={() => handleDeleteSimulacro(simulacro.id)}
+//                                             className="w-full bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700"
+//                                         >
+//                                             Eliminar
+//                                         </button>
+//                                     </div>
+//                                 ))}
+//                             </div>
+//                         ) : (
+//                             <div className="text-center py-12">
+//                                 <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+//                                 </svg>
+//                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay simulacros</h3>
+//                                 <p className="text-gray-500 mb-4">Crea simulacros para evaluar a tus estudiantes</p>
+//                                 <button
+//                                     onClick={handleCreateSimulacro}
+//                                     className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+//                                 >
+//                                     Crear Primer Simulacro
+//                                 </button>
+//                             </div>
+//                         )}
+//                     </div>
+//                 )}
+//
+//                 {/* ========== MODAL MÓDULO ========== */}
+//                 {showModuleForm && (
+//                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+//                         <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+//                             <div className="flex justify-between items-center mb-4">
+//                                 <h3 className="text-lg font-semibold text-gray-900">
+//                                     {selectedModule ? 'Editar Módulo' : 'Crear Módulo'}
+//                                 </h3>
+//                                 <button
+//                                     onClick={() => setShowModuleForm(false)}
+//                                     className="text-gray-400 hover:text-gray-600"
+//                                 >
+//                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+//                                     </svg>
+//                                 </button>
+//                             </div>
+//
+//                             <form onSubmit={handleSubmitModule} className="space-y-4">
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Título del Módulo *
+//                                     </label>
+//                                     <input
+//                                         type="text"
+//                                         value={moduleForm.titulo}
+//                                         onChange={(e) => handleFormChange('module', 'titulo', e.target.value)}
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                         placeholder="Ej: Introducción a la Cardiología"
+//                                         required
+//                                     />
+//                                 </div>
+//
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Descripción
+//                                     </label>
+//                                     <textarea
+//                                         value={moduleForm.descripcion}
+//                                         onChange={(e) => handleFormChange('module', 'descripcion', e.target.value)}
+//                                         rows={3}
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                         placeholder="Descripción del módulo..."
+//                                     />
+//                                 </div>
+//
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Orden
+//                                     </label>
+//                                     <input
+//                                         type="number"
+//                                         value={moduleForm.orden}
+//                                         onChange={(e) => handleFormChange('module', 'orden', parseInt(e.target.value))}
+//                                         min="1"
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                         required
+//                                     />
+//                                 </div>
+//
+//                                 <div className="flex justify-end space-x-3 pt-4">
+//                                     <button
+//                                         type="button"
+//                                         onClick={() => setShowModuleForm(false)}
+//                                         className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+//                                     >
+//                                         Cancelar
+//                                     </button>
+//                                     <button
+//                                         type="submit"
+//                                         disabled={formLoading}
+//                                         className="px-4 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+//                                     >
+//                                         {formLoading && (
+//                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                                         )}
+//                                         <span>{formLoading ? 'Procesando...' : (selectedModule ? 'Actualizar' : 'Crear')}</span>
+//                                     </button>
+//                                 </div>
+//                             </form>
+//                         </div>
+//                     </div>
+//                 )}
+//
+//                 {/* ========== MODAL CLASE ========== */}
+//                 {showClassForm && (
+//                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+//                         <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+//                             <div className="flex justify-between items-center mb-4">
+//                                 <h3 className="text-lg font-semibold text-gray-900">
+//                                     {selectedClass ? 'Editar Clase' : 'Crear Clase'}
+//                                 </h3>
+//                                 <button
+//                                     onClick={() => setShowClassForm(false)}
+//                                     className="text-gray-400 hover:text-gray-600"
+//                                 >
+//                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+//                                     </svg>
+//                                 </button>
+//                             </div>
+//
+//                             <form onSubmit={handleSubmitClass} className="space-y-4">
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Título de la Clase *
+//                                     </label>
+//                                     <input
+//                                         type="text"
+//                                         value={classForm.titulo}
+//                                         onChange={(e) => handleFormChange('class', 'titulo', e.target.value)}
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                         placeholder="Ej: Anatomía del Corazón"
+//                                         required
+//                                     />
+//                                 </div>
+//
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Descripción
+//                                     </label>
+//                                     <textarea
+//                                         value={classForm.descripcion}
+//                                         onChange={(e) => handleFormChange('class', 'descripcion', e.target.value)}
+//                                         rows={3}
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                         placeholder="Descripción de la clase..."
+//                                     />
+//                                 </div>
+//
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         URL de YouTube
+//                                     </label>
+//                                     <input
+//                                         type="url"
+//                                         value={classForm.videoYoutubeUrl}
+//                                         onChange={(e) => handleFormChange('class', 'videoYoutubeUrl', e.target.value)}
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                         placeholder="https://www.youtube.com/watch?v=..."
+//                                     />
+//                                 </div>
+//
+//                                 <div className="grid grid-cols-2 gap-4">
+//                                     <div>
+//                                         <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                             Duración (minutos)
+//                                         </label>
+//                                         <input
+//                                             type="number"
+//                                             value={classForm.duracionMinutos}
+//                                             onChange={(e) => handleFormChange('class', 'duracionMinutos', parseInt(e.target.value) || 0)}
+//                                             min="0"
+//                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                             placeholder="0"
+//                                         />
+//                                     </div>
+//
+//                                     <div>
+//                                         <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                             Orden
+//                                         </label>
+//                                         <input
+//                                             type="number"
+//                                             value={classForm.orden}
+//                                             onChange={(e) => handleFormChange('class', 'orden', parseInt(e.target.value))}
+//                                             min="1"
+//                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                             required
+//                                         />
+//                                     </div>
+//                                 </div>
+//
+//                                 <div>
+//                                     <label className="flex items-center">
+//                                         <input
+//                                             type="checkbox"
+//                                             checked={classForm.esGratuita}
+//                                             onChange={(e) => handleFormChange('class', 'esGratuita', e.target.checked)}
+//                                             className="mr-2 rounded"
+//                                         />
+//                                         <span className="text-sm font-medium text-gray-700">Clase Gratuita</span>
+//                                     </label>
+//                                 </div>
+//
+//                                 <div className="flex justify-end space-x-3 pt-4">
+//                                     <button
+//                                         type="button"
+//                                         onClick={() => setShowClassForm(false)}
+//                                         className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+//                                     >
+//                                         Cancelar
+//                                     </button>
+//                                     <button
+//                                         type="submit"
+//                                         disabled={formLoading}
+//                                         className="px-4 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+//                                     >
+//                                         {formLoading && (
+//                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                                         )}
+//                                         <span>{formLoading ? 'Procesando...' : (selectedClass ? 'Actualizar' : 'Crear')}</span>
+//                                     </button>
+//                                 </div>
+//                             </form>
+//                         </div>
+//                     </div>
+//                 )}
+//
+//                 {/* ========== MODAL SIMULACRO ========== */}
+//                 {showSimulacroForm && (
+//                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+//                         <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
+//                             <div className="flex justify-between items-center mb-4">
+//                                 <h3 className="text-lg font-semibold text-gray-900">
+//                                     {selectedSimulacro ? 'Editar Simulacro' : 'Crear Simulacro'}
+//                                 </h3>
+//                                 <button
+//                                     onClick={() => setShowSimulacroForm(false)}
+//                                     className="text-gray-400 hover:text-gray-600"
+//                                 >
+//                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+//                                     </svg>
+//                                 </button>
+//                             </div>
+//
+//                             <form onSubmit={handleSubmitSimulacro} className="space-y-4">
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Título del Simulacro *
+//                                     </label>
+//                                     <input
+//                                         type="text"
+//                                         value={simulacroForm.titulo}
+//                                         onChange={(e) => handleFormChange('simulacro', 'titulo', e.target.value)}
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                         placeholder="Ej: Examen de Cardiología Básica"
+//                                         required
+//                                     />
+//                                 </div>
+//
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Descripción
+//                                     </label>
+//                                     <textarea
+//                                         value={simulacroForm.descripcion}
+//                                         onChange={(e) => handleFormChange('simulacro', 'descripcion', e.target.value)}
+//                                         rows={3}
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                         placeholder="Descripción del simulacro..."
+//                                     />
+//                                 </div>
+//
+//                                 <div className="grid grid-cols-2 gap-4">
+//                                     <div>
+//                                         <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                             Modo de Evaluación *
+//                                         </label>
+//                                         <select
+//                                             value={simulacroForm.modoEvaluacion}
+//                                             onChange={(e) => handleFormChange('simulacro', 'modoEvaluacion', e.target.value)}
+//                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                             required
+//                                         >
+//                                             <option value="practica">Práctica (muestra respuestas)</option>
+//                                             <option value="realista">Realista (respuestas al final)</option>
+//                                             <option value="examen">Examen (sin respuestas)</option>
+//                                         </select>
+//                                     </div>
+//
+//                                     <div>
+//                                         <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                             Número de Preguntas *
+//                                         </label>
+//                                         <input
+//                                             type="number"
+//                                             value={simulacroForm.numeroPreguntas}
+//                                             onChange={(e) => handleFormChange('simulacro', 'numeroPreguntas', parseInt(e.target.value))}
+//                                             min="1"
+//                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                             required
+//                                         />
+//                                     </div>
+//                                 </div>
+//
+//                                 <div className="grid grid-cols-2 gap-4">
+//                                     <div>
+//                                         <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                             Tiempo Límite (minutos)
+//                                         </label>
+//                                         <input
+//                                             type="number"
+//                                             value={simulacroForm.tiempoLimiteMinutos}
+//                                             onChange={(e) => handleFormChange('simulacro', 'tiempoLimiteMinutos', parseInt(e.target.value) || null)}
+//                                             min="1"
+//                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                             placeholder="Sin límite"
+//                                         />
+//                                     </div>
+//
+//                                     <div>
+//                                         <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                             Tiempo por Pregunta (segundos)
+//                                         </label>
+//                                         <input
+//                                             type="number"
+//                                             value={simulacroForm.tiempoPorPreguntaSegundos}
+//                                             onChange={(e) => handleFormChange('simulacro', 'tiempoPorPreguntaSegundos', parseInt(e.target.value) || null)}
+//                                             min="10"
+//                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                             placeholder="Sin límite"
+//                                         />
+//                                     </div>
+//                                 </div>
+//
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Intentos Permitidos
+//                                     </label>
+//                                     <select
+//                                         value={simulacroForm.intentosPermitidos}
+//                                         onChange={(e) => handleFormChange('simulacro', 'intentosPermitidos', parseInt(e.target.value))}
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                     >
+//                                         <option value={-1}>Ilimitados</option>
+//                                         <option value={1}>1 intento</option>
+//                                         <option value={2}>2 intentos</option>
+//                                         <option value={3}>3 intentos</option>
+//                                         <option value={5}>5 intentos</option>
+//                                     </select>
+//                                 </div>
+//
+//                                 <div className="space-y-3">
+//                                     <label className="flex items-center">
+//                                         <input
+//                                             type="checkbox"
+//                                             checked={simulacroForm.randomizarPreguntas}
+//                                             onChange={(e) => handleFormChange('simulacro', 'randomizarPreguntas', e.target.checked)}
+//                                             className="mr-2 rounded"
+//                                         />
+//                                         <span className="text-sm font-medium text-gray-700">Aleatorizar orden de preguntas</span>
+//                                     </label>
+//
+//                                     <label className="flex items-center">
+//                                         <input
+//                                             type="checkbox"
+//                                             checked={simulacroForm.randomizarOpciones}
+//                                             onChange={(e) => handleFormChange('simulacro', 'randomizarOpciones', e.target.checked)}
+//                                             className="mr-2 rounded"
+//                                         />
+//                                         <span className="text-sm font-medium text-gray-700">Aleatorizar orden de opciones</span>
+//                                     </label>
+//                                 </div>
+//
+//                                 <div>
+//                                     <label className="block text-sm font-medium text-gray-700 mb-1">
+//                                         Mostrar respuestas
+//                                     </label>
+//                                     <select
+//                                         value={simulacroForm.mostrarRespuestasDespues}
+//                                         onChange={(e) => handleFormChange('simulacro', 'mostrarRespuestasDespues', parseInt(e.target.value))}
+//                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+//                                     >
+//                                         <option value={0}>No mostrar</option>
+//                                         <option value={1}>Después de cada pregunta</option>
+//                                         <option value={2}>Al final del simulacro</option>
+//                                     </select>
+//                                 </div>
+//
+//                                 <div className="flex justify-end space-x-3 pt-4">
+//                                     <button
+//                                         type="button"
+//                                         onClick={() => setShowSimulacroForm(false)}
+//                                         className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+//                                     >
+//                                         Cancelar
+//                                     </button>
+//                                     <button
+//                                         type="submit"
+//                                         disabled={formLoading}
+//                                         className="px-4 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+//                                     >
+//                                         {formLoading && (
+//                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                                         )}
+//                                         <span>{formLoading ? 'Procesando...' : (selectedSimulacro ? 'Actualizar' : 'Crear')}</span>
+//                                     </button>
+//                                 </div>
+//                             </form>
+//                         </div>
+//                     </div>
+//                 )}
+//             </div>
+//         </Layout>
+//     )
+// }
+//
+// export default CourseManager
+
+
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
@@ -12,6 +1132,7 @@ const CourseManager = () => {
     const [course, setCourse] = useState(null)
     const [modules, setModules] = useState([])
     const [simulacros, setSimulacros] = useState([])
+    const [stats, setStats] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
@@ -24,9 +1145,6 @@ const CourseManager = () => {
     const [selectedClass, setSelectedClass] = useState(null)
     const [selectedSimulacro, setSelectedSimulacro] = useState(null)
     const [formLoading, setFormLoading] = useState(false)
-
-    // Estados del tab activo
-    const [activeTab, setActiveTab] = useState('modules') // modules, simulacros, settings
 
     // Estados de formularios
     const [moduleForm, setModuleForm] = useState({
@@ -44,23 +1162,20 @@ const CourseManager = () => {
         orden: 1
     })
 
+    // Estado de simulacro básico (solo para crear inicial)
     const [simulacroForm, setSimulacroForm] = useState({
         titulo: '',
         descripcion: '',
-        modoEvaluacion: 'practica',
-        tiempoLimiteMinutos: 30,
-        tiempoPorPreguntaSegundos: 60,
         numeroPreguntas: 10,
-        intentosPermitidos: -1,
-        randomizarPreguntas: true,
-        randomizarOpciones: true,
-        mostrarRespuestasDespues: 1
+        modoEvaluacion: 'practica'
     })
+
+    const [activeTab, setActiveTab] = useState('overview')
 
     // ========== EFECTOS ==========
     useEffect(() => {
         if (cursoId) {
-            loadCourseContent()
+            loadCourseData()
         }
     }, [cursoId])
 
@@ -72,19 +1187,26 @@ const CourseManager = () => {
     }, [success])
 
     // ========== FUNCIONES DE CARGA ==========
-    const loadCourseContent = async () => {
+    const loadCourseData = async () => {
         try {
             setLoading(true)
             setError('')
 
-            const result = await courseManagementService.getCourseForEditing(cursoId)
+            const [courseResult, statsResult] = await Promise.all([
+                courseManagementService.getCourseForEditing(cursoId),
+                courseManagementService.getCourseStats(cursoId)
+            ])
 
-            if (result.success) {
-                setCourse(result.data.curso)
-                setModules(result.data.modulos || [])
-                setSimulacros(result.data.simulacros || [])
+            if (courseResult.success) {
+                setCourse(courseResult.data.curso)
+                setModules(courseResult.data.modulos || [])
+                setSimulacros(courseResult.data.simulacros || [])
             } else {
-                setError(result.error || 'Error cargando el curso')
+                setError(courseResult.error || 'Error cargando el curso')
+            }
+
+            if (statsResult.success) {
+                setStats(statsResult.data)
             }
         } catch (error) {
             console.error('Error:', error)
@@ -100,7 +1222,7 @@ const CourseManager = () => {
         setModuleForm({
             titulo: '',
             descripcion: '',
-            orden: modules.length + 1
+            orden: (modules.length || 0) + 1
         })
         setShowModuleForm(true)
     }
@@ -135,10 +1257,10 @@ const CourseManager = () => {
             if (result.success) {
                 setShowModuleForm(false)
                 setSelectedModule(null)
-                await loadCourseContent()
-                setSuccess(result.message || (selectedModule ? 'Módulo actualizado' : 'Módulo creado'))
+                await loadCourseData()
+                setSuccess(result.message)
             } else {
-                setError(result.error || 'Error procesando módulo')
+                setError(result.error)
             }
         } catch (error) {
             setError('Error de conexión')
@@ -148,17 +1270,17 @@ const CourseManager = () => {
     }
 
     const handleDeleteModule = async (moduleId) => {
-        if (!window.confirm('¿Estás seguro de eliminar este módulo? Se eliminarán también todas sus clases.')) return
+        if (!window.confirm('¿Estás seguro de eliminar este módulo? Se eliminarán todas sus clases.')) return
 
         try {
             setFormLoading(true)
             const result = await courseManagementService.deleteModule(moduleId)
 
             if (result.success) {
-                await loadCourseContent()
-                setSuccess(result.message || 'Módulo eliminado')
+                await loadCourseData()
+                setSuccess(result.message)
             } else {
-                setError(result.error || 'Error eliminando módulo')
+                setError(result.error)
             }
         } catch (error) {
             setError('Error de conexión')
@@ -173,28 +1295,28 @@ const CourseManager = () => {
         const classCount = module?.clases?.length || 0
 
         setSelectedClass(null)
-        setSelectedModule({ id: moduleId })
         setClassForm({
             titulo: '',
             descripcion: '',
             videoYoutubeUrl: '',
             duracionMinutos: 0,
             esGratuita: false,
-            orden: classCount + 1
+            orden: classCount + 1,
+            moduloId: moduleId
         })
         setShowClassForm(true)
     }
 
-    const handleEditClass = (clase, moduleId) => {
+    const handleEditClass = (clase) => {
         setSelectedClass(clase)
-        setSelectedModule({ id: moduleId })
         setClassForm({
             titulo: clase.titulo,
             descripcion: clase.descripcion || '',
             videoYoutubeUrl: clase.video_youtube_url || '',
             duracionMinutos: clase.duracion_minutos || 0,
             esGratuita: clase.es_gratuita || false,
-            orden: clase.orden
+            orden: clase.orden,
+            moduloId: clase.modulo_id
         })
         setShowClassForm(true)
     }
@@ -204,26 +1326,20 @@ const CourseManager = () => {
         setFormLoading(true)
 
         try {
-            const classData = {
-                ...classForm,
-                moduloId: selectedModule.id
-            }
-
             let result
             if (selectedClass) {
-                result = await courseManagementService.updateClass(selectedClass.id, classData)
+                result = await courseManagementService.updateClass(selectedClass.id, classForm)
             } else {
-                result = await courseManagementService.createClass(classData)
+                result = await courseManagementService.createClass(classForm)
             }
 
             if (result.success) {
                 setShowClassForm(false)
                 setSelectedClass(null)
-                setSelectedModule(null)
-                await loadCourseContent()
-                setSuccess(result.message || (selectedClass ? 'Clase actualizada' : 'Clase creada'))
+                await loadCourseData()
+                setSuccess(result.message)
             } else {
-                setError(result.error || 'Error procesando clase')
+                setError(result.error)
             }
         } catch (error) {
             setError('Error de conexión')
@@ -240,10 +1356,10 @@ const CourseManager = () => {
             const result = await courseManagementService.deleteClass(classId)
 
             if (result.success) {
-                await loadCourseContent()
-                setSuccess(result.message || 'Clase eliminada')
+                await loadCourseData()
+                setSuccess(result.message)
             } else {
-                setError(result.error || 'Error eliminando clase')
+                setError(result.error)
             }
         } catch (error) {
             setError('Error de conexión')
@@ -252,37 +1368,14 @@ const CourseManager = () => {
         }
     }
 
-    // ========== GESTIÓN DE SIMULACROS ==========
+    // ========== GESTIÓN DE SIMULACROS BÁSICOS ==========
     const handleCreateSimulacro = () => {
         setSelectedSimulacro(null)
         setSimulacroForm({
             titulo: '',
             descripcion: '',
-            modoEvaluacion: 'practica',
-            tiempoLimiteMinutos: 30,
-            tiempoPorPreguntaSegundos: 60,
             numeroPreguntas: 10,
-            intentosPermitidos: -1,
-            randomizarPreguntas: true,
-            randomizarOpciones: true,
-            mostrarRespuestasDespues: 1
-        })
-        setShowSimulacroForm(true)
-    }
-
-    const handleEditSimulacro = (simulacro) => {
-        setSelectedSimulacro(simulacro)
-        setSimulacroForm({
-            titulo: simulacro.titulo,
-            descripcion: simulacro.descripcion || '',
-            modoEvaluacion: simulacro.modo_evaluacion,
-            tiempoLimiteMinutos: simulacro.tiempo_limite_minutos || 30,
-            tiempoPorPreguntaSegundos: simulacro.tiempo_por_pregunta_segundos || 60,
-            numeroPreguntas: simulacro.numero_preguntas,
-            intentosPermitidos: simulacro.intentos_permitidos,
-            randomizarPreguntas: simulacro.randomizar_preguntas,
-            randomizarOpciones: simulacro.randomizar_opciones,
-            mostrarRespuestasDespues: simulacro.mostrar_respuestas_despues
+            modoEvaluacion: 'practica'
         })
         setShowSimulacroForm(true)
     }
@@ -294,23 +1387,31 @@ const CourseManager = () => {
         try {
             const simulacroData = {
                 ...simulacroForm,
-                cursoId: cursoId
+                cursoId: cursoId,
+                // Configuración básica por defecto
+                modoEstudio: 'estudio',
+                tipoTiempo: 'sin_limite',
+                tipoNavegacion: 'libre',
+                intentosPermitidos: -1,
+                randomizarPreguntas: false,
+                randomizarOpciones: false,
+                mostrarRespuestasDespues: 1
             }
 
-            let result
-            if (selectedSimulacro) {
-                result = await courseManagementService.updateSimulacro(selectedSimulacro.id, simulacroData)
-            } else {
-                result = await courseManagementService.createSimulacro(simulacroData)
-            }
+            const result = await courseManagementService.createSimulacro(simulacroData)
 
             if (result.success) {
                 setShowSimulacroForm(false)
                 setSelectedSimulacro(null)
-                await loadCourseContent()
-                setSuccess(result.message || (selectedSimulacro ? 'Simulacro actualizado' : 'Simulacro creado'))
+                await loadCourseData()
+                setSuccess(`${result.message} - ¡Ahora configúralo!`)
+
+                // Redirigir a configuración avanzada después de crear
+                setTimeout(() => {
+                    navigate(`/admin/simulacro/${result.data.simulacro.id}`)
+                }, 1500)
             } else {
-                setError(result.error || 'Error procesando simulacro')
+                setError(result.error)
             }
         } catch (error) {
             setError('Error de conexión')
@@ -320,17 +1421,17 @@ const CourseManager = () => {
     }
 
     const handleDeleteSimulacro = async (simulacroId) => {
-        if (!window.confirm('¿Estás seguro de eliminar este simulacro? Se eliminarán también todas sus preguntas.')) return
+        if (!window.confirm('¿Estás seguro de eliminar este simulacro? Se eliminarán todas sus preguntas.')) return
 
         try {
             setFormLoading(true)
             const result = await courseManagementService.deleteSimulacro(simulacroId)
 
             if (result.success) {
-                await loadCourseContent()
-                setSuccess(result.message || 'Simulacro eliminado')
+                await loadCourseData()
+                setSuccess(result.message)
             } else {
-                setError(result.error || 'Error eliminando simulacro')
+                setError(result.error)
             }
         } catch (error) {
             setError('Error de conexión')
@@ -339,30 +1440,32 @@ const CourseManager = () => {
         }
     }
 
-    const handleManageQuestions = (simulacroId) => {
-        navigate(`/admin/simulacro/${simulacroId}/preguntas`)
-    }
-
-    // ========== FUNCIONES DE UTILIDAD ==========
-    const handleFormChange = (formType, field, value) => {
-        const setters = {
-            module: setModuleForm,
-            class: setClassForm,
-            simulacro: setSimulacroForm
+    // ========== UTILIDADES ==========
+    const getModoEstudioLabel = (modo) => {
+        const modos = {
+            'estudio': { name: 'Modo Estudio', color: 'bg-green-100 text-green-800', icon: '📚' },
+            'revision': { name: 'Modo Revisión', color: 'bg-blue-100 text-blue-800', icon: '🔄' },
+            'evaluacion': { name: 'Modo Evaluación', color: 'bg-yellow-100 text-yellow-800', icon: '📝' },
+            'examen_real': { name: 'Modo Examen Real', color: 'bg-red-100 text-red-800', icon: '🎯' },
+            // Compatibilidad con modo anterior
+            'practica': { name: 'Práctica', color: 'bg-green-100 text-green-800', icon: '📚' },
+            'realista': { name: 'Realista', color: 'bg-yellow-100 text-yellow-800', icon: '📝' },
+            'examen': { name: 'Examen', color: 'bg-red-100 text-red-800', icon: '🎯' }
         }
-
-        setters[formType]?.(prev => ({
-            ...prev,
-            [field]: value
-        }))
+        return modos[modo] || { name: modo, color: 'bg-gray-100 text-gray-800', icon: '📋' }
     }
 
-    const formatDuration = (minutes) => {
-        if (!minutes) return '0 min'
-        if (minutes < 60) return `${minutes} min`
-        const hours = Math.floor(minutes / 60)
-        const mins = minutes % 60
-        return `${hours}h ${mins > 0 ? `${mins}min` : ''}`
+    const getTiempoLabel = (simulacro) => {
+        if (simulacro.tipo_tiempo === 'sin_limite') return 'Sin límite'
+        if (simulacro.tiempo_limite_minutos) {
+            const horas = Math.floor(simulacro.tiempo_limite_minutos / 60)
+            const minutos = simulacro.tiempo_limite_minutos % 60
+            if (horas > 0) {
+                return `${horas}h ${minutos}min`
+            }
+            return `${minutos} min`
+        }
+        return 'No definido'
     }
 
     // ========== RENDER ==========
@@ -386,10 +1489,10 @@ const CourseManager = () => {
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-gray-900">Curso no encontrado</h1>
                         <button
-                            onClick={() => navigate('/admin/cursos')}
+                            onClick={() => navigate(-1)}
                             className="mt-4 bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                         >
-                            Volver a Cursos
+                            Volver
                         </button>
                     </div>
                 </div>
@@ -405,24 +1508,29 @@ const CourseManager = () => {
                     <div>
                         <div className="flex items-center space-x-4 mb-2">
                             <button
-                                onClick={() => navigate('/admin/cursos')}
+                                onClick={() => navigate(-1)}
                                 className="text-medico-blue hover:text-blue-700"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                 </svg>
                             </button>
-                            <h1 className="text-3xl font-bold text-medico-blue">{course.titulo}</h1>
+                            <h1 className="text-3xl font-bold text-medico-blue">Gestionar Curso</h1>
                         </div>
-                        <p className="text-medico-gray">{course.descripcion}</p>
+                        <h2 className="text-xl text-gray-700 mb-2">{course.titulo}</h2>
+                        {course.descripcion && (
+                            <p className="text-medico-gray">{course.descripcion}</p>
+                        )}
                         <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                            <span>Tipo: {course.tipo_examen || 'General'}</span>
-                            <span>•</span>
-                            <span>{course.es_gratuito ? 'Gratuito' : `$${course.precio}`}</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${course.es_gratuito ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                                {course.es_gratuito ? 'Gratuito' : `$${course.precio}`}
+                            </span>
                             <span>•</span>
                             <span>{modules.length} módulos</span>
                             <span>•</span>
                             <span>{simulacros.length} simulacros</span>
+                            <span>•</span>
+                            <span>{modules.reduce((acc, mod) => acc + (mod.clases?.length || 0), 0)} clases</span>
                         </div>
                     </div>
                 </div>
@@ -456,34 +1564,102 @@ const CourseManager = () => {
                 {/* ========== TABS ========== */}
                 <div className="border-b border-gray-200 mb-6">
                     <nav className="-mb-px flex space-x-8">
-                        <button
-                            onClick={() => setActiveTab('modules')}
-                            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                activeTab === 'modules'
-                                    ? 'border-medico-blue text-medico-blue'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                        >
-                            Módulos y Clases ({modules.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('simulacros')}
-                            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                activeTab === 'simulacros'
-                                    ? 'border-medico-blue text-medico-blue'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            }`}
-                        >
-                            Simulacros ({simulacros.length})
-                        </button>
+                        {[
+                            { id: 'overview', name: 'Resumen', icon: '📊' },
+                            { id: 'modules', name: 'Módulos', icon: '📚' },
+                            { id: 'simulacros', name: 'Simulacros', icon: '🧪' }
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                    activeTab === tab.id
+                                        ? 'border-medico-blue text-medico-blue'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                }`}
+                            >
+                                <span className="mr-2">{tab.icon}</span>
+                                {tab.name}
+                            </button>
+                        ))}
                     </nav>
                 </div>
 
-                {/* ========== CONTENIDO DE TABS ========== */}
+                {/* ========== CONTENIDO POR TAB ========== */}
+                {activeTab === 'overview' && (
+                    <div className="space-y-6">
+                        {stats && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                    <div className="flex items-center">
+                                        <div className="text-2xl font-bold text-medico-blue">{stats.contenido?.modulos || 0}</div>
+                                        <div className="ml-auto text-blue-500">📚</div>
+                                    </div>
+                                    <div className="text-sm text-gray-500">Módulos</div>
+                                </div>
+
+                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                    <div className="flex items-center">
+                                        <div className="text-2xl font-bold text-green-600">{stats.contenido?.clases || 0}</div>
+                                        <div className="ml-auto text-green-500">🎓</div>
+                                    </div>
+                                    <div className="text-sm text-gray-500">Clases</div>
+                                </div>
+
+                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                    <div className="flex items-center">
+                                        <div className="text-2xl font-bold text-purple-600">{stats.contenido?.simulacros || 0}</div>
+                                        <div className="ml-auto text-purple-500">🧪</div>
+                                    </div>
+                                    <div className="text-sm text-gray-500">Simulacros</div>
+                                </div>
+
+                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                    <div className="flex items-center">
+                                        <div className="text-2xl font-bold text-orange-600">{stats.contenido?.preguntas || 0}</div>
+                                        <div className="ml-auto text-orange-500">❓</div>
+                                    </div>
+                                    <div className="text-sm text-gray-500">Preguntas</div>
+                                </div>
+                            </div>
+                        )}
+
+                        {stats?.resumen?.completitud && (
+                            <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Estado del Curso</h3>
+                                <div className="space-y-3">
+                                    <div className="flex items-center">
+                                        <div className={`w-3 h-3 rounded-full mr-3 ${stats.resumen.completitud.tiene_contenido ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                        <span>Tiene contenido (clases)</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <div className={`w-3 h-3 rounded-full mr-3 ${stats.resumen.completitud.tiene_evaluacion ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                        <span>Tiene evaluaciones (simulacros)</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                        <div className={`w-3 h-3 rounded-full mr-3 ${stats.resumen.completitud.tiene_preguntas ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                        <span>Tiene preguntas configuradas</span>
+                                    </div>
+                                    {stats.resumen.completitud.esta_completo && (
+                                        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                            <div className="flex items-center">
+                                                <svg className="w-5 h-5 text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <span className="text-green-800 font-medium">¡Curso completo y listo para estudiantes!</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {activeTab === 'modules' && (
                     <div>
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-semibold text-gray-900">Módulos del Curso</h2>
+                            <h3 className="text-lg font-semibold text-gray-900">Módulos del Curso</h3>
                             <button
                                 onClick={handleCreateModule}
                                 className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
@@ -491,97 +1667,93 @@ const CourseManager = () => {
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                <span>Crear Módulo</span>
+                                <span>Nuevo Módulo</span>
                             </button>
                         </div>
 
                         {modules.length > 0 ? (
-                            <div className="space-y-6">
-                                {modules.map((module, moduleIndex) => (
-                                    <div key={module.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                                        {/* Encabezado del módulo */}
-                                        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                                            <div className="flex justify-between items-center">
-                                                <div>
-                                                    <h3 className="text-lg font-semibold text-gray-900">
-                                                        {moduleIndex + 1}. {module.titulo}
-                                                    </h3>
-                                                    {module.descripcion && (
-                                                        <p className="text-gray-600 mt-1">{module.descripcion}</p>
-                                                    )}
-                                                    <p className="text-sm text-gray-500 mt-1">
-                                                        {module.clases?.length || 0} clase{(module.clases?.length || 0) !== 1 ? 's' : ''}
+                            <div className="space-y-4">
+                                {modules.map((module, index) => (
+                                    <div key={module.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="flex-1">
+                                                <div className="flex items-center space-x-3 mb-2">
+                                                   <span className="bg-medico-blue text-white px-2 py-1 rounded text-sm font-medium">
+                                                       Módulo {module.orden}
+                                                   </span>
+                                                </div>
+                                                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                                                    {module.titulo}
+                                                </h4>
+                                                {module.descripcion && (
+                                                    <p className="text-gray-600 text-sm mb-3">
+                                                        {module.descripcion}
                                                     </p>
+                                                )}
+                                                <div className="text-sm text-gray-500">
+                                                    {module.clases?.length || 0} clases
                                                 </div>
-                                                <div className="flex items-center space-x-2">
-                                                    <button
-                                                        onClick={() => handleCreateClass(module.id)}
-                                                        className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                                                    >
-                                                        + Clase
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleEditModule(module)}
-                                                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                                                    >
-                                                        Editar
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteModule(module.id)}
-                                                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                                                    >
-                                                        Eliminar
-                                                    </button>
-                                                </div>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() => handleCreateClass(module.id)}
+                                                    className="text-green-600 hover:text-green-800 text-sm bg-green-50 px-3 py-1 rounded-md transition-colors"
+                                                >
+                                                    + Clase
+                                                </button>
+                                                <button
+                                                    onClick={() => handleEditModule(module)}
+                                                    className="text-blue-600 hover:text-blue-800 text-sm bg-blue-50 px-3 py-1 rounded-md transition-colors"
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteModule(module.id)}
+                                                    className="text-red-600 hover:text-red-800 text-sm bg-red-50 px-3 py-1 rounded-md transition-colors"
+                                                >
+                                                    Eliminar
+                                                </button>
                                             </div>
                                         </div>
 
                                         {/* Clases del módulo */}
                                         {module.clases && module.clases.length > 0 && (
-                                            <div className="p-6">
-                                                <div className="space-y-3">
-                                                    {module.clases.map((clase, classIndex) => (
-                                                        <div key={clase.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                            <div className="flex-1">
-                                                                <div className="flex items-center space-x-3">
-                                                                    <span className="text-sm font-medium text-gray-500">
-                                                                        {classIndex + 1}.
-                                                                    </span>
-                                                                    <div>
-                                                                        <h4 className="font-medium text-gray-900">{clase.titulo}</h4>
-                                                                        {clase.descripcion && (
-                                                                            <p className="text-sm text-gray-600">{clase.descripcion}</p>
-                                                                        )}
-                                                                        <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
-                                                                            {clase.duracion_minutos && (
-                                                                                <span>{formatDuration(clase.duracion_minutos)}</span>
-                                                                            )}
-                                                                            {clase.es_gratuita && (
-                                                                                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                                                                                    Gratuita
-                                                                                </span>
-                                                                            )}
-                                                                            {clase.video_youtube_url && (
-                                                                                <span className="bg-red-100 text-red-800 px-2 py-1 rounded">
-                                                                                    YouTube
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+                                            <div className="border-t border-gray-200 pt-4">
+                                                <h5 className="font-medium text-gray-900 mb-3">Clases:</h5>
+                                                <div className="space-y-2">
+                                                    {module.clases.map((clase) => (
+                                                        <div key={clase.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                                            <div className="flex items-center space-x-3">
+                                                                <span className="text-sm text-gray-500 font-medium bg-white px-2 py-1 rounded">#{clase.orden}</span>
+                                                                <span className="font-medium">{clase.titulo}</span>
+                                                                {clase.duracion_minutos && (
+                                                                    <span className="text-sm text-gray-500 bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                                                       🕐 {clase.duracion_minutos} min
+                                                                   </span>
+                                                                )}
+                                                                {clase.es_gratuita && (
+                                                                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded font-medium">
+                                                                       Gratuita
+                                                                   </span>
+                                                                )}
+                                                                {clase.video_youtube_url && (
+                                                                    <span className="text-red-500 text-sm">
+                                                                       📹 YouTube
+                                                                   </span>
+                                                                )}
                                                             </div>
                                                             <div className="flex items-center space-x-2">
                                                                 <button
-                                                                    onClick={() => handleEditClass(clase, module.id)}
+                                                                    onClick={() => handleEditClass(clase)}
                                                                     className="text-blue-600 hover:text-blue-800 text-sm"
                                                                 >
-                                                                    Editar
+                                                                    ✏️ Editar
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteClass(clase.id)}
                                                                     className="text-red-600 hover:text-red-800 text-sm"
                                                                 >
-                                                                    Eliminar
+                                                                    🗑️ Eliminar
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -589,26 +1761,12 @@ const CourseManager = () => {
                                                 </div>
                                             </div>
                                         )}
-
-                                        {(!module.clases || module.clases.length === 0) && (
-                                            <div className="p-6 text-center text-gray-500">
-                                                <p>No hay clases en este módulo</p>
-                                                <button
-                                                    onClick={() => handleCreateClass(module.id)}
-                                                    className="mt-2 text-medico-blue hover:text-blue-700 text-sm"
-                                                >
-                                                    Crear primera clase
-                                                </button>
-                                            </div>
-                                        )}
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="text-center py-12">
-                                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                                </svg>
+                                <div className="text-6xl mb-4">📚</div>
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay módulos</h3>
                                 <p className="text-gray-500 mb-4">Comienza creando el primer módulo de tu curso</p>
                                 <button
@@ -625,7 +1783,7 @@ const CourseManager = () => {
                 {activeTab === 'simulacros' && (
                     <div>
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-semibold text-gray-900">Simulacros del Curso</h2>
+                            <h3 className="text-lg font-semibold text-gray-900">Simulacros del Curso</h3>
                             <button
                                 onClick={handleCreateSimulacro}
                                 className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
@@ -633,77 +1791,117 @@ const CourseManager = () => {
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                <span>Crear Simulacro</span>
+                                <span>Nuevo Simulacro</span>
                             </button>
                         </div>
 
                         {simulacros.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {simulacros.map((simulacro) => (
-                                    <div key={simulacro.id} className="bg-white border border-gray-200 rounded-lg p-6">
-                                        <div className="mb-4">
-                                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{simulacro.titulo}</h3>
-                                            {simulacro.descripcion && (
-                                                <p className="text-gray-600 text-sm mb-3">{simulacro.descripcion}</p>
-                                            )}
-
-                                            <div className="space-y-2 text-sm text-gray-500">
-                                                <div className="flex justify-between">
-                                                    <span>Modo:</span>
-                                                    <span className="capitalize font-medium">{simulacro.modo_evaluacion}</span>
+                            <div className="space-y-4">
+                                {simulacros.map((simulacro) => {
+                                    const modoInfo = getModoEstudioLabel(simulacro.modo_estudio || simulacro.modo_evaluacion || 'estudio')
+                                    return (
+                                        <div key={simulacro.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center space-x-3 mb-3">
+                                                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${modoInfo.color}`}>
+                                                           {modoInfo.icon} {modoInfo.name}
+                                                       </span>
+                                                        <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm">
+                                                           ⏰ {getTiempoLabel(simulacro)}
+                                                       </span>
+                                                        {simulacro.tipo_navegacion === 'secuencial' && (
+                                                            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-sm">
+                                                               ➡️ Secuencial
+                                                           </span>
+                                                        )}
+                                                    </div>
+                                                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                                                        {simulacro.titulo}
+                                                    </h4>
+                                                    {simulacro.descripcion && (
+                                                        <p className="text-gray-600 text-sm mb-3">
+                                                            {simulacro.descripcion}
+                                                        </p>
+                                                    )}
+                                                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                                                        <span>{simulacro.total_preguntas || 0}/{simulacro.numero_preguntas} preguntas</span>
+                                                        {simulacro.tiempo_limite_minutos && (
+                                                            <>
+                                                                <span>•</span>
+                                                                <span>{simulacro.tiempo_limite_minutos} min</span>
+                                                            </>
+                                                        )}
+                                                        <span>•</span>
+                                                        <span>
+                                                           {simulacro.intentos_permitidos === -1
+                                                               ? 'Intentos ilimitados'
+                                                               : `${simulacro.intentos_permitidos} intentos`
+                                                           }
+                                                       </span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span>Preguntas:</span>
-                                                    <span className="font-medium">{simulacro.numero_preguntas}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Tiempo límite:</span>
-                                                    <span className="font-medium">
-                                                        {simulacro.tiempo_limite_minutos ? `${simulacro.tiempo_limite_minutos} min` : 'Sin límite'}
-                                                    </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Intentos:</span>
-                                                    <span className="font-medium">
-                                                        {simulacro.intentos_permitidos === -1 ? 'Ilimitados' : simulacro.intentos_permitidos}
-                                                    </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Preguntas creadas:</span>
-                                                    <span className="font-medium">{simulacro.total_preguntas || 0}</span>
+                                                <div className="flex items-center space-x-2">
+                                                    <button
+                                                        onClick={() => navigate(`/admin/simulacro/${simulacro.id}`)}
+                                                        className="text-purple-600 hover:text-purple-800 text-sm bg-purple-50 px-3 py-1 rounded-md transition-colors"
+                                                    >
+                                                        ⚙️ Configurar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => navigate(`/admin/questions/${simulacro.id}`)}
+                                                        className="text-green-600 hover:text-green-800 text-sm bg-green-50 px-3 py-1 rounded-md transition-colors"
+                                                    >
+                                                        ❓ Preguntas
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteSimulacro(simulacro.id)}
+                                                        className="text-red-600 hover:text-red-800 text-sm bg-red-50 px-3 py-1 rounded-md transition-colors"
+                                                    >
+                                                        🗑️ Eliminar
+                                                    </button>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className="grid grid-cols-2 gap-2 mb-3">
-                                            <button
-                                                onClick={() => handleEditSimulacro(simulacro)}
-                                                className="bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700"
-                                            >
-                                                Editar
-                                            </button>
-                                            <button
-                                                onClick={() => handleManageQuestions(simulacro.id)}
-                                                className="bg-green-600 text-white py-2 px-3 rounded text-sm hover:bg-green-700"
-                                            >
-                                                Preguntas
-                                            </button>
-                                        </div>
+                                            {/* Barra de progreso */}
+                                            <div className="mb-3">
+                                                <div className="flex justify-between text-sm text-gray-600 mb-1">
+                                                    <span>Progreso de preguntas</span>
+                                                    <span>{Math.round(((simulacro.total_preguntas || 0) / simulacro.numero_preguntas) * 100)}%</span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-3">
+                                                    <div
+                                                        className="bg-medico-blue h-3 rounded-full transition-all duration-500"
+                                                        style={{
+                                                            width: `${Math.min(((simulacro.total_preguntas || 0) / simulacro.numero_preguntas) * 100, 100)}%`
+                                                        }}
+                                                    ></div>
+                                                </div>
+                                            </div>
 
-                                        <button
-                                            onClick={() => handleDeleteSimulacro(simulacro.id)}
-                                            className="w-full bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700"
-                                        >
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                ))}
+                                            {/* Estado del simulacro */}
+                                            {simulacro.total_preguntas >= simulacro.numero_preguntas ? (
+                                                <div className="flex items-center text-green-600 text-sm bg-green-50 p-2 rounded-lg">
+                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Simulacro completo y listo para estudiantes
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center text-orange-600 text-sm bg-orange-50 p-2 rounded-lg">
+                                                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Faltan {simulacro.numero_preguntas - (simulacro.total_preguntas || 0)} preguntas por agregar
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                })}
                             </div>
                         ) : (
                             <div className="text-center py-12">
-                                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                                </svg>
+                                <div className="text-6xl mb-4">🧪</div>
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay simulacros</h3>
                                 <p className="text-gray-500 mb-4">Crea simulacros para evaluar a tus estudiantes</p>
                                 <button
@@ -720,10 +1918,10 @@ const CourseManager = () => {
                 {/* ========== MODAL MÓDULO ========== */}
                 {showModuleForm && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    {selectedModule ? 'Editar Módulo' : 'Crear Módulo'}
+                        <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-semibold text-gray-900">
+                                    {selectedModule ? '✏️ Editar Módulo' : '➕ Nuevo Módulo'}
                                 </h3>
                                 <button
                                     onClick={() => setShowModuleForm(false)}
@@ -743,9 +1941,9 @@ const CourseManager = () => {
                                     <input
                                         type="text"
                                         value={moduleForm.titulo}
-                                        onChange={(e) => handleFormChange('module', 'titulo', e.target.value)}
+                                        onChange={(e) => setModuleForm({ ...moduleForm, titulo: e.target.value })}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                        placeholder="Ej: Introducción a la Cardiología"
+                                        placeholder="Ej: Módulo 1: Anatomía Básica"
                                         required
                                     />
                                 </div>
@@ -756,10 +1954,10 @@ const CourseManager = () => {
                                     </label>
                                     <textarea
                                         value={moduleForm.descripcion}
-                                        onChange={(e) => handleFormChange('module', 'descripcion', e.target.value)}
+                                        onChange={(e) => setModuleForm({ ...moduleForm, descripcion: e.target.value })}
                                         rows={3}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                        placeholder="Descripción del módulo..."
+                                        placeholder="Descripción del contenido del módulo..."
                                     />
                                 </div>
 
@@ -770,30 +1968,29 @@ const CourseManager = () => {
                                     <input
                                         type="number"
                                         value={moduleForm.orden}
-                                        onChange={(e) => handleFormChange('module', 'orden', parseInt(e.target.value))}
+                                        onChange={(e) => setModuleForm({ ...moduleForm, orden: parseInt(e.target.value) || 1 })}
                                         min="1"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                        required
                                     />
                                 </div>
 
-                                <div className="flex justify-end space-x-3 pt-4">
+                                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                                     <button
                                         type="button"
                                         onClick={() => setShowModuleForm(false)}
-                                        className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={formLoading}
-                                        className="px-4 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                                        className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
                                     >
                                         {formLoading && (
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                         )}
-                                        <span>{formLoading ? 'Procesando...' : (selectedModule ? 'Actualizar' : 'Crear')}</span>
+                                        <span>{formLoading ? 'Guardando...' : (selectedModule ? 'Actualizar' : 'Crear Módulo')}</span>
                                     </button>
                                 </div>
                             </form>
@@ -804,10 +2001,10 @@ const CourseManager = () => {
                 {/* ========== MODAL CLASE ========== */}
                 {showClassForm && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    {selectedClass ? 'Editar Clase' : 'Crear Clase'}
+                        <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-semibold text-gray-900">
+                                    {selectedClass ? '✏️ Editar Clase' : '➕ Nueva Clase'}
                                 </h3>
                                 <button
                                     onClick={() => setShowClassForm(false)}
@@ -827,9 +2024,9 @@ const CourseManager = () => {
                                     <input
                                         type="text"
                                         value={classForm.titulo}
-                                        onChange={(e) => handleFormChange('class', 'titulo', e.target.value)}
+                                        onChange={(e) => setClassForm({ ...classForm, titulo: e.target.value })}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                        placeholder="Ej: Anatomía del Corazón"
+                                        placeholder="Ej: Introducción a la Anatomía"
                                         required
                                     />
                                 </div>
@@ -840,27 +2037,27 @@ const CourseManager = () => {
                                     </label>
                                     <textarea
                                         value={classForm.descripcion}
-                                        onChange={(e) => handleFormChange('class', 'descripcion', e.target.value)}
+                                        onChange={(e) => setClassForm({ ...classForm, descripcion: e.target.value })}
                                         rows={3}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                        placeholder="Descripción de la clase..."
+                                        placeholder="Descripción del contenido de la clase..."
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        URL de YouTube
-                                    </label>
-                                    <input
-                                        type="url"
-                                        value={classForm.videoYoutubeUrl}
-                                        onChange={(e) => handleFormChange('class', 'videoYoutubeUrl', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                        placeholder="https://www.youtube.com/watch?v=..."
-                                    />
-                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            URL de YouTube
+                                        </label>
+                                        <input
+                                            type="url"
+                                            value={classForm.videoYoutubeUrl}
+                                            onChange={(e) => setClassForm({ ...classForm, videoYoutubeUrl: e.target.value })}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            placeholder="https://youtube.com/watch?v=..."
+                                        />
+                                    </div>
 
-                                <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Duración (minutos)
@@ -868,13 +2065,15 @@ const CourseManager = () => {
                                         <input
                                             type="number"
                                             value={classForm.duracionMinutos}
-                                            onChange={(e) => handleFormChange('class', 'duracionMinutos', parseInt(e.target.value) || 0)}
+                                            onChange={(e) => setClassForm({ ...classForm, duracionMinutos: parseInt(e.target.value) || 0 })}
                                             min="0"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                            placeholder="0"
+                                            placeholder="60"
                                         />
                                     </div>
+                                </div>
 
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Orden
@@ -882,43 +2081,42 @@ const CourseManager = () => {
                                         <input
                                             type="number"
                                             value={classForm.orden}
-                                            onChange={(e) => handleFormChange('class', 'orden', parseInt(e.target.value))}
+                                            onChange={(e) => setClassForm({ ...classForm, orden: parseInt(e.target.value) || 1 })}
                                             min="1"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                            required
                                         />
+                                    </div>
+
+                                    <div className="flex items-center pt-6">
+                                        <label className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={classForm.esGratuita}
+                                                onChange={(e) => setClassForm({ ...classForm, esGratuita: e.target.checked })}
+                                                className="mr-2 rounded"
+                                            />
+                                            <span className="text-sm text-gray-700">Clase gratuita</span>
+                                        </label>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={classForm.esGratuita}
-                                            onChange={(e) => handleFormChange('class', 'esGratuita', e.target.checked)}
-                                            className="mr-2 rounded"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">Clase Gratuita</span>
-                                    </label>
-                                </div>
-
-                                <div className="flex justify-end space-x-3 pt-4">
+                                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                                     <button
                                         type="button"
                                         onClick={() => setShowClassForm(false)}
-                                        className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={formLoading}
-                                        className="px-4 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                                        className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
                                     >
                                         {formLoading && (
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                         )}
-                                        <span>{formLoading ? 'Procesando...' : (selectedClass ? 'Actualizar' : 'Crear')}</span>
+                                        <span>{formLoading ? 'Guardando...' : (selectedClass ? 'Actualizar' : 'Crear Clase')}</span>
                                     </button>
                                 </div>
                             </form>
@@ -926,13 +2124,13 @@ const CourseManager = () => {
                     </div>
                 )}
 
-                {/* ========== MODAL SIMULACRO ========== */}
+                {/* ========== MODAL SIMULACRO BÁSICO ========== */}
                 {showSimulacroForm && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-gray-900">
-                                    {selectedSimulacro ? 'Editar Simulacro' : 'Crear Simulacro'}
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-semibold text-gray-900">
+                                    ➕ Nuevo Simulacro
                                 </h3>
                                 <button
                                     onClick={() => setShowSimulacroForm(false)}
@@ -944,6 +2142,17 @@ const CourseManager = () => {
                                 </button>
                             </div>
 
+                            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div className="flex items-center text-blue-800">
+                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span className="text-sm">
+                                       <strong>Creación rápida:</strong> Primero crea el simulacro básico, luego lo configurarás con opciones avanzadas.
+                                   </span>
+                                </div>
+                            </div>
+
                             <form onSubmit={handleSubmitSimulacro} className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -952,9 +2161,9 @@ const CourseManager = () => {
                                     <input
                                         type="text"
                                         value={simulacroForm.titulo}
-                                        onChange={(e) => handleFormChange('simulacro', 'titulo', e.target.value)}
+                                        onChange={(e) => setSimulacroForm({ ...simulacroForm, titulo: e.target.value })}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                        placeholder="Ej: Examen de Cardiología Básica"
+                                        placeholder="Ej: Simulacro de Anatomía Básica"
                                         required
                                     />
                                 </div>
@@ -965,30 +2174,14 @@ const CourseManager = () => {
                                     </label>
                                     <textarea
                                         value={simulacroForm.descripcion}
-                                        onChange={(e) => handleFormChange('simulacro', 'descripcion', e.target.value)}
+                                        onChange={(e) => setSimulacroForm({ ...simulacroForm, descripcion: e.target.value })}
                                         rows={3}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                        placeholder="Descripción del simulacro..."
+                                        placeholder="Descripción del simulacro y objetivos..."
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Modo de Evaluación *
-                                        </label>
-                                        <select
-                                            value={simulacroForm.modoEvaluacion}
-                                            onChange={(e) => handleFormChange('simulacro', 'modoEvaluacion', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                            required
-                                        >
-                                            <option value="practica">Práctica (muestra respuestas)</option>
-                                            <option value="realista">Realista (respuestas al final)</option>
-                                            <option value="examen">Examen (sin respuestas)</option>
-                                        </select>
-                                    </div>
-
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Número de Preguntas *
@@ -996,115 +2189,61 @@ const CourseManager = () => {
                                         <input
                                             type="number"
                                             value={simulacroForm.numeroPreguntas}
-                                            onChange={(e) => handleFormChange('simulacro', 'numeroPreguntas', parseInt(e.target.value))}
+                                            onChange={(e) => setSimulacroForm({ ...simulacroForm, numeroPreguntas: parseInt(e.target.value) || 10 })}
                                             min="1"
+                                            max="200"
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            placeholder="10"
                                             required
                                         />
                                     </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Tiempo Límite (minutos)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={simulacroForm.tiempoLimiteMinutos}
-                                            onChange={(e) => handleFormChange('simulacro', 'tiempoLimiteMinutos', parseInt(e.target.value) || null)}
-                                            min="1"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                            placeholder="Sin límite"
-                                        />
-                                    </div>
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Tiempo por Pregunta (segundos)
+                                            Modo Inicial
                                         </label>
-                                        <input
-                                            type="number"
-                                            value={simulacroForm.tiempoPorPreguntaSegundos}
-                                            onChange={(e) => handleFormChange('simulacro', 'tiempoPorPreguntaSegundos', parseInt(e.target.value) || null)}
-                                            min="10"
+                                        <select
+                                            value={simulacroForm.modoEvaluacion}
+                                            onChange={(e) => setSimulacroForm({ ...simulacroForm, modoEvaluacion: e.target.value })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                            placeholder="Sin límite"
-                                        />
+                                        >
+                                            <option value="practica">📚 Práctica (sin límites)</option>
+                                            <option value="realista">📝 Realista (con tiempo)</option>
+                                            <option value="examen">🎯 Examen (estricto)</option>
+                                        </select>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Podrás configurar opciones avanzadas después de crearlo
+                                        </p>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Intentos Permitidos
-                                    </label>
-                                    <select
-                                        value={simulacroForm.intentosPermitidos}
-                                        onChange={(e) => handleFormChange('simulacro', 'intentosPermitidos', parseInt(e.target.value))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                    >
-                                        <option value={-1}>Ilimitados</option>
-                                        <option value={1}>1 intento</option>
-                                        <option value={2}>2 intentos</option>
-                                        <option value={3}>3 intentos</option>
-                                        <option value={5}>5 intentos</option>
-                                    </select>
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <h4 className="font-medium text-yellow-900 mb-2">🚀 Próximos pasos:</h4>
+                                    <div className="text-sm text-yellow-800 space-y-1">
+                                        <p>1. ✅ Crear simulacro básico</p>
+                                        <p>2. ⚙️ Configurar opciones avanzadas</p>
+                                        <p>3. ❓ Agregar preguntas</p>
+                                        <p>4. 🎯 ¡Listo para estudiantes!</p>
+                                    </div>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={simulacroForm.randomizarPreguntas}
-                                            onChange={(e) => handleFormChange('simulacro', 'randomizarPreguntas', e.target.checked)}
-                                            className="mr-2 rounded"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">Aleatorizar orden de preguntas</span>
-                                    </label>
-
-                                    <label className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={simulacroForm.randomizarOpciones}
-                                            onChange={(e) => handleFormChange('simulacro', 'randomizarOpciones', e.target.checked)}
-                                            className="mr-2 rounded"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700">Aleatorizar orden de opciones</span>
-                                    </label>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Mostrar respuestas
-                                    </label>
-                                    <select
-                                        value={simulacroForm.mostrarRespuestasDespues}
-                                        onChange={(e) => handleFormChange('simulacro', 'mostrarRespuestasDespues', parseInt(e.target.value))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
-                                    >
-                                        <option value={0}>No mostrar</option>
-                                        <option value={1}>Después de cada pregunta</option>
-                                        <option value={2}>Al final del simulacro</option>
-                                    </select>
-                                </div>
-
-                                <div className="flex justify-end space-x-3 pt-4">
+                                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
                                     <button
                                         type="button"
                                         onClick={() => setShowSimulacroForm(false)}
-                                        className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={formLoading}
-                                        className="px-4 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                                        className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
                                     >
                                         {formLoading && (
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                         )}
-                                        <span>{formLoading ? 'Procesando...' : (selectedSimulacro ? 'Actualizar' : 'Crear')}</span>
+                                        <span>{formLoading ? 'Creando...' : 'Crear y Configurar'}</span>
                                     </button>
                                 </div>
                             </form>

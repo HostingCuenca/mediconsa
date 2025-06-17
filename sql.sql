@@ -383,3 +383,83 @@ WHERE schemaname = 'public'
     )
 ORDER BY tablename;
 
+
+
+--ejemplo de endpoint
+
+{
+    "success": true,
+    "message": "Simulacro \"Modo Evaluación\" creado exitosamente",
+    "data": {
+        "simulacro": {
+            "titulo": "Diagnóstico Rápido",
+            "descripcion": "2 minutos por pregunta",
+            "modo_evaluacion": "practica",
+            "tiempo_limite_minutos": 50,
+            "tiempo_por_pregunta_segundos": 120,
+            "numero_preguntas": 25,
+            "intentos_permitidos": -1,
+            "randomizar_preguntas": true,
+            "randomizar_opciones": true,
+            "mostrar_respuestas_despues": 1,
+            "activo": true,
+            "fecha_creacion": "2025-06-17T21:38:40.091Z",
+            "id": "d9507490-b709-4f2f-8f53-9af141f08df8",
+            "curso_id": "d432699a-7d01-4387-807d-f343eba7c90a",
+            "modo_estudio": "evaluacion",
+            "tipo_tiempo": "por_pregunta",
+            "tipo_navegacion": "secuencial",
+            "configuracion_modo": {},
+            "configuracion_avanzada": {
+                "modo_config": {
+                    "name": "Modo Evaluación",
+                    "features": [
+                        "feedback_parcial",
+                        "intentos_limitados",
+                        "tiempo_sugerido"
+                    ],
+                    "description": "Evaluación con feedback limitado",
+                    "defaultConfig": {
+                        "tipo_tiempo": "global",
+                        "tipo_navegacion": "libre",
+                        "intentos_permitidos": 2,
+                        "randomizar_opciones": true,
+                        "randomizar_preguntas": true,
+                        "mostrar_respuestas_despues": 0
+                    }
+                },
+                "fecha_creacion_config": "2025-06-17T16:38:41.597Z",
+                "tiempo_calculado_automaticamente": true
+            }
+        },
+        "configuracion": {
+            "modo": {
+                "name": "Modo Evaluación",
+                "description": "Evaluación con feedback limitado",
+                "features": [
+                    "feedback_parcial",
+                    "intentos_limitados",
+                    "tiempo_sugerido"
+                ],
+                "defaultConfig": {
+                    "tipo_tiempo": "global",
+                    "tipo_navegacion": "libre",
+                    "intentos_permitidos": 2,
+                    "mostrar_respuestas_despues": 0,
+                    "randomizar_preguntas": true,
+                    "randomizar_opciones": true
+                }
+            },
+            "tiempo_tipo": {
+                "name": "Tiempo por Pregunta",
+                "description": "Tiempo específico para cada pregunta"
+            },
+            "navegacion_tipo": {
+                "name": "Navegación Secuencial",
+                "description": "Solo puede avanzar, no retroceder"
+            },
+            "tiempo_total_estimado": 50,
+            "tiempo_por_pregunta_calculado": 120
+        }
+    }
+}
