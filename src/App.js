@@ -80,7 +80,6 @@
 //
 // export default App
 
-
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './utils/AuthContext'
@@ -101,6 +100,7 @@ import Simulacros from './panel/Simulacros'
 import Profile from './panel/Profile'
 import CourseView from './panel/CourseView'
 import RealizarSimulacro from './panel/RealizarSimulacro'
+import ResultadoSimulacro from './panel/ResultadoSimulacro' // 🆕 NUEVO IMPORT
 
 // ADMIN PANEL
 import AdminDashboard from './adminpanel/Dashboard'
@@ -113,7 +113,7 @@ import AdminApiDocs from './adminpanel/ApiDocs'
 
 import CourseManager from './adminpanel/CourseManager'
 import QuestionManager from './adminpanel/QuestionManager'
-import SimulacroManager from './adminpanel/SimulacroManager'  // 🆕 NUEVO IMPORT
+import SimulacroManager from './adminpanel/SimulacroManager'
 
 function App() {
     return (
@@ -133,7 +133,11 @@ function App() {
                     <Route path="/mi-progreso" element={<ProtectedRoute><MyProgress /></ProtectedRoute>} />
                     <Route path="/simulacros" element={<ProtectedRoute><Simulacros /></ProtectedRoute>} />
                     <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+                    {/* 🆕 RUTAS DE SIMULACROS */}
                     <Route path="/simulacro/:simulacroId/realizar" element={<ProtectedRoute><RealizarSimulacro /></ProtectedRoute>} />
+                    <Route path="/simulacros/resultado" element={<ProtectedRoute><ResultadoSimulacro /></ProtectedRoute>} />
+
                     <Route path="/estudiar/:cursoId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
 
                     {/* ADMIN */}
@@ -141,7 +145,7 @@ function App() {
                     <Route path="/admin/cursos" element={<ProtectedRoute role="admin"><AdminCourses /></ProtectedRoute>} />
                     <Route path="/admin/curso/:cursoId/gestionar" element={<ProtectedRoute role="admin"><CourseManager /></ProtectedRoute>} />
 
-                    {/* 🆕 NUEVAS RUTAS */}
+                    {/* ADMIN - SIMULACROS */}
                     <Route path="/admin/simulacro/:simulacroId" element={<ProtectedRoute role="admin"><SimulacroManager /></ProtectedRoute>} />
                     <Route path="/admin/questions/:simulacroId" element={<ProtectedRoute role="admin"><QuestionManager /></ProtectedRoute>} />
 

@@ -2453,7 +2453,7 @@ const MyCourses = () => {
                                     : 'text-gray-600 hover:text-gray-900'
                             }`}
                         >
-                            Explorar Cursos ({availableCoursesData.total})
+                            Explorar Cursos {availableCoursesData.total}
                         </button>
                     </div>
                 </div>

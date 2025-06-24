@@ -2213,17 +2213,17 @@ const CourseView = () => {
     )}
 
 {/* Indicador de modo desarrollo */}
-{isDevelopment && (
-        <div className="fixed top-4 right-4 bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-2 z-50">
-            <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                <span className="text-xs font-medium text-yellow-800">MODO DESARROLLO</span>
-            </div>
-            <p className="text-xs text-yellow-700 mt-1">
-                Acceso libre a todo el contenido
-            </p>
-        </div>
-    )}
+{/*{isDevelopment && (*/}
+{/*        <div className="fixed top-4 right-4 bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-2 z-50">*/}
+{/*            <div className="flex items-center space-x-2">*/}
+{/*                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>*/}
+{/*                <span className="text-xs font-medium text-yellow-800">MODO DESARROLLO</span>*/}
+{/*            </div>*/}
+{/*            <p className="text-xs text-yellow-700 mt-1">*/}
+{/*                Acceso libre a todo el contenido*/}
+{/*            </p>*/}
+{/*        </div>*/}
+{/*    )}*/}
 </div>
 </Layout>
 )
