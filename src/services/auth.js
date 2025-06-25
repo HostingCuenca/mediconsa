@@ -33,6 +33,7 @@ class AuthService {
             nombreCompleto: user.nombreCompleto || user.nombre_completo,
             nombreUsuario: user.nombreUsuario || user.nombre_usuario,
             tipoUsuario: user.tipoUsuario || user.tipo_usuario,
+            telefono: user.telefono || '',
             activo: user.activo !== undefined ? user.activo : true,
             fechaRegistro: user.fechaRegistro || user.fecha_registro
         }

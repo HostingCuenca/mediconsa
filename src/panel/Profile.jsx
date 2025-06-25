@@ -38,14 +38,37 @@ const Profile = () => {
         loadProfileData()
     }, [isAuthenticated, user, perfil])
 
+    // const loadProfileData = () => {
+    //     const userData = perfil || user
+    //     if (userData) {
+    //         setProfileData({
+    //             nombreCompleto: userData.nombreCompleto || userData.nombre_completo || '',
+    //             nombreUsuario: userData.nombreUsuario || userData.nombre_usuario || '',
+    //             telefono: userData.telefono || '',
+    //             email: userData.email || ''
+    //         })
+    //     }
+    // }
+
     const loadProfileData = () => {
         const userData = perfil || user
+
+        // 🔍 DEBUG - Agregar estos logs temporales
+        console.log('🔍 userData completo:', userData)
+        console.log('🔍 telefono específico:', userData?.telefono)
+        console.log('🔍 tipo telefono:', typeof userData?.telefono)
+
         if (userData) {
             setProfileData({
                 nombreCompleto: userData.nombreCompleto || userData.nombre_completo || '',
                 nombreUsuario: userData.nombreUsuario || userData.nombre_usuario || '',
                 telefono: userData.telefono || '',
                 email: userData.email || ''
+            })
+
+            // 🔍 DEBUG - Ver qué se guardó
+            console.log('🔍 profileData después:', {
+                telefono: userData.telefono || ''
             })
         }
     }
