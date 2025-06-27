@@ -44,6 +44,7 @@ import SimulacroManager from './adminpanel/SimulacroManager'
 import MaterialManager from './adminpanel/MaterialManager'
 import ClasesVirtualesManager from './adminpanel/ClasesVirtualesManager'
 import CanalesManager from './adminpanel/CanalesManager'
+import ClasesVirtualesGlobal from "./adminpanel/ClasesVirtualesGlobal";
 
 function App() {
     return (
@@ -91,7 +92,7 @@ function App() {
 
                     {/* 🆕 CANALES DE COMUNICACIÓN */}
                     {/*<Route path="/mis-canales" element={<ProtectedRoute><MisCanales /></ProtectedRoute>} />*/}
-                    <Route path="/canales/:cursoId" element={<ProtectedRoute><MisCanales mode="course" /></ProtectedRoute>} />
+                    {/*<Route path="/canales/:cursoId" element={<ProtectedRoute><MisCanales mode="course" /></ProtectedRoute>} />*/}
 
                     {/* ================================================ */}
                     {/* RUTAS DE ADMINISTRADOR */}
@@ -118,6 +119,7 @@ function App() {
                     <Route path="/admin/materiales/:cursoId" element={<ProtectedRoute role="admin"><MaterialManager /></ProtectedRoute>} />
 
                     {/* 🆕 GESTIÓN DE CLASES VIRTUALES */}
+                    <Route path="/admin/clases-virtuales" element={<ProtectedRoute role="admin"><ClasesVirtualesGlobal /></ProtectedRoute>} />
                     <Route path="/admin/clases-virtuales/:cursoId" element={<ProtectedRoute role="admin"><ClasesVirtualesManager /></ProtectedRoute>} />
 
                     {/* 🆕 GESTIÓN DE CANALES */}
