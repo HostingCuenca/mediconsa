@@ -1,4 +1,3 @@
-
 // src/adminpanel/Courses.jsx - REFACTORIZADO Y COMPATIBLE AL 100%
 import React, { useState, useEffect } from 'react'
 import Layout from '../utils/Layout'
