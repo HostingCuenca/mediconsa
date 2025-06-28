@@ -1,46 +1,41 @@
-// src/pages/CourseDetail.jsx - Detalle del curso con inscripción
-import React, { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
 import { useAuth } from '../utils/AuthContext'
+import coursesService from '../services/courses'
 
 const CourseDetail = () => {
     const { id } = useParams()
+    const navigate = useNavigate()
     const { isAuthenticated } = useAuth()
     const [activeTab, setActiveTab] = useState('contenido')
+    const [curso, setCurso] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
 
-    // Mock data
-    const curso = {
-        id: parseInt(id),
-        titulo: "Preparación CACES 2025",
-        descripcion: "Curso completo para el Consejo de Aseguramiento de la Calidad de la Educación Superior. Incluye todo el material actualizado, simulacros reales y soporte personalizado.",
-        precio: 149.99,
-        es_gratuito: false,
-        tipo_examen: "caces",
-        estudiantes_inscritos: 45,
-        instructor_nombre: "Dr. Juan Pérez",
-        miniatura_url: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800",
-        modulos: [
-            {
-                id: 1,
-                titulo: "Fundamentos Médicos",
-                orden: 1,
-                clases: [
-                    { id: 1, titulo: "Anatomía Básica", duracion_minutos: 45, es_gratuita: true },
-                    { id: 2, titulo: "Fisiología Humana", duracion_minutos: 60, es_gratuita: false },
-                    { id: 3, titulo: "Patología General", duracion_minutos: 55, es_gratuita: false }
-                ]
-            },
-            {
-                id: 2,
-                titulo: "Casos Clínicos",
-                orden: 2,
-                clases: [
-                    { id: 4, titulo: "Caso 1: Paciente con Fiebre", duracion_minutos: 30, es_gratuita: false },
-                    { id: 5, titulo: "Caso 2: Dolor Abdominal", duracion_minutos: 35, es_gratuita: false }
-                ]
+    useEffect(() => {
+        loadCourseDetail()
+    }, [id])
+
+    const loadCourseDetail = async () => {
+        try {
+            setLoading(true)
+            setError('')
+
+            // Asumo que existe getCourseById en el servicio
+            const result = await coursesService.getCourseById(id)
+
+            if (result.success) {
+                setCurso(result.data.curso)
+            } else {
+                setError(result.error || 'Curso no encontrado')
             }
-        ]
+        } catch (error) {
+            console.error('Error:', error)
+            setError('Error cargando el curso')
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleInscripcion = () => {
@@ -49,6 +44,48 @@ const CourseDetail = () => {
             return
         }
         alert('Funcionalidad de inscripción en desarrollo')
+    }
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('es-EC', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(price || 0)
+    }
+
+    if (loading) {
+        return (
+            <Layout>
+                <div className="min-h-screen bg-medico-light flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medico-blue mx-auto"></div>
+                        <p className="mt-4 text-medico-gray">Cargando curso...</p>
+                    </div>
+                </div>
+            </Layout>
+        )
+    }
+
+    if (error || !curso) {
+        return (
+            <Layout>
+                <div className="min-h-screen bg-medico-light flex items-center justify-center">
+                    <div className="text-center">
+                        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Curso no encontrado</h3>
+                        <p className="text-medico-gray mb-4">{error}</p>
+                        <button
+                            onClick={() => navigate('/courses')}
+                            className="bg-medico-blue text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Ver Todos los Cursos
+                        </button>
+                    </div>
+                </div>
+            </Layout>
+        )
     }
 
     return (
@@ -61,33 +98,47 @@ const CourseDetail = () => {
                             <div className="lg:col-span-2">
                                 <div className="flex items-center space-x-4 mb-4">
                                     <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 uppercase">
-                                        {curso.tipo_examen}
+                                        {curso.tipo_examen || 'General'}
                                     </span>
                                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                                         curso.es_gratuito
                                             ? 'bg-green-100 text-green-800'
                                             : 'bg-yellow-100 text-yellow-800'
                                     }`}>
-                                        {curso.es_gratuito ? 'Gratuito' : `$${curso.precio}`}
+                                        {curso.es_gratuito ? 'Gratuito' : formatPrice(curso.precio)}
                                     </span>
+                                    {!curso.activo && (
+                                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                            Inactivo
+                                        </span>
+                                    )}
                                 </div>
 
                                 <h1 className="text-3xl font-bold text-medico-blue mb-4">{curso.titulo}</h1>
-                                <p className="text-lg text-medico-gray mb-6">{curso.descripcion}</p>
+                                <p className="text-lg text-medico-gray mb-6">
+                                    {curso.descripcion || 'Curso de preparación médica completa con contenido actualizado.'}
+                                </p>
 
                                 <div className="flex items-center space-x-6 text-sm text-medico-gray">
                                     <div className="flex items-center">
                                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
-                                        <span>{curso.instructor_nombre}</span>
+                                        <span>Instructor Especializado</span>
                                     </div>
 
                                     <div className="flex items-center">
                                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a4 4 0 118 0v4M4 7v10a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2z" />
                                         </svg>
-                                        <span>{curso.estudiantes_inscritos} estudiantes</span>
+                                        <span>Acceso de por vida</span>
+                                    </div>
+
+                                    <div className="flex items-center">
+                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Certificado incluido</span>
                                     </div>
                                 </div>
                             </div>
@@ -95,23 +146,36 @@ const CourseDetail = () => {
                             <div className="lg:col-span-1">
                                 <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sticky top-6">
                                     <img
-                                        src={curso.miniatura_url}
+                                        src={curso.miniatura_url || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800'}
                                         alt={curso.titulo}
                                         className="w-full h-48 object-cover rounded-lg mb-6"
+                                        onError={(e) => {
+                                            e.target.src = 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800'
+                                        }}
                                     />
 
                                     <div className="text-center mb-6">
                                         <div className="text-3xl font-bold text-medico-blue mb-2">
-                                            {curso.es_gratuito ? 'Gratuito' : `$${curso.precio}`}
+                                            {curso.es_gratuito ? 'Gratuito' : formatPrice(curso.precio)}
                                         </div>
                                         <p className="text-sm text-medico-gray">Acceso completo de por vida</p>
                                     </div>
 
                                     <button
                                         onClick={handleInscripcion}
-                                        className="w-full bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold mb-4"
+                                        disabled={!curso.activo}
+                                        className={`w-full px-6 py-3 rounded-lg font-semibold mb-4 transition-colors ${
+                                            curso.activo
+                                                ? 'bg-medico-blue text-white hover:bg-blue-700'
+                                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        }`}
                                     >
-                                        {isAuthenticated ? 'Inscribirse Ahora' : 'Inicia Sesión para Inscribirte'}
+                                        {!curso.activo
+                                            ? 'Curso No Disponible'
+                                            : isAuthenticated
+                                                ? 'Inscribirse Ahora'
+                                                : 'Inicia Sesión para Inscribirte'
+                                        }
                                     </button>
 
                                     <div className="text-center">
@@ -135,7 +199,7 @@ const CourseDetail = () => {
                                     {[
                                         { id: 'contenido', label: 'Contenido del Curso' },
                                         { id: 'instructor', label: 'Instructor' },
-                                        { id: 'reviews', label: 'Reseñas' }
+                                        { id: 'info', label: 'Información' }
                                     ].map((tab) => (
                                         <button
                                             key={tab.id}
@@ -154,34 +218,47 @@ const CourseDetail = () => {
 
                             {/* Tab Content */}
                             {activeTab === 'contenido' && (
-                                <div className="space-y-6">
-                                    {curso.modulos.map((modulo) => (
-                                        <div key={modulo.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                                            <h3 className="text-lg font-semibold text-medico-blue mb-4">
-                                                Módulo {modulo.orden}: {modulo.titulo}
-                                            </h3>
-                                            <div className="space-y-3">
-                                                {modulo.clases.map((clase) => (
-                                                    <div key={clase.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                                                        <div className="flex items-center space-x-3">
-                                                            <svg className="w-5 h-5 text-medico-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m2-10.293A9.985 9.985 0 0119 8v2m0 6V8a9.985 9.985 0 00-1.415-1.415M15 9.808v.001M9 9.808v.001M12 5.318v.001M6.243 9.757a5.978 5.978 0 011.414-1.414M18.243 9.757a5.978 5.978 0 00-1.414-1.414" />
-                                                            </svg>
-                                                            <span className="text-gray-900">{clase.titulo}</span>
-                                                            {clase.es_gratuita && (
-                                                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                                                                    Gratis
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <span className="text-sm text-medico-gray">
-                                                            {clase.duracion_minutos} min
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                                    <h3 className="text-lg font-semibold text-medico-blue mb-4">
+                                        Contenido del Curso
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="text-medico-gray">
+                                            <p className="mb-4">Este curso incluye:</p>
+                                            <ul className="space-y-2">
+                                                <li className="flex items-center">
+                                                    <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Material de estudio actualizado
+                                                </li>
+                                                <li className="flex items-center">
+                                                    <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Simulacros de práctica
+                                                </li>
+                                                <li className="flex items-center">
+                                                    <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Materiales descargables
+                                                </li>
+                                                <li className="flex items-center">
+                                                    <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Soporte del instructor
+                                                </li>
+                                            </ul>
                                         </div>
-                                    ))}
+
+                                        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                                            <p className="text-sm text-blue-800">
+                                                💡 <strong>Nota:</strong> El contenido detallado estará disponible después de la inscripción.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -189,25 +266,46 @@ const CourseDetail = () => {
                                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                                     <div className="flex items-center space-x-4 mb-4">
                                         <div className="w-16 h-16 bg-medico-blue rounded-full flex items-center justify-center">
-                                            <span className="text-white text-lg font-bold">JP</span>
+                                            <span className="text-white text-lg font-bold">IN</span>
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-semibold text-gray-900">{curso.instructor_nombre}</h3>
-                                            <p className="text-medico-gray">Médico Especialista</p>
+                                            <h3 className="text-lg font-semibold text-gray-900">Instructor Especializado</h3>
+                                            <p className="text-medico-gray">Médico Especialista en Educación</p>
                                         </div>
                                     </div>
                                     <p className="text-medico-gray">
-                                        Médico con más de 10 años de experiencia en preparación para exámenes médicos.
-                                        Ha ayudado a cientos de estudiantes a aprobar sus evaluaciones.
+                                        Profesional médico con amplia experiencia en preparación para exámenes médicos.
+                                        Especializado en metodologías de enseñanza efectivas y actualización constante
+                                        de contenidos según las últimas tendencias en evaluación médica.
                                     </p>
                                 </div>
                             )}
 
-                            {activeTab === 'reviews' && (
+                            {activeTab === 'info' && (
                                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                                    <p className="text-center text-medico-gray py-8">
-                                        Las reseñas estarán disponibles próximamente
-                                    </p>
+                                    <h3 className="text-lg font-semibold text-medico-blue mb-4">
+                                        Información del Curso
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <h4 className="font-medium text-gray-900 mb-2">Detalles</h4>
+                                            <ul className="space-y-2 text-sm text-medico-gray">
+                                                <li><strong>ID:</strong> {curso.id}</li>
+                                                <li><strong>Tipo:</strong> {curso.tipo_examen || 'General'}</li>
+                                                <li><strong>Estado:</strong> {curso.activo ? 'Activo' : 'Inactivo'}</li>
+                                                <li><strong>Creado:</strong> {new Date(curso.fecha_creacion).toLocaleDateString('es-EC')}</li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <h4 className="font-medium text-gray-900 mb-2">Características</h4>
+                                            <ul className="space-y-2 text-sm text-medico-gray">
+                                                <li>✓ Acceso de por vida</li>
+                                                <li>✓ Certificado de finalización</li>
+                                                <li>✓ Soporte del instructor</li>
+                                                <li>✓ Actualizaciones incluidas</li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>

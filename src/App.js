@@ -45,6 +45,11 @@ import MaterialManager from './adminpanel/MaterialManager'
 import ClasesVirtualesManager from './adminpanel/ClasesVirtualesManager'
 import CanalesManager from './adminpanel/CanalesManager'
 import ClasesVirtualesGlobal from "./adminpanel/ClasesVirtualesGlobal";
+import Materiales from "./adminpanel/Materiales";
+import MaterialesPublic from "./public/MaterialesPublic";
+import CarritoPage from "./public/CarritoPage";
+import Canales from "./panel/Canales";
+import ClasesVirtuales from "./panel/ClasesVirtuales";
 
 function App() {
     return (
@@ -58,7 +63,10 @@ function App() {
                     <Route path="/login" element={<LoginPage mode="login" />} />
                     <Route path="/registro" element={<LoginPage mode="registro" />} />
                     <Route path="/cursos" element={<CoursesPage />} />
+                    <Route path="/materiales" element={<MaterialesPublic />} />
+                    <Route path="/carrito" element={<CarritoPage />} />
                     <Route path="/curso/:id" element={<CourseDetail />} />
+
 
                     {/* 🆕 MARKETPLACE PÚBLICO */}
                     {/*<Route path="/marketplace" element={<Marketplace />} />*/}
@@ -75,6 +83,8 @@ function App() {
                     {/* Cursos y progreso */}
                     <Route path="/mis-cursos" element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
                     <Route path="/mi-progreso" element={<ProtectedRoute><MyProgress /></ProtectedRoute>} />
+                    <Route path="/canales" element={<ProtectedRoute><Canales /></ProtectedRoute>} />
+                    <Route path="/clases-virtuales" element={<ProtectedRoute><ClasesVirtuales /></ProtectedRoute>} />
                     <Route path="/estudiar/:cursoId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
 
                     {/* Simulacros */}
@@ -115,15 +125,15 @@ function App() {
                     <Route path="/admin/questions/:simulacroId" element={<ProtectedRoute role="admin"><QuestionManager /></ProtectedRoute>} />
 
                     {/* 🆕 GESTIÓN DE MATERIALES */}
-                    <Route path="/admin/materiales" element={<ProtectedRoute role="admin"><MaterialManager /></ProtectedRoute>} />
+                    <Route path="/admin/materiales" element={<ProtectedRoute role="admin"><Materiales /></ProtectedRoute>} />
                     <Route path="/admin/materiales/:cursoId" element={<ProtectedRoute role="admin"><MaterialManager /></ProtectedRoute>} />
 
                     {/* 🆕 GESTIÓN DE CLASES VIRTUALES */}
-                    <Route path="/admin/clases-virtuales" element={<ProtectedRoute role="admin"><ClasesVirtualesGlobal /></ProtectedRoute>} />
+                    <Route path="/admin/clases-virtuales" element={<ProtectedRoute role="admin"><ClasesVirtualesManager /></ProtectedRoute>} />
                     <Route path="/admin/clases-virtuales/:cursoId" element={<ProtectedRoute role="admin"><ClasesVirtualesManager /></ProtectedRoute>} />
 
                     {/* 🆕 GESTIÓN DE CANALES */}
-                    <Route path="/admin/canales/:cursoId" element={<ProtectedRoute role="admin"><CanalesManager /></ProtectedRoute>} />
+                    <Route path="/admin/canales" element={<ProtectedRoute role="admin"><CanalesManager /></ProtectedRoute>} />
 
                     {/* ================================================ */}
                     {/* RUTAS DE ERROR */}

@@ -55,6 +55,18 @@
 //                                     </svg>
 //                                     <span className="font-medium">Simulacros</span>
 //                                 </Link>
+//                                 <Link to="/canales" className={linkClass('/canales')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+//                                     </svg>
+//                                     <span className="font-medium">Canales</span>
+//                                 </Link>
+//                                 <Link to="/clases-virtuales" className={linkClass('/clases-virtuales')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+//                                     </svg>
+//                                     <span className="font-medium">Clases Virtuales</span>
+//                                 </Link>
 //
 //                                 <Link to="/perfil" className={linkClass('/perfil')}>
 //                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,12 +108,40 @@
 //                                     <span className="font-medium">Cursos</span>
 //                                 </Link>
 //
-//                                 {/*<Link to="/admin/simulacros" className={linkClass('/admin/simulacros')}>*/}
-//                                 {/*    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">*/}
-//                                 {/*        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />*/}
-//                                 {/*    </svg>*/}
-//                                 {/*    <span className="font-medium">Simulacros</span>*/}
-//                                 {/*</Link>*/}
+//                                 <Link to="/admin/simulacros" className={linkClass('/admin/simulacros')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+//                                     </svg>
+//                                     <span className="font-medium">Simulacros</span>
+//                                 </Link>
+//
+//                                 <Link to="/admin/materiales" className={linkClass('/admin/materiales')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+//                                     </svg>
+//                                     <span className="font-medium">Materiales</span>
+//                                 </Link>
+//                             </div>
+//                         </div>
+//
+//                         <div className="mb-4">
+//                             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-1">
+//                                 Comunicación
+//                             </h3>
+//                             <div className="space-y-1">
+//                                 <Link to="/admin/clases-virtuales" className={linkClass('/admin/clases-virtuales')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+//                                     </svg>
+//                                     <span className="font-medium">Clases Virtuales</span>
+//                                 </Link>
+//
+//                                 <Link to="/admin/canales" className={linkClass('/admin/canales')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+//                                     </svg>
+//                                     <span className="font-medium">Canales</span>
+//                                 </Link>
 //                             </div>
 //                         </div>
 //
@@ -124,12 +164,12 @@
 //                                     <span className="font-medium">Pagos</span>
 //                                 </Link>
 //
-//                                 {/*<Link to="/admin/reportes" className={linkClass('/admin/reportes')}>*/}
-//                                 {/*    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">*/}
-//                                 {/*        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />*/}
-//                                 {/*    </svg>*/}
-//                                 {/*    <span className="font-medium">Reportes</span>*/}
-//                                 {/*</Link>*/}
+//                                 <Link to="/admin/reportes" className={linkClass('/admin/reportes')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+//                                     </svg>
+//                                     <span className="font-medium">Reportes</span>
+//                                 </Link>
 //
 //                                 <Link to="/admin/api-docs" className={linkClass('/admin/api-docs')}>
 //                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,6 +209,27 @@
 //                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
 //                                     </svg>
 //                                     <span className="font-medium">Simulacros</span>
+//                                 </Link>
+//
+//                                 <Link to="/admin/materiales" className={linkClass('/admin/materiales')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+//                                     </svg>
+//                                     <span className="font-medium">Materiales</span>
+//                                 </Link>
+//
+//                                 <Link to="/admin/clases-virtuales" className={linkClass('/admin/clases-virtuales')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+//                                     </svg>
+//                                     <span className="font-medium">Clases Virtuales</span>
+//                                 </Link>
+//
+//                                 <Link to="/admin/canales" className={linkClass('/admin/canales')}>
+//                                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+//                                     </svg>
+//                                     <span className="font-medium">Canales</span>
 //                                 </Link>
 //                             </div>
 //                         </div>
@@ -278,6 +339,18 @@ const Sidebar = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                                     </svg>
                                     <span className="font-medium">Simulacros</span>
+                                </Link>
+                                <Link to="/canales" className={linkClass('/canales')}>
+                                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                    </svg>
+                                    <span className="font-medium">Canales</span>
+                                </Link>
+                                <Link to="/clases-virtuales" className={linkClass('/clases-virtuales')}>
+                                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    <span className="font-medium">Clases Virtuales</span>
                                 </Link>
 
                                 <Link to="/perfil" className={linkClass('/perfil')}>
