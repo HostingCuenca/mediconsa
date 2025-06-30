@@ -717,16 +717,16 @@ const LoginPage = ({ mode = 'login' }) => {
                     </div>
 
                     {/* Demo Users Info */}
-                    {process.env.NODE_ENV === 'development' && (
-                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                            <h3 className="text-white font-medium mb-2">👨‍💻 Usuarios de Prueba:</h3>
-                            <div className="text-sm text-blue-100 space-y-1">
-                                <p><strong>Admin:</strong> admin@med.com / admin123 → <span className="text-yellow-200">/admin</span></p>
-                                <p><strong>Instructor:</strong> instructor@med.com / inst123 → <span className="text-green-200">/dashboard</span></p>
-                                <p><strong>Estudiante:</strong> test@test.com / test123 → <span className="text-blue-200">/dashboard</span></p>
-                            </div>
-                        </div>
-                    )}
+                    {/*{process.env.NODE_ENV === 'development' && (*/}
+                    {/*    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">*/}
+                    {/*        <h3 className="text-white font-medium mb-2">👨‍💻 Usuarios de Prueba:</h3>*/}
+                    {/*        <div className="text-sm text-blue-100 space-y-1">*/}
+                    {/*            <p><strong>Admin:</strong> admin@med.com / admin123 → <span className="text-yellow-200">/admin</span></p>*/}
+                    {/*            <p><strong>Instructor:</strong> instructor@med.com / inst123 → <span className="text-green-200">/dashboard</span></p>*/}
+                    {/*            <p><strong>Estudiante:</strong> test@test.com / test123 → <span className="text-blue-200">/dashboard</span></p>*/}
+                    {/*        </div>*/}
+                    {/*    </div>*/}
+                    {/*)}*/}
                 </div>
             </div>
         </Layout>

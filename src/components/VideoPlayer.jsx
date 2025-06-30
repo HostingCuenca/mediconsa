@@ -1,352 +1,465 @@
-// src/components/VideoPlayer.jsx - REPRODUCTOR YOUTUBE COMPLETO
-import React, { useState, useEffect, useRef } from 'react'
-import progressService from '../services/progress'
+// src/components/VideoPlayer.jsx - SIMPLE CON CONTROLES BÁSICOS
+import React, { useState, useRef, useEffect } from 'react'
 
 const VideoPlayer = ({
-                         clase,
-                         onProgressUpdate,
-                         onClassComplete,
-                         autoplay = false
+                         videoUrl,
+                         title,
+                         onProgress,
+                         onComplete,
+                         currentProgress = 0,
+                         autoplay = false,
+                         className = "",
+                         onTimeUpdate
                      }) => {
-    const [isLoading, setIsLoading] = useState(true)
-    const [hasError, setHasError] = useState(false)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(false)
     const [isPlaying, setIsPlaying] = useState(false)
-    const [progress, setProgress] = useState(clase?.porcentaje_visto || 0)
     const [duration, setDuration] = useState(0)
     const [currentTime, setCurrentTime] = useState(0)
+    const [showControls, setShowControls] = useState(true)
+    const [volume, setVolume] = useState(1)
+    const [muted, setMuted] = useState(false)
 
+    const iframeRef = useRef(null)
+    const containerRef = useRef(null)
+    const controlsTimeoutRef = useRef(null)
+    const progressIntervalRef = useRef(null)
     const playerRef = useRef(null)
-    const progressUpdateRef = useRef(null)
 
-    // Extraer ID del video de YouTube
-    const getYouTubeVideoId = (url) => {
+    // ========== EXTRACCIÓN DE VIDEO ID ==========
+    const extractVideoId = (url) => {
         if (!url) return null
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/
-        const match = url.match(regExp)
-        return (match && match[2].length === 11) ? match[2] : null
-    }
-
-    const videoId = getYouTubeVideoId(clase?.video_youtube_url)
-
-    // Limpiar timer cuando el componente se desmonte
-    useEffect(() => {
-        return () => {
-            if (progressUpdateRef.current) {
-                clearInterval(progressUpdateRef.current)
-            }
-        }
-    }, [])
-
-    // Actualizar progreso cuando cambie la clase
-    useEffect(() => {
-        if (clase) {
-            setProgress(clase.porcentaje_visto || 0)
-            setCurrentTime(0)
-            setIsPlaying(false)
-            setIsLoading(true)
-            setHasError(false)
-        }
-    }, [clase?.id])
-
-    // Cargar API de YouTube cuando se monte el componente
-    useEffect(() => {
-        const loadYouTubeAPI = () => {
-            if (!window.YT) {
-                const tag = document.createElement('script')
-                tag.src = 'https://www.youtube.com/iframe_api'
-                tag.async = true
-                tag.defer = true
-                const firstScriptTag = document.getElementsByTagName('script')[0]
-                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag)
-
-                window.onYouTubeIframeAPIReady = () => {
-                    initializePlayer()
-                }
-            } else {
-                initializePlayer()
-            }
-        }
-
-        loadYouTubeAPI()
-
-        return () => {
-            if (window.currentPlayer) {
-                window.currentPlayer.destroy()
-            }
-        }
-    }, [videoId])
-
-    const initializePlayer = () => {
-        if (!videoId || !playerRef.current) return
 
         try {
-            const player = new window.YT.Player(playerRef.current, {
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+                /youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/,
+                /youtu\.be\/([a-zA-Z0-9_-]{11})/
+            ]
+
+            for (const pattern of patterns) {
+                const match = url.match(pattern)
+                if (match && match[1]) {
+                    return match[1]
+                }
+            }
+
+            return null
+        } catch (error) {
+            console.error('Error extrayendo video ID:', error)
+            return null
+        }
+    }
+
+    // ========== URL SIN CONTROLES DE YOUTUBE ==========
+    const createEmbedUrl = (videoId) => {
+        if (!videoId) return null
+
+        const params = new URLSearchParams({
+            autoplay: '0',
+            mute: '1',
+            controls: '0',              // SIN controles de YouTube
+            showinfo: '0',
+            rel: '0',
+            modestbranding: '1',
+            iv_load_policy: '3',
+            playsinline: '1',
+            enablejsapi: '1',
+            disablekb: '1',
+            fs: '0',
+            origin: window.location.origin
+        })
+
+        return `https://www.youtube.com/embed/${videoId}?${params.toString()}`
+    }
+
+    const videoId = extractVideoId(videoUrl)
+    const embedUrl = createEmbedUrl(videoId)
+
+    // ========== INICIALIZACIÓN DE YOUTUBE API ==========
+    useEffect(() => {
+        if (!embedUrl) {
+            setError(true)
+            setLoading(false)
+            return
+        }
+
+        if (!window.YT) {
+            const script = document.createElement('script')
+            script.src = 'https://www.youtube.com/iframe_api'
+            script.onload = () => {
+                window.onYouTubeIframeAPIReady = initializePlayer
+            }
+            document.head.appendChild(script)
+        } else {
+            initializePlayer()
+        }
+
+        return () => {
+            if (progressIntervalRef.current) {
+                clearInterval(progressIntervalRef.current)
+            }
+        }
+    }, [embedUrl])
+
+    // ========== INICIALIZAR PLAYER ==========
+    const initializePlayer = () => {
+        if (!window.YT || !videoId) return
+
+        try {
+            const playerDiv = document.createElement('div')
+            playerDiv.id = `youtube-player-${Date.now()}`
+
+            if (iframeRef.current && iframeRef.current.parentNode) {
+                iframeRef.current.parentNode.replaceChild(playerDiv, iframeRef.current)
+            }
+
+            playerRef.current = new window.YT.Player(playerDiv, {
                 height: '100%',
                 width: '100%',
                 videoId: videoId,
                 playerVars: {
-                    autoplay: autoplay ? 1 : 0,
-                    controls: 1,
+                    controls: 0,
                     modestbranding: 1,
-                    rel: 0,
                     showinfo: 0,
-                    fs: 1,
-                    cc_load_policy: 0,
+                    rel: 0,
+                    disablekb: 1,
+                    fs: 0,
                     iv_load_policy: 3,
-                    autohide: 0,
-                    origin: window.location.origin,
                     enablejsapi: 1,
-                    widget_referrer: window.location.href
+                    origin: window.location.origin
                 },
                 events: {
-                    onReady: onPlayerReady,
-                    onStateChange: onPlayerStateChange,
-                    onError: onPlayerError
+                    onReady: handlePlayerReady,
+                    onStateChange: handlePlayerStateChange,
+                    onError: handlePlayerError
                 }
             })
-
-            window.currentPlayer = player
         } catch (error) {
-            console.error('Error inicializando reproductor:', error)
-            setHasError(true)
-            setIsLoading(false)
+            console.error('Error inicializando player:', error)
+            setError(true)
+            setLoading(false)
         }
     }
 
-    const onPlayerReady = (event) => {
-        setIsLoading(false)
+    // ========== EVENTOS DEL PLAYER ==========
+    const handlePlayerReady = (event) => {
+        setLoading(false)
         setDuration(event.target.getDuration())
-
-        // Si hay progreso previo, posicionar el video
-        if (progress > 0 && duration > 0) {
-            const startTime = (progress / 100) * duration
-            event.target.seekTo(startTime)
-        }
+        startProgressTracking()
     }
 
-    const onPlayerStateChange = (event) => {
-        const player = event.target
+    const handlePlayerStateChange = (event) => {
+        const state = event.data
 
-        switch (event.data) {
+        switch (state) {
             case window.YT.PlayerState.PLAYING:
                 setIsPlaying(true)
-                startProgressTracking(player)
                 break
             case window.YT.PlayerState.PAUSED:
+                setIsPlaying(false)
+                break
             case window.YT.PlayerState.ENDED:
                 setIsPlaying(false)
-                stopProgressTracking()
-
-                if (event.data === window.YT.PlayerState.ENDED) {
-                    handleVideoEnded()
-                }
+                if (onComplete) onComplete()
                 break
             default:
                 break
         }
     }
 
-    const onPlayerError = (event) => {
-        console.error('Error del reproductor YouTube:', event.data)
-        setHasError(true)
-        setIsLoading(false)
-        stopProgressTracking()
+    const handlePlayerError = (event) => {
+        console.error('Error del player:', event.data)
+        setError(true)
+        setLoading(false)
     }
 
-    const startProgressTracking = (player) => {
-        if (progressUpdateRef.current) {
-            clearInterval(progressUpdateRef.current)
+    // ========== TRACKING DE PROGRESO ==========
+    const startProgressTracking = () => {
+        if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current)
         }
 
-        progressUpdateRef.current = setInterval(async () => {
-            try {
-                const current = player.getCurrentTime()
-                const total = player.getDuration()
+        progressIntervalRef.current = setInterval(() => {
+            if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+                try {
+                    const current = playerRef.current.getCurrentTime()
+                    const total = playerRef.current.getDuration()
 
-                if (total > 0) {
-                    const newProgress = Math.min(Math.round((current / total) * 100), 100)
-                    const newCurrentTime = current
+                    if (current && total && total > 0) {
+                        setCurrentTime(current)
+                        setDuration(total)
 
-                    setCurrentTime(newCurrentTime)
+                        const progress = (current / total) * 100
 
-                    // Solo actualizar si hay un cambio significativo (cada 2%)
-                    if (Math.abs(newProgress - progress) >= 2) {
-                        setProgress(newProgress)
+                        if (onProgress && progress > 0) {
+                            onProgress(Math.floor(progress))
+                        }
 
-                        // Actualizar progreso en el backend
-                        await progressService.updateClassProgress(
-                            clase.id,
-                            newProgress,
-                            newProgress >= 95
-                        )
+                        if (onTimeUpdate) {
+                            onTimeUpdate(current, total)
+                        }
 
-                        // Notificar al componente padre
-                        if (onProgressUpdate) {
-                            onProgressUpdate(clase.id, newProgress, newProgress >= 95)
+                        if (onComplete && progress >= 95) {
+                            onComplete()
                         }
                     }
+                } catch (error) {
+                    console.error('Error obteniendo progreso:', error)
                 }
-            } catch (error) {
-                console.error('Error actualizando progreso:', error)
             }
-        }, 2000) // Actualizar cada 2 segundos
+        }, 1000)
     }
 
-    const stopProgressTracking = () => {
-        if (progressUpdateRef.current) {
-            clearInterval(progressUpdateRef.current)
-            progressUpdateRef.current = null
-        }
-    }
+    // ========== CONTROLES SIMPLES ==========
+    const togglePlayPause = () => {
+        if (!playerRef.current) return
 
-    const handleVideoEnded = async () => {
         try {
-            setProgress(100)
-
-            // Marcar como completada
-            await progressService.markClassAsCompleted(clase.id)
-
-            // Notificar al componente padre
-            if (onClassComplete) {
-                onClassComplete(clase.id)
-            }
-
-            if (onProgressUpdate) {
-                onProgressUpdate(clase.id, 100, true)
+            if (isPlaying) {
+                playerRef.current.pauseVideo()
+            } else {
+                playerRef.current.playVideo()
             }
         } catch (error) {
-            console.error('Error marcando clase como completada:', error)
+            console.error('Error controlando reproducción:', error)
         }
     }
 
+    const seekTo = (percentage) => {
+        if (!playerRef.current || !duration) return
+
+        try {
+            const seekTime = (percentage / 100) * duration
+            playerRef.current.seekTo(seekTime, true)
+            setCurrentTime(seekTime)
+        } catch (error) {
+            console.error('Error buscando posición:', error)
+        }
+    }
+
+    const toggleMute = () => {
+        if (!playerRef.current) return
+
+        try {
+            if (muted) {
+                playerRef.current.unMute()
+                setMuted(false)
+            } else {
+                playerRef.current.mute()
+                setMuted(true)
+            }
+        } catch (error) {
+            console.error('Error toggleando mute:', error)
+        }
+    }
+
+    // ========== MANEJO DE CONTROLES ==========
+    useEffect(() => {
+        if (showControls) {
+            controlsTimeoutRef.current = setTimeout(() => {
+                if (isPlaying) {
+                    setShowControls(false)
+                }
+            }, 3000)
+        }
+
+        return () => {
+            if (controlsTimeoutRef.current) {
+                clearTimeout(controlsTimeoutRef.current)
+            }
+        }
+    }, [showControls, isPlaying])
+
+    const handleMouseMove = () => {
+        setShowControls(true)
+        if (controlsTimeoutRef.current) {
+            clearTimeout(controlsTimeoutRef.current)
+        }
+    }
+
+    const handleSeekBarClick = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect()
+        const percentage = ((e.clientX - rect.left) / rect.width) * 100
+        seekTo(percentage)
+    }
+
+    // ========== UTILIDADES ==========
     const formatTime = (seconds) => {
-        if (!seconds) return '0:00'
+        if (!seconds || !isFinite(seconds)) return '0:00'
+
         const mins = Math.floor(seconds / 60)
         const secs = Math.floor(seconds % 60)
+
         return `${mins}:${secs.toString().padStart(2, '0')}`
     }
 
-    const formatDuration = (minutes) => {
-        if (!minutes) return ''
-        if (minutes < 60) return `${minutes} min`
-        const hours = Math.floor(minutes / 60)
-        const mins = minutes % 60
-        return `${hours}h ${mins}min`
+    const getProgressPercentage = () => {
+        if (!duration || !currentTime) return 0
+        return Math.min((currentTime / duration) * 100, 100)
     }
 
-    // Si no hay video
-    if (!clase?.video_youtube_url || !videoId) {
+    // ========== RENDER ==========
+    if (!videoUrl || !videoId) {
         return (
-            <div className="w-full aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                    <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className={`relative bg-gray-900 flex items-center justify-center ${className} rounded-xl overflow-hidden`}>
+                <div className="text-center text-white p-8">
+                    <svg className="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Video no disponible</h3>
-                    <p className="text-gray-600">Esta clase no tiene video asociado</p>
+                    <h3 className="text-lg font-medium mb-2">Video no disponible</h3>
+                    <p className="text-gray-400">No se pudo cargar el contenido del video</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className={`relative bg-gray-900 flex items-center justify-center ${className} rounded-xl overflow-hidden`}>
+                <div className="text-center text-white p-8">
+                    <svg className="w-16 h-16 mx-auto mb-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 className="text-lg font-medium mb-2">Error cargando video</h3>
+                    <p className="text-gray-300 mb-4">No se pudo cargar el contenido</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                        Reintentar
+                    </button>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="w-full">
-            {/* Reproductor de video */}
-            <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
-                {isLoading && (
-                    <div className="absolute inset-0 bg-gray-900 flex items-center justify-center z-10">
-                        <div className="text-center text-white">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                            <p>Cargando video...</p>
-                        </div>
-                    </div>
-                )}
-
-                {hasError && (
-                    <div className="absolute inset-0 bg-red-900 flex items-center justify-center z-10">
-                        <div className="text-center text-white">
-                            <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <h3 className="text-lg font-medium mb-2">Error cargando video</h3>
-                            <p className="text-sm opacity-75">No se pudo cargar el video de YouTube</p>
-                            <button
-                                onClick={() => window.location.reload()}
-                                className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-                            >
-                                Reintentar
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                <div ref={playerRef} className="w-full h-full" />
-            </div>
-
-            {/* Información del video */}
-            <div className="mt-4 space-y-3">
-                {/* Título y duración */}
-                <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                        <h2 className="text-xl font-semibold text-gray-900">{clase.titulo}</h2>
-                        {clase.descripcion && (
-                            <p className="text-gray-600 mt-1">{clase.descripcion}</p>
-                        )}
-                    </div>
-                    <div className="ml-4 text-sm text-gray-500">
-                        {clase.duracion_minutos && formatDuration(clase.duracion_minutos)}
+        <div
+            ref={containerRef}
+            className={`relative bg-black group ${className} rounded-xl overflow-hidden`}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => setShowControls(false)}
+            onContextMenu={(e) => e.preventDefault()}
+            style={{ userSelect: 'none' }}
+        >
+            {/* Loading */}
+            {loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-20">
+                    <div className="text-center text-white">
+                        <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+                        <p>Cargando video...</p>
                     </div>
                 </div>
+            )}
 
-                {/* Barra de progreso personalizada */}
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Progreso de la clase</span>
-                        <span className="font-medium text-gray-900">{progress}%</span>
+            {/* Video Container */}
+            <div
+                ref={iframeRef}
+                className="w-full h-full"
+                style={{ minHeight: '400px' }}
+            />
+
+            {/* Overlay de protección */}
+            <div
+                className="absolute inset-0 z-10"
+                onClick={togglePlayPause}
+                onContextMenu={(e) => e.preventDefault()}
+                style={{
+                    userSelect: 'none',
+                    pointerEvents: showControls ? 'none' : 'auto'
+                }}
+            />
+
+            {/* CONTROLES PERSONALIZADOS */}
+            <div className={`absolute inset-0 transition-opacity duration-300 ${
+                showControls ? 'opacity-100' : 'opacity-0'
+            } pointer-events-none`}>
+
+                {/* Título */}
+                <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/60 to-transparent p-4 z-20">
+                    <h3 className="text-white font-medium text-lg truncate">
+                        {title}
+                    </h3>
+                </div>
+
+                {/* Botón de play grande cuando está pausado */}
+                {!isPlaying && !loading && (
+                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-auto">
+                        <button
+                            onClick={togglePlayPause}
+                            className="w-16 h-16 bg-medico-blue hover:bg-blue-600 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition-all"
+                        >
+                            <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </button>
                     </div>
+                )}
 
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                {/* BARRA DE CONTROLES */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-20 pointer-events-auto">
+
+                    {/* Barra de progreso */}
+                    <div className="mb-3">
                         <div
-                            className="bg-medico-blue h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${progress}%` }}
-                        ></div>
+                            className="w-full bg-white/20 rounded-full h-1.5 cursor-pointer hover:h-2 transition-all"
+                            onClick={handleSeekBarClick}
+                        >
+                            <div
+                                className="bg-medico-blue h-full rounded-full transition-all"
+                                style={{ width: `${getProgressPercentage()}%` }}
+                            ></div>
+                        </div>
                     </div>
 
-                    {/* Tiempo transcurrido */}
-                    {duration > 0 && (
-                        <div className="flex justify-between text-xs text-gray-500">
-                            <span>{formatTime(currentTime)}</span>
-                            <span>{formatTime(duration)}</span>
-                        </div>
-                    )}
-                </div>
+                    {/* Controles */}
+                    <div className="flex items-center justify-between text-white">
+                        <div className="flex items-center space-x-4">
+                            {/* Play/Pause */}
+                            <button
+                                onClick={togglePlayPause}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                {isPlaying ? (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z"/>
+                                    </svg>
+                                )}
+                            </button>
 
-                {/* Estado de la clase */}
-                <div className="flex items-center space-x-4">
-                    {clase.completada ? (
-                        <div className="flex items-center text-green-600">
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="text-sm font-medium">Clase completada</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center text-blue-600">
-                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="text-sm font-medium">
-                                {progress > 0 ? 'En progreso' : 'No iniciada'}
-                            </span>
-                        </div>
-                    )}
+                            {/* Volumen */}
+                            <button
+                                onClick={toggleMute}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                {muted ? (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                    </svg>
+                                )}
+                            </button>
 
-                    {isPlaying && (
-                        <div className="flex items-center text-red-600">
-                            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-2"></div>
-                            <span className="text-sm">Reproduciendo</span>
+                            {/* Tiempo */}
+                            <div className="text-sm">
+                                {formatTime(currentTime)} / {formatTime(duration)}
+                            </div>
                         </div>
-                    )}
+
+                        {/* Progreso */}
+                        <div className="bg-medico-blue/20 text-medico-blue px-3 py-1 rounded-full text-sm">
+                            {Math.floor(getProgressPercentage())}%
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
