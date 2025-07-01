@@ -538,7 +538,7 @@ const AdminPayments = () => {
 
                                                         {/* WhatsApp */}
                                                         <a
-                                                            href={generateWhatsAppURL('593985036066', `Hola ${payment.nombre_completo}, te contacto sobre tu inscripción al curso "${payment.curso_titulo}".`)}
+                                                            href={generateWhatsAppURL('593981833667', `Hola ${payment.nombre_completo}, te contacto sobre tu inscripción al curso "${payment.curso_titulo}".`)}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="text-green-600 hover:text-green-800"
@@ -770,7 +770,7 @@ const AdminPayments = () => {
                                         </p>
                                         <div className="mt-3">
                                             <a
-                                                href={generateWhatsAppURL('593985036066',
+                                                href={generateWhatsAppURL('593981833667',
                                                     selectedPayment.es_gratuito
                                                         ? `Hola ${selectedPayment.nombre_completo}, confirmamos tu inscripción al curso gratuito "${selectedPayment.curso_titulo}". Ya tienes acceso completo al contenido.`
                                                         : `Hola ${selectedPayment.nombre_completo}, te contacto sobre tu inscripción al curso "${selectedPayment.curso_titulo}". El monto a pagar es de ${formatCurrency(selectedPayment.precio)}. ¿Podrías enviarme el comprobante de pago?`

@@ -1655,7 +1655,7 @@ const CourseView = () => {
                 setShowAccessModal(false)
 
                 if (!courseData.es_gratuito && result.whatsappMessage) {
-                    const whatsappUrl = `https://wa.me/+593985036066?text=${encodeURIComponent(result.whatsappMessage)}`
+                    const whatsappUrl = `https://wa.me/+593981833667?text=${encodeURIComponent(result.whatsappMessage)}`
                     if (window.confirm('¿Quieres contactar por WhatsApp para completar el pago?')) {
                         window.open(whatsappUrl, '_blank')
                     }
@@ -2268,7 +2268,7 @@ const CourseView = () => {
                                     <div className="flex gap-4">
                                         {enrollmentStatus.isEnrolled ? (
 <a
-                                            href={`https://wa.me/+593985036066?text=${encodeURIComponent(`Hola, soy ${perfil?.nombre_usuario} y quiero que aprueben mi acceso al curso "${courseData.titulo}". Ya me inscribí pero el pago está pendiente.`)}`}
+                                            href={`https://wa.me/+593981833667?text=${encodeURIComponent(`Hola, soy ${perfil?.nombre_usuario} y quiero que aprueben mi acceso al curso "${courseData.titulo}". Ya me inscribí pero el pago está pendiente.`)}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-center flex items-center justify-center"

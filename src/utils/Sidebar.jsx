@@ -545,7 +545,7 @@ const Sidebar = () => {
 
                 {/* Soporte WhatsApp */}
                 <a
-                    href="https://wa.me/593985036066"
+                    href="https://wa.me/593981833667"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center space-x-3 px-3 py-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors group"
