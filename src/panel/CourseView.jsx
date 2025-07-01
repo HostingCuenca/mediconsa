@@ -1347,7 +1347,7 @@ const CourseView = () => {
             setLoading(true)
             setError('')
 
-            console.log('Cargando curso con ID:', cursoId)
+            // console.log('Cargando curso con ID:', cursoId)
             const courseResult = await coursesService.getCourseById(cursoId)
 
             if (!courseResult.success) {

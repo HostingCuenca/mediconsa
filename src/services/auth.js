@@ -24,7 +24,7 @@ class AuthService {
     normalizeUser(user) {
         if (!user) return null
 
-        console.log('Normalizando usuario:', user) // Debug
+        // console.log('Normalizando usuario:', user) // Debug
 
         // El backend ya devuelve en camelCase, solo asegurar que existe
         return {
@@ -44,7 +44,7 @@ class AuthService {
     // =============================================
     async register(userData) {
         try {
-            console.log('Enviando datos de registro:', userData)
+            // console.log('Enviando datos de registro:', userData)
 
             const response = await fetch(`${API_BASE_URL}/auth/register`, {
                 method: 'POST',
@@ -53,7 +53,7 @@ class AuthService {
             })
 
             const data = await response.json()
-            console.log('Respuesta del backend (registro):', data)
+            // console.log('Respuesta del backend (registro):', data)
 
             if (!response.ok) {
                 return {
@@ -96,7 +96,7 @@ class AuthService {
     // =============================================
     async login(email, password) {
         try {
-            console.log('Enviando login:', email)
+            // console.log('Enviando login:', email)
 
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
@@ -105,7 +105,7 @@ class AuthService {
             })
 
             const data = await response.json()
-            console.log('Respuesta del backend (login):', data)
+            // console.log('Respuesta del backend (login):', data)
 
             if (!response.ok) {
                 return {
@@ -116,7 +116,7 @@ class AuthService {
 
             if (data.success && data.data) {
                 const normalizedUser = this.normalizeUser(data.data.user)
-                console.log('Usuario normalizado (login):', normalizedUser)
+                // console.log('Usuario normalizado (login):', normalizedUser)
 
                 this.setAuthData(data.data.token, normalizedUser)
 
@@ -162,7 +162,7 @@ class AuthService {
     // =============================================
     async getProfile() {
         try {
-            console.log('Obteniendo perfil del backend...')
+            // console.log('Obteniendo perfil del backend...')
 
             const response = await fetch(`${API_BASE_URL}/auth/profile`, {
                 method: 'GET',
@@ -170,12 +170,12 @@ class AuthService {
             })
 
             const data = await response.json()
-            console.log('Respuesta perfil backend:', data)
+            // console.log('Respuesta perfil backend:', data)
 
             if (!response.ok) {
                 // Si es error de autenticación, hacer logout
                 if (response.status === 401 || response.status === 403) {
-                    console.log('Token inválido, haciendo logout')
+                    // console.log('Token inválido, haciendo logout')
                     this.logout()
                 }
 
@@ -187,7 +187,7 @@ class AuthService {
 
             if (data.success && data.data) {
                 const normalizedUser = this.normalizeUser(data.data.user)
-                console.log('Usuario normalizado (perfil):', normalizedUser)
+                // console.log('Usuario normalizado (perfil):', normalizedUser)
 
                 this.setUserData(normalizedUser)
 
@@ -236,13 +236,13 @@ class AuthService {
     // GESTIÓN DE DATOS LOCALES
     // =============================================
     setAuthData(token, user) {
-        console.log('Guardando en localStorage:', { token: !!token, user })
+        // console.log('Guardando en localStorage:', { token: !!token, user })
         localStorage.setItem(this.tokenKey, token)
         localStorage.setItem(this.userKey, JSON.stringify(user))
     }
 
     setUserData(user) {
-        console.log('Actualizando usuario en localStorage:', user)
+        // console.log('Actualizando usuario en localStorage:', user)
         localStorage.setItem(this.userKey, JSON.stringify(user))
     }
 
@@ -254,7 +254,7 @@ class AuthService {
         try {
             const userData = localStorage.getItem(this.userKey)
             const parsed = userData ? JSON.parse(userData) : null
-            console.log('Usuario recuperado de localStorage:', parsed)
+            // console.log('Usuario recuperado de localStorage:', parsed)
             return parsed
         } catch (error) {
             console.error('Error parsing user data:', error)

@@ -23,13 +23,13 @@ const StudentDashboard = () => {
         if (isAuthenticated) {
             // ✅ REDIRIGIR ADMIN Y INSTRUCTORES A SUS DASHBOARDS CORRESPONDIENTES
             if (isAdmin) {
-                console.log('Admin detectado, redirigiendo a /admin')
+                // console.log('Admin detectado, redirigiendo a /admin')
                 navigate('/admin', { replace: true })
                 return
             }
 
             if (isInstructor) {
-                console.log('Instructor detectado, redirigiendo a /admin/cursos')
+                // console.log('Instructor detectado, redirigiendo a /admin/cursos')
                 navigate('/admin/cursos', { replace: true })
                 return
             }

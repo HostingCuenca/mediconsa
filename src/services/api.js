@@ -32,7 +32,7 @@ class ApiService {
     async handleResponse(response) {
         // Log para desarrollo
         if (process.env.REACT_APP_SHOW_API_LOGS === 'true') {
-            console.log(`API ${response.status}:`, response.url)
+            // console.log(`API ${response.status}:`, response.url)
         }
 
         const data = await response.json()

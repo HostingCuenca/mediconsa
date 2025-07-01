@@ -8,9 +8,9 @@ class CoursesService {
     // =============================================
     async getAllCourses(filters = {}) {
         try {
-            console.log('Obteniendo cursos con filtros:', filters)
+            // console.log('Obteniendo cursos con filtros:', filters)
             const response = await apiService.get('/courses', filters)
-            console.log('Respuesta cursos:', response)
+            // console.log('Respuesta cursos:', response)
 
             if (response.success && response.data) {
                 return {
@@ -69,7 +69,7 @@ class CoursesService {
     // =============================================
     async createCourse(courseData) {
         try {
-            console.log('Creando curso:', courseData)
+            // console.log('Creando curso:', courseData)
             const response = await apiService.post('/courses', courseData)
 
             if (response.success) {
@@ -99,7 +99,7 @@ class CoursesService {
     // =============================================
     async updateCourse(id, courseData) {
         try {
-            console.log('Actualizando curso:', id, courseData)
+            // console.log('Actualizando curso:', id, courseData)
             const response = await apiService.put(`/courses/${id}`, courseData)
 
             if (response.success) {
@@ -116,7 +116,7 @@ class CoursesService {
             }
 
         } catch (error) {
-            console.error('Error actualizando curso:', error)
+            // console.error('Error actualizando curso:', error)
             return {
                 success: false,
                 error: error.message || 'Error de conexión'
@@ -129,7 +129,7 @@ class CoursesService {
     // =============================================
     async deleteCourse(id) {
         try {
-            console.log('Eliminando curso:', id)
+            // console.log('Eliminando curso:', id)
             const response = await apiService.delete(`/courses/${id}`)
 
             if (response.success) {
@@ -159,7 +159,7 @@ class CoursesService {
     // =============================================
     async duplicateCourse(id, newTitle) {
         try {
-            console.log('Duplicando curso:', id, newTitle)
+            // console.log('Duplicando curso:', id, newTitle)
 
             // Obtener el curso original
             const originalCourse = await this.getCourseById(id)

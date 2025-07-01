@@ -6,7 +6,7 @@ class CourseManagementService {
     // ==================== CURSOS ====================
     async createCourse(courseData) {
         try {
-            console.log('Creando curso:', courseData)
+            // console.log('Creando curso:', courseData)
             const response = await apiService.post('/courses', courseData)
 
             if (response.success) {

@@ -54,9 +54,9 @@ const Profile = () => {
         const userData = perfil || user
 
         // 🔍 DEBUG - Agregar estos logs temporales
-        console.log('🔍 userData completo:', userData)
-        console.log('🔍 telefono específico:', userData?.telefono)
-        console.log('🔍 tipo telefono:', typeof userData?.telefono)
+        // console.log('🔍 userData completo:', userData)
+        // console.log('🔍 telefono específico:', userData?.telefono)
+        // console.log('🔍 tipo telefono:', typeof userData?.telefono)
 
         if (userData) {
             setProfileData({
@@ -67,9 +67,10 @@ const Profile = () => {
             })
 
             // 🔍 DEBUG - Ver qué se guardó
-            console.log('🔍 profileData después:', {
-                telefono: userData.telefono || ''
-            })
+            // console.log('🔍 profileData después:', {
+            //     telefono: userData.telefono || ''
+            // }
+            // )
         }
     }
 
