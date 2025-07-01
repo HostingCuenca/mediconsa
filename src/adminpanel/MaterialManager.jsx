@@ -189,7 +189,7 @@ const MaterialManager = () => {
                                 </button>
                             )}
                             <h1 className="text-3xl font-bold text-medico-blue">
-                                📚 {cursoId ? 'Materiales del Curso' : 'Gestión de Materiales'}
+                                📚 {cursoId ? 'Materiales del Curso' : 'Gestión de MyMateriales'}
                             </h1>
                         </div>
                         {curso && (

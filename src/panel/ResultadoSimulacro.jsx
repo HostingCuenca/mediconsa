@@ -130,15 +130,15 @@ const ResultadoSimulacro = () => {
 
     const getTipoPreguntaInfo = (tipo) => {
         const tipos = {
-            'multiple': { nombre: 'Opción Múltiple', icono: '📝' },
+            'multiple': { nombre: 'Opción Única', icono: '📝' },
             'true_false': { nombre: 'Verdadero/Falso', icono: '✓✗' },
             'multiple_respuesta': { nombre: 'Respuesta Múltiple', icono: '☑️' },
             'short_answer': { nombre: 'Respuesta Corta', icono: '✏️' },
             'numerical': { nombre: 'Numérica', icono: '🔢' },
-            'essay': { nombre: 'Ensayo', icono: '📄' },
-            'fill_blanks': { nombre: 'Completar Espacios', icono: '📝' },
-            'matching': { nombre: 'Emparejamiento', icono: '🔗' },
-            'ordering': { nombre: 'Ordenamiento', icono: '📊' }
+            // 'essay': { nombre: 'Ensayo', icono: '📄' },
+            // 'fill_blanks': { nombre: 'Completar Espacios', icono: '📝' },
+            // 'matching': { nombre: 'Emparejamiento', icono: '🔗' },
+            // 'ordering': { nombre: 'Ordenamiento', icono: '📊' }
         }
         return tipos[tipo] || { nombre: tipo, icono: '❓' }
     }

@@ -371,6 +371,226 @@ const LandingPage = () => {
                 </div>
             </section>
 
+            {/* Testimonios */}
+            <section className="py-20 bg-white">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl md:text-4xl font-heading text-blue-600 mb-4">
+                            Los Mejores del País Confían en Nosotros
+                        </h2>
+                        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                            Líderes en preparación médica con resultados comprobados. Conoce las experiencias de quienes ya aprobaron con Mediconsa.
+                        </p>
+                        <div className="mt-4 flex justify-center">
+                            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-6 py-2 rounded-full font-bold text-sm">
+                                🏆 #1 en Preparación para el examen CACES
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                        {/* Testimonio 1 - Mensaje de confianza */}
+                        <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl p-6 shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300">
+                            <div className="flex items-center mb-4">
+                                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+                                    A
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Dra. Ana M.</h4>
+                                    <p className="text-sm text-gray-600">UCE - Medicina General</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <div className="flex text-yellow-400">
+                                        {"★".repeat(5)}
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-gray-700 mb-4">
+                                "Al principio tenía dudas 😅 pero decidí confiar en Mediconsa y fue la mejor decisión! 🙌 Los simulacros son súper similares al examen real. Dr. Santiago siempre responde súper rápido por WhatsApp 💪"
+                            </p>
+                            <div className="text-sm text-blue-600 font-semibold">
+                                ✅ Aprobó: 92/100 - EHEP CACES 2024
+                            </div>
+                        </div>
+
+                        {/* Testimonio 2 - Agradecimiento */}
+                        <div className="bg-gradient-to-br from-green-50 to-white rounded-xl p-6 shadow-lg border border-green-100 hover:shadow-xl transition-all duration-300">
+                            <div className="flex items-center mb-4">
+                                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+                                    M
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Lic. María José S.</h4>
+                                    <p className="text-sm text-gray-600">PUCE - Enfermería</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <div className="flex text-yellow-400">
+                                        {"★".repeat(5)}
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-gray-700 mb-4">
+                                "GRACIAS MEDICONSA! 🥺❤️ Era mi segunda vez intentando y tenía miedo de fallar otra vez... Pero con ustedes lo logré!! 🎉 Mis papás están súper orgullosos 😭💕 100% recomendado chicos!"
+                            </p>
+                            <div className="text-sm text-green-600 font-semibold">
+                                🎯 Aprobó al segundo intento - EHEP CACES 2024
+                            </div>
+                        </div>
+
+                        {/* Testimonio 3 - Comparación con competencia */}
+                        <div className="bg-gradient-to-br from-yellow-50 to-white rounded-xl p-6 shadow-lg border border-yellow-100 hover:shadow-xl transition-all duration-300">
+                            <div className="flex items-center mb-4">
+                                <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+                                    C
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Dr. Carlos R.</h4>
+                                    <p className="text-sm text-gray-600">UTE - Odontología</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <div className="flex text-yellow-400">
+                                        {"★".repeat(5)}
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-gray-700 mb-4">
+                                "Probé con otras plataformas y perdí tiempo y dinero 🥲 Hasta que llegué Mediconsa! La diferencia es ABISMAL 🔥 El contenido está súper actualizado y no es como otros que solo reciclan preguntas viejas 👍"
+                            </p>
+                            <div className="text-sm text-yellow-600 font-semibold">
+                                📈 De 68 a 94 puntos con Mediconsa
+                            </div>
+                        </div>
+
+                        {/* Testimonio 4 - Proceso emocional */}
+                        <div className="bg-gradient-to-br from-purple-50 to-white rounded-xl p-6 shadow-lg border border-purple-100 hover:shadow-xl transition-all duration-300">
+                            <div className="flex items-center mb-4">
+                                <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+                                    L
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Dr. Luis F.</h4>
+                                    <p className="text-sm text-gray-600">UEES - Medicina</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <div className="flex text-yellow-400">
+                                        {"★".repeat(5)}
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-gray-700 mb-4">
+                                "No les voy a mentir, estaba súper estresado 😰 después de reprobar la primera vez... Pero Mediconsa me dio toda la confianza que necesitaba! 💪✨ Ahora ya estoy en la rural! Gracias totales! 🙏"
+                            </p>
+                            <div className="text-sm text-purple-600 font-semibold">
+                                🏥 Ya está en Año Rural - Promoción 2024
+                            </div>
+                        </div>
+
+                        {/* Testimonio 5 - Recomendación familiar */}
+                        <div className="bg-gradient-to-br from-indigo-50 to-white rounded-xl p-6 shadow-lg border border-indigo-100 hover:shadow-xl transition-all duration-300">
+                            <div className="flex items-center mb-4">
+                                <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+                                    S
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Lic. Sofia V.</h4>
+                                    <p className="text-sm text-gray-600">U de Guayaquil - Enfermería</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <div className="flex text-yellow-400">
+                                        {"★".repeat(5)}
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-gray-700 mb-4">
+                                "Mi prima me recomendó Mediconsa y qué razón tenía! 😍 Todo súper organizado, nada de perder tiempo buscando info por todos lados 📚 Ya le dije a mis compañeras de la uni que se inscriban también! 👭💯"
+                            </p>
+                            <div className="text-sm text-indigo-600 font-semibold">
+                                🌟 Recomendó a 8 compañeras más
+                            </div>
+                        </div>
+
+                        {/* Testimonio 6 - Mensaje motivacional */}
+                        <div className="bg-gradient-to-br from-red-50 to-white rounded-xl p-6 shadow-lg border border-red-100 hover:shadow-xl transition-all duration-300">
+                            <div className="flex items-center mb-4">
+                                <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4">
+                                    R
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Dr. Roberto M.</h4>
+                                    <p className="text-sm text-gray-600">UDLA - Medicina</p>
+                                </div>
+                                <div className="ml-auto">
+                                    <div className="flex text-yellow-400">
+                                        {"★".repeat(5)}
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-gray-700 mb-4">
+                                "Chicos, si están dudando, NO DUDEN MÁS! 🚀 Mediconsa es inversión, no gasto! 💰✅ Me siento súper preparado para lo que viene. El Dr. Santiago es una máquina! 🤓 Ahora a brillar en la rural! ⭐"
+                            </p>
+                            <div className="text-sm text-red-600 font-semibold">
+                                🎖️ Mejor puntuado - EHEP CACES 2024
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Estadísticas destacadas */}
+                    <div className="mt-16 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-8 text-white">
+                        <div className="text-center mb-8">
+                            <h3 className="text-2xl md:text-3xl font-heading mb-2">Resultados que Nos Respaldan 📊</h3>
+                            <p className="text-blue-100">La preparación médica, odontológica y de enfermería para el CACES más efectiva del país 🇪🇨</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                            <div>
+                                <div className="text-3xl md:text-4xl font-bold text-yellow-300">99% ✅</div>
+                                <div className="text-sm text-blue-100">Tasa de Aprobación</div>
+                            </div>
+                            <div>
+                                <div className="text-3xl md:text-4xl font-bold text-yellow-300">500+ 👩‍⚕️</div>
+                                <div className="text-sm text-blue-100">Médicos Preparados</div>
+                            </div>
+                            <div>
+                                <div className="text-3xl md:text-4xl font-bold text-yellow-300">95.2 📈</div>
+                                <div className="text-sm text-blue-100">Puntuación Promedio</div>
+                            </div>
+                            <div>
+                                <div className="text-3xl md:text-4xl font-bold text-yellow-300">4.9⭐</div>
+                                <div className="text-sm text-blue-100">Valoración Estudiantes</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Mensaje especial */}
+                    <div className="mt-12 bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-6 rounded-lg">
+                        <div className="flex items-center">
+                            <div className="text-2xl mr-3">💬</div>
+                            <div>
+                                <h4 className="text-lg font-semibold text-gray-900 mb-2">Mensaje del Dr. Santiago López</h4>
+                                <p className="text-gray-700 italic">
+                                    "Cada testimonio representa horas de dedicación y noches de estudio compartidas.
+                                    Me llena de orgullo ver cómo nuestros estudiantes no solo aprueban, sino que se convierten
+                                    en los mejores profesionales del país. ¡Sigamos construyendo el futuro de la juventud ecuatoriana juntos! 🩺❤️"
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Badge final más realista */}
+                    <div className="mt-12 text-center">
+                        <div className="inline-flex items-center bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-8 py-4 rounded-full font-bold shadow-lg">
+                            <span className="text-2xl mr-3">🏆</span>
+                            Únete a la Plataforma #1 de Preparación para el examen CACES en Ecuador
+                            <span className="text-2xl ml-3">🇪🇨</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+
+
             {/* CTA Final */}
             <section className="py-20 bg-gradient-to-r from-blue-600 to-green-600">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -389,7 +609,7 @@ const LandingPage = () => {
                             Empezar mi Preparación
                         </Link>
                         <a
-                            href="https://wa.me/59398503606?text=Hola, quiero información sobre los cursos de Mediconsa"
+                            href="https://wa.me/593981833667?text=Hola, quiero información sobre los cursos de Mediconsa"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
