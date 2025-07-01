@@ -458,7 +458,7 @@ const CarritoPage = () => {
                                     </button>
                                 </div>
 
-                                <p className="text-xs text-gray-500 text-center mt-4">
+                                <p className="text-xs text-gray-500 text-center mt-4"> 
                                     Al contactar aceptas nuestros términos de servicio
                                 </p>
                             </div>
