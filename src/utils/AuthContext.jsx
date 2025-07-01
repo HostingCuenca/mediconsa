@@ -27,27 +27,27 @@ export const AuthProvider = ({ children }) => {
                 const token = authService.getToken()
                 const storedUser = authService.getUser()
 
-                console.log('🔍 Sesión inicial:', { hasToken: !!token, storedUser })
+                // console.log('🔍 Sesión inicial:', { hasToken: !!token, storedUser })
 
                 if (token && storedUser) {
-                    console.log('Token encontrado, verificando con backend...')
+                    // console.log('Token encontrado, verificando con backend...')
 
                     // Verificar token con el backend
                     const { success, data } = await authService.getProfile()
 
                     if (success && data?.user) {
-                        console.log('✅ Usuario autenticado desde backend:', data.user)
+                        // console.log('✅ Usuario autenticado desde backend:', data.user)
                         setUser({ id: data.user.id, email: data.user.email })
                         setPerfil(data.user)
                     } else {
-                        console.log('❌ Token inválido, limpiando sesión')
+                        // console.log('❌ Token inválido, limpiando sesión')
                         authService.logout()
                     }
                 } else {
-                    console.log('ℹ️ No hay sesión previa')
+                    // console.log('ℹ️ No hay sesión previa')
                 }
             } catch (error) {
-                console.error('💥 Error cargando sesión:', error)
+                // console.error('💥 Error cargando sesión:', error)
                 authService.logout()
             } finally {
                 setLoading(false)
@@ -65,20 +65,20 @@ export const AuthProvider = ({ children }) => {
             const token = authService.getToken()
             const storedUser = authService.getUser()
 
-            console.log('🔄 Actualizando auth state:', { hasToken: !!token, storedUser })
+            // console.log('🔄 Actualizando auth state:', { hasToken: !!token, storedUser })
 
             if (token && storedUser) {
                 setUser({ id: storedUser.id, email: storedUser.email })
                 setPerfil(storedUser)
-                console.log('✅ Auth state actualizado:', storedUser.email)
-                console.log('🎯 Perfil completo:', storedUser)
+                // console.log('✅ Auth state actualizado:', storedUser.email)
+                // console.log('🎯 Perfil completo:', storedUser)
             } else {
                 setUser(null)
                 setPerfil(null)
-                console.log('🧹 Auth state limpiado')
+                // console.log('🧹 Auth state limpiado')
             }
         } catch (error) {
-            console.error('💥 Error actualizando auth state:', error)
+            // console.error('💥 Error actualizando auth state:', error)
             setUser(null)
             setPerfil(null)
         }
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
         // Escuchar cambios en localStorage (para logout desde otra pestaña)
         const handleStorageChange = (e) => {
             if (e.key === 'mediconsa_token' || e.key === 'mediconsa_user') {
-                console.log('📢 Cambio detectado en localStorage')
+                // console.log('📢 Cambio detectado en localStorage')
                 updateAuthState()
             }
         }
@@ -111,12 +111,12 @@ export const AuthProvider = ({ children }) => {
             const { success, data } = await authService.getProfile()
             if (success && data?.user) {
                 setPerfil(data.user)
-                console.log('🎯 Perfil cargado:', data.user)
+                // console.log('🎯 Perfil cargado:', data.user)
                 return { success: true, perfil: data.user }
             }
             return { success: false }
         } catch (error) {
-            console.error('💥 Error cargando perfil:', error)
+            // console.error('💥 Error cargando perfil:', error)
             return { success: false }
         }
     }
@@ -143,33 +143,33 @@ export const AuthProvider = ({ children }) => {
     // FUNCIONES DE AUTH ACTIONS
     // =============================================
     const login = async (email, password) => {
-        console.log('🚀 Intentando login:', email)
+        // console.log('🚀 Intentando login:', email)
         const result = await authService.login(email, password)
-        console.log('📦 Resultado completo login:', result)
+        // console.log('📦 Resultado completo login:', result)
 
         if (result.success) {
-            console.log('✅ Login exitoso, actualizando estado')
-            console.log('👤 Usuario recibido:', result.data?.user)
+            // console.log('✅ Login exitoso, actualizando estado')
+            // console.log('👤 Usuario recibido:', result.data?.user)
             await updateAuthState()
         }
         return result
     }
 
     const register = async (userData) => {
-        console.log('🚀 Intentando registro:', userData.email)
+        // console.log('🚀 Intentando registro:', userData.email)
         const result = await authService.register(userData)
-        console.log('📦 Resultado completo registro:', result)
+        // console.log('📦 Resultado completo registro:', result)
 
         if (result.success) {
-            console.log('✅ Registro exitoso, actualizando estado')
-            console.log('👤 Usuario recibido:', result.data?.user)
+            // console.log('✅ Registro exitoso, actualizando estado')
+            // console.log('👤 Usuario recibido:', result.data?.user)
             await updateAuthState()
         }
         return result
     }
 
     const logout = () => {
-        console.log('🚪 Cerrando sesión')
+        // console.log('🚪 Cerrando sesión')
         authService.logout()
         setUser(null)
         setPerfil(null)
