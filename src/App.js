@@ -51,6 +51,7 @@ import MaterialesPublic from "./public/MaterialesPublic";
 import CarritoPage from "./public/CarritoPage";
 import Canales from "./panel/Canales";
 import ClasesVirtuales from "./panel/ClasesVirtuales";
+import PrivacyPage from "./public/PrivacyPage";
 
 
 function App() {
@@ -66,6 +67,7 @@ function App() {
                     <Route path="/registro" element={<LoginPage mode="registro" />} />
                     <Route path="/cursos" element={<CoursesPage />} />
                     <Route path="/materiales" element={<MaterialesPublic />} />
+                    <Route path="/politica-de-privacidad" element={<PrivacyPage />} />
                     <Route path="/carrito" element={<CarritoPage />} />
                     <Route path="/curso/:id" element={<CourseDetail />} />
 
