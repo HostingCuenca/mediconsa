@@ -1808,22 +1808,22 @@ const CourseView = () => {
                         </div>
 
                         <div className="flex items-center space-x-4">
-                            {/* Estado de inscripción */}
-                            {/*<div className="flex items-center space-x-3">*/}
-                            {/*    {enrollmentStatus.isEnrolled ? (*/}
-                            {/*        <span className={`px-3 py-1 rounded-full text-sm font-medium ${*/}
-                            {/*            enrollmentStatus.accessStatus === 'habilitado'*/}
-                            {/*                ? 'bg-green-100 text-green-800'*/}
-                            {/*                : 'bg-yellow-100 text-yellow-800'*/}
-                            {/*        }`}>*/}
-                            {/*           {enrollmentStatus.accessStatus === 'habilitado' ? 'Acceso Completo' : 'Pago Pendiente'}*/}
-                            {/*       </span>*/}
-                            {/*    ) : (*/}
-                            {/*        <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">*/}
-                            {/*           No Inscrito*/}
-                            {/*       </span>*/}
-                            {/*    )}*/}
-                            {/*</div>*/}
+                             Estado de inscripción
+                            <div className="flex items-center space-x-3">
+                                {enrollmentStatus.isEnrolled ? (
+                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                        enrollmentStatus.accessStatus === 'habilitado'
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                       {enrollmentStatus.accessStatus === 'habilitado' ? 'Acceso Completo' : 'Pago Pendiente'}
+                                   </span>
+                                ) : (
+                                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                       No Inscrito
+                                   </span>
+                                )}
+                            </div>
 
                             {/* Barra de progreso */}
                             {hasAccess && (
@@ -2264,11 +2264,11 @@ const CourseView = () => {
                                             </div>
                                         </div>
                                     </div>
-
+                                    {/*${perfil?.nombre_usuario}*/}
                                     <div className="flex gap-4">
                                         {enrollmentStatus.isEnrolled ? (
 <a
-                                            href={`https://wa.me/+593981833667?text=${encodeURIComponent(`Hola, soy ${perfil?.nombre_usuario} y quiero que aprueben mi acceso al curso "${courseData.titulo}". Ya me inscribí pero el pago está pendiente.`)}`}
+                                            href={`https://wa.me/+593981833667?text=${encodeURIComponent(`Hola, soy estudiante y quiero que aprueben mi acceso al curso "${courseData.titulo}". Ya me inscribí pero el pago está pendiente.`)}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-center flex items-center justify-center"
