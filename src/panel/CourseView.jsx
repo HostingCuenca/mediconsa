@@ -1809,21 +1809,21 @@ const CourseView = () => {
 
                         <div className="flex items-center space-x-4">
                             {/* Estado de inscripción */}
-                            <div className="flex items-center space-x-3">
-                                {enrollmentStatus.isEnrolled ? (
-                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        enrollmentStatus.accessStatus === 'habilitado'
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-yellow-100 text-yellow-800'
-                                    }`}>
-                                       {enrollmentStatus.accessStatus === 'habilitado' ? 'Acceso Completo' : 'Pago Pendiente'}
-                                   </span>
-                                ) : (
-                                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                       No Inscrito
-                                   </span>
-                                )}
-                            </div>
+                            {/*<div className="flex items-center space-x-3">*/}
+                            {/*    {enrollmentStatus.isEnrolled ? (*/}
+                            {/*        <span className={`px-3 py-1 rounded-full text-sm font-medium ${*/}
+                            {/*            enrollmentStatus.accessStatus === 'habilitado'*/}
+                            {/*                ? 'bg-green-100 text-green-800'*/}
+                            {/*                : 'bg-yellow-100 text-yellow-800'*/}
+                            {/*        }`}>*/}
+                            {/*           {enrollmentStatus.accessStatus === 'habilitado' ? 'Acceso Completo' : 'Pago Pendiente'}*/}
+                            {/*       </span>*/}
+                            {/*    ) : (*/}
+                            {/*        <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">*/}
+                            {/*           No Inscrito*/}
+                            {/*       </span>*/}
+                            {/*    )}*/}
+                            {/*</div>*/}
 
                             {/* Barra de progreso */}
                             {hasAccess && (
