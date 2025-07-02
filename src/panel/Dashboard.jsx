@@ -292,7 +292,7 @@ const StudentDashboard = () => {
                                     <h3 className="text-lg font-medium text-gray-900 mb-2">No tienes cursos inscritos</h3>
                                     <p className="text-gray-500 mb-4">Explora nuestro catálogo y encuentra el curso perfecto para ti</p>
                                     <button
-                                        onClick={() => navigate('/cursos')}
+                                        onClick={() => navigate('/mis-cursos')}
                                         className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                                     >
                                         Explorar Cursos
