@@ -17,6 +17,7 @@ import MyProgress from './panel/MyProgress'
 import Simulacros from './panel/Simulacros'
 import Profile from './panel/Profile'
 import CourseView from './panel/CourseView'
+import MyMateriales from './panel/MyMateriales'
 import RealizarSimulacro from './panel/RealizarSimulacro'
 import ResultadoSimulacro from './panel/ResultadoSimulacro'
 
@@ -42,14 +43,15 @@ import SimulacroManager from './adminpanel/SimulacroManager'
 
 // 🆕 NUEVAS PÁGINAS ADMIN - GESTIÓN COMPLETA
 import MaterialManager from './adminpanel/MaterialManager'
+import Materiales from './adminpanel/Materiales'
 import ClasesVirtualesManager from './adminpanel/ClasesVirtualesManager'
 import CanalesManager from './adminpanel/CanalesManager'
 import ClasesVirtualesGlobal from "./adminpanel/ClasesVirtualesGlobal";
-import Materiales from "./adminpanel/Materiales";
 import MaterialesPublic from "./public/MaterialesPublic";
 import CarritoPage from "./public/CarritoPage";
 import Canales from "./panel/Canales";
 import ClasesVirtuales from "./panel/ClasesVirtuales";
+
 
 function App() {
     return (
@@ -84,6 +86,7 @@ function App() {
                     <Route path="/mis-cursos" element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
                     <Route path="/mi-progreso" element={<ProtectedRoute><MyProgress /></ProtectedRoute>} />
                     <Route path="/canales" element={<ProtectedRoute><Canales /></ProtectedRoute>} />
+                    <Route path="/mis-materiales" element={<ProtectedRoute><MyMateriales /></ProtectedRoute>} />
                     <Route path="/clases-virtuales" element={<ProtectedRoute><ClasesVirtuales /></ProtectedRoute>} />
                     <Route path="/estudiar/:cursoId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
 

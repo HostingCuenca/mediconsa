@@ -60,7 +60,7 @@ class MaterialServices {
         }
     }
 
-    // Materiales por curso (requiere auth)
+    // MyMateriales por curso (requiere auth)
     async getMaterialesByCourse(cursoId) {
         try {
             console.log('Obteniendo materiales del curso:', cursoId)
@@ -262,7 +262,7 @@ class MaterialServices {
                 return {
                     success: true,
                     data: response.data,
-                    message: response.message || 'Materiales eliminados exitosamente'
+                    message: response.message || 'MyMateriales eliminados exitosamente'
                 }
             }
 

@@ -242,7 +242,7 @@ const MyCourses = () => {
                     }
                 } else {
                     // Mostrar modal para WhatsApp
-                    const whatsappMessage = `Hola, soy ${perfil?.nombre_usuario} y quiero acceso al curso "${enrollmentModal.course.titulo}". Precio: $${enrollmentModal.course.precio}`
+                    const whatsappMessage = `Hola, quiero acceso al curso "${enrollmentModal.course.titulo}". Precio: $${enrollmentModal.course.precio}`
                     const whatsappUrl = `https://wa.me/+593981833667?text=${encodeURIComponent(whatsappMessage)}`
 
                     if (window.confirm(`Solicitud enviada. ¿Quieres contactar por WhatsApp para completar el pago?`)) {
@@ -279,7 +279,8 @@ const MyCourses = () => {
             console.error('No se encontró ID del curso:', curso)
             return
         }
-        navigate(`/progreso/${cursoId}`)
+        // navigate(`/progreso/${cursoId}`)
+        navigate(`/estudiar/${cursoId}`)
     }
 
     // ========== FUNCIONES DE UTILIDAD ==========
