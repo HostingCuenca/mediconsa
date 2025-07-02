@@ -99,6 +99,12 @@ const Footer = () => {
                                 </Link>
                             </li>
                             <li>
+                                <Link to="/sobre-nosotros"
+                                      className="text-medico-gray hover:text-medico-blue text-sm transition-colors">
+                                    Sobre Nosotros
+                                </Link>
+                            </li>
+                            <li>
                                 <span className="text-medico-gray text-sm">
                                     Lun - Vie: 8:00 AM - 6:00 PM
                                 </span>

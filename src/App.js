@@ -52,6 +52,7 @@ import CarritoPage from "./public/CarritoPage";
 import Canales from "./panel/Canales";
 import ClasesVirtuales from "./panel/ClasesVirtuales";
 import PrivacyPage from "./public/PrivacyPage";
+import PorQueMediconsa from "./public/PorqueMediconsa";
 
 
 function App() {
@@ -68,6 +69,7 @@ function App() {
                     <Route path="/cursos" element={<CoursesPage />} />
                     <Route path="/materiales" element={<MaterialesPublic />} />
                     <Route path="/politica-de-privacidad" element={<PrivacyPage />} />
+                    <Route path="/sobre-nosotros" element={<PorQueMediconsa />} />
                     <Route path="/carrito" element={<CarritoPage />} />
                     <Route path="/curso/:id" element={<CourseDetail />} />
 
