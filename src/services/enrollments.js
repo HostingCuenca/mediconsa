@@ -99,29 +99,123 @@ class EnrollmentsService {
     // =============================================
     // OBTENER TODAS LAS INSCRIPCIONES (ADMIN) - NUEVO
     // =============================================
+    // async getAllEnrollments(filters = {}) {
+    //     try {
+    //         console.log('Obteniendo todas las inscripciones (admin):', filters)
+    //         const response = await apiService.get('/enrollments/admin/all', filters)
+    //         console.log('Respuesta todas las inscripciones:', response)
+    //
+    //         if (response.success && response.data) {
+    //             return {
+    //                 success: true,
+    //                 data: {
+    //                     inscripciones: response.data.inscripciones || [],
+    //                     pagination: response.data.pagination || {}
+    //                 }
+    //             }
+    //         }
+    //
+    //         return {
+    //             success: false,
+    //             error: 'No se pudieron cargar todas las inscripciones'
+    //         }
+    //
+    //     } catch (error) {
+    //         console.error('Error obteniendo todas las inscripciones:', error)
+    //         return {
+    //             success: false,
+    //             error: error.message || 'Error de conexión'
+    //         }
+    //     }
+    // }
+
     async getAllEnrollments(filters = {}) {
         try {
-            console.log('Obteniendo todas las inscripciones (admin):', filters)
-            const response = await apiService.get('/enrollments/admin/all', filters)
-            console.log('Respuesta todas las inscripciones:', response)
+            console.log('🔄 Iniciando carga de inscripciones con lazy loading:', filters)
+
+            const {
+                search = '',
+                estado = '',
+                curso = '',
+                fechaDesde = '',
+                fechaHasta = '',
+                priority = 'pending', // 'pending', 'recent', 'all'
+                limit = 100,
+                offset = 0,
+                loadAll = false // Si es true, carga todo progresivamente
+            } = filters
+
+            // Preparar parámetros para el backend
+            const params = {
+                search: search.trim(),
+                estado: estado.trim(),
+                curso: curso.trim(),
+                fechaDesde: fechaDesde.trim(),
+                fechaHasta: fechaHasta.trim(),
+                priority,
+                limit: parseInt(limit) || 100,
+                offset: parseInt(offset) || 0
+            }
+
+            // Limpiar parámetros vacíos
+            Object.keys(params).forEach(key => {
+                if (params[key] === '' || params[key] === null || params[key] === undefined) {
+                    delete params[key]
+                }
+            })
+
+            const response = await apiService.get('/enrollments/admin/all', params)
+            console.log('📊 Respuesta del servidor:', response)
 
             if (response.success && response.data) {
-                return {
+                const result = {
                     success: true,
                     data: {
                         inscripciones: response.data.inscripciones || [],
-                        pagination: response.data.pagination || {}
+                        statistics: response.data.statistics || {},
+                        lazy_loading: response.data.lazy_loading || {},
+                        filters_applied: response.data.filters_applied || {},
+                        hasMore: response.data.lazy_loading?.next_batch !== null,
+                        nextOffset: response.data.lazy_loading?.next_batch?.offset || null,
+                        progress: response.data.lazy_loading?.progress || {}
                     }
                 }
+
+                // 🚀 CARGA AUTOMÁTICA PROGRESIVA (si loadAll está activo)
+                if (loadAll && result.data.hasMore) {
+                    console.log('🔄 Activando carga automática progresiva...')
+
+                    // Cargar siguiente batch automáticamente
+                    const nextFilters = {
+                        ...filters,
+                        offset: result.data.nextOffset,
+                        loadAll: false // Evitar recursión infinita
+                    }
+
+                    // Cargar siguiente batch después de un pequeño delay
+                    setTimeout(async () => {
+                        try {
+                            const nextBatch = await this.getAllEnrollments(nextFilters)
+                            if (nextBatch.success) {
+                                // Emitir evento para que el frontend maneje la nueva data
+                                this.emitProgressiveLoad?.(nextBatch.data)
+                            }
+                        } catch (error) {
+                            console.warn('Error en carga progresiva:', error)
+                        }
+                    }, 500) // Delay de 500ms entre cargas
+                }
+
+                return result
             }
 
             return {
                 success: false,
-                error: 'No se pudieron cargar todas las inscripciones'
+                error: response.message || 'No se pudieron cargar las inscripciones'
             }
 
         } catch (error) {
-            console.error('Error obteniendo todas las inscripciones:', error)
+            console.error('❌ Error obteniendo inscripciones:', error)
             return {
                 success: false,
                 error: error.message || 'Error de conexión'
@@ -129,9 +223,170 @@ class EnrollmentsService {
         }
     }
 
-    // =============================================
-    // OBTENER PAGOS PENDIENTES (ADMIN)
-    // =============================================
+// =============================================
+// MÉTODO AUXILIAR: CARGAR SIGUIENTE BATCH
+// =============================================
+    async loadNextBatch(currentState, filters = {}) {
+        try {
+            console.log('📥 Cargando siguiente batch...', { currentState, filters })
+
+            if (!currentState.hasMore || !currentState.nextOffset) {
+                return {
+                    success: false,
+                    error: 'No hay más datos para cargar'
+                }
+            }
+
+            const nextFilters = {
+                ...filters,
+                offset: currentState.nextOffset,
+                limit: currentState.lazy_loading?.next_batch?.estimated_size || 100
+            }
+
+            const result = await this.getAllEnrollments(nextFilters)
+
+            if (result.success) {
+                // Combinar datos existentes con nuevos datos
+                return {
+                    success: true,
+                    data: {
+                        ...result.data,
+                        inscripciones: [...(currentState.inscripciones || []), ...result.data.inscripciones]
+                    }
+                }
+            }
+
+            return result
+
+        } catch (error) {
+            console.error('❌ Error cargando siguiente batch:', error)
+            return {
+                success: false,
+                error: error.message || 'Error de conexión'
+            }
+        }
+    }
+
+    async getEnrollmentStats() {
+        try {
+            console.log('📊 Obteniendo estadísticas de inscripciones...')
+
+            const response = await apiService.get('/enrollments/admin/stats')
+
+            if (response.success && response.data) {
+                return {
+                    success: true,
+                    data: response.data
+                }
+            }
+
+            return {
+                success: false,
+                error: response.message || 'Error obteniendo estadísticas'
+            }
+
+        } catch (error) {
+            console.error('❌ Error obteniendo estadísticas:', error)
+            return {
+                success: false,
+                error: error.message || 'Error de conexión'
+            }
+        }
+    }
+
+    async loadAllEnrollmentsProgressive(filters = {}, onProgress = null) {
+        try {
+            console.log('🚀 Iniciando carga completa progresiva...')
+
+            let allInscripciones = []
+            let currentOffset = 0
+            let hasMore = true
+            let totalLoaded = 0
+            let totalRecords = 0
+
+            // Primera carga (prioridad a pendientes)
+            const firstBatch = await this.getAllEnrollments({
+                ...filters,
+                priority: 'pending',
+                offset: 0,
+                limit: 100
+            })
+
+            if (!firstBatch.success) {
+                return firstBatch
+            }
+
+            allInscripciones = [...firstBatch.data.inscripciones]
+            hasMore = firstBatch.data.hasMore
+            currentOffset = firstBatch.data.nextOffset || 0
+            totalRecords = firstBatch.data.statistics?.total_inscripciones || 0
+            totalLoaded = allInscripciones.length
+
+            // Notificar progreso inicial
+            onProgress?.({
+                loaded: totalLoaded,
+                total: totalRecords,
+                percentage: totalRecords > 0 ? Math.round((totalLoaded / totalRecords) * 100) : 100,
+                inscripciones: allInscripciones,
+                statistics: firstBatch.data.statistics
+            })
+
+            // Cargar el resto progresivamente
+            while (hasMore && currentOffset < totalRecords) {
+                console.log(`📥 Cargando batch ${Math.ceil(currentOffset / 100) + 1}...`)
+
+                const nextBatch = await this.getAllEnrollments({
+                    ...filters,
+                    priority: 'all', // Cambiar a 'all' después del primer batch
+                    offset: currentOffset,
+                    limit: 100
+                })
+
+                if (nextBatch.success && nextBatch.data.inscripciones.length > 0) {
+                    allInscripciones = [...allInscripciones, ...nextBatch.data.inscripciones]
+                    hasMore = nextBatch.data.hasMore
+                    currentOffset = nextBatch.data.nextOffset || (currentOffset + 100)
+                    totalLoaded = allInscripciones.length
+
+                    // Notificar progreso
+                    onProgress?.({
+                        loaded: totalLoaded,
+                        total: totalRecords,
+                        percentage: totalRecords > 0 ? Math.round((totalLoaded / totalRecords) * 100) : 100,
+                        inscripciones: allInscripciones,
+                        statistics: nextBatch.data.statistics
+                    })
+
+                    // Pequeño delay para no sobrecargar
+                    await new Promise(resolve => setTimeout(resolve, 200))
+                } else {
+                    hasMore = false
+                }
+            }
+
+            console.log(`✅ Carga completa finalizada: ${totalLoaded} inscripciones`)
+
+            return {
+                success: true,
+                data: {
+                    inscripciones: allInscripciones,
+                    statistics: firstBatch.data.statistics,
+                    totalLoaded,
+                    isComplete: true
+                }
+            }
+
+        } catch (error) {
+            console.error('❌ Error en carga progresiva completa:', error)
+            return {
+                success: false,
+                error: error.message || 'Error en carga progresiva'
+            }
+        }
+    }
+
+
+
     async getPendingPayments(filters = {}) {
         try {
             console.log('Obteniendo pagos pendientes:', filters)

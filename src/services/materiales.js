@@ -211,38 +211,73 @@ class MaterialServices {
     }
 
 // Eliminar material individual
-    async deleteMaterial(materialId) {
-        try {
-            console.log('Eliminando material:', materialId)
-
-            if (!materialId?.trim()) {
-                return {
-                    success: false,
-                    error: 'ID del material es requerido'
-                }
-            }
-
-            const response = await apiService.delete(`/materiales/${materialId}`)
-
-            if (response.success) {
-                return {
-                    success: true,
-                    data: response.data,
-                    message: response.message || 'Material eliminado exitosamente'
-                }
-            }
-
-            return {
-                success: false,
-                error: response.message || 'Error eliminando material'
-            }
-        } catch (error) {
-            console.error('Error eliminando material:', error)
-            return { success: false, error: error.message || 'Error de conexión' }
-        }
-    }
+//     async deleteMaterial(materialId) {
+//         try {
+//             console.log('Eliminando material:', materialId)
+//
+//             if (!materialId?.trim()) {
+//                 return {
+//                     success: false,
+//                     error: 'ID del material es requerido'
+//                 }
+//             }
+//
+//             const response = await apiService.delete(`/materiales/${materialId}`)
+//
+//             if (response.success) {
+//                 return {
+//                     success: true,
+//                     data: response.data,
+//                     message: response.message || 'Material eliminado exitosamente'
+//                 }
+//             }
+//
+//             return {
+//                 success: false,
+//                 error: response.message || 'Error eliminando material'
+//             }
+//         } catch (error) {
+//             console.error('Error eliminando material:', error)
+//             return { success: false, error: error.message || 'Error de conexión' }
+//         }
+//     }
 
 // Eliminación masiva de materiales (solo admin)
+//     async deleteMaterials(materialIds) {
+//         try {
+//             console.log('Eliminación masiva de materiales:', materialIds)
+//
+//             if (!Array.isArray(materialIds) || materialIds.length === 0) {
+//                 return {
+//                     success: false,
+//                     error: 'Lista de IDs de materiales es requerida'
+//                 }
+//             }
+//
+//             const response = await apiService.delete('/materiales/bulk/delete', {
+//                 materialIds
+//             })
+//
+//             if (response.success) {
+//                 return {
+//                     success: true,
+//                     data: response.data,
+//                     message: response.message || 'MyMateriales eliminados exitosamente'
+//                 }
+//             }
+//
+//             return {
+//                 success: false,
+//                 error: response.message || 'Error en eliminación masiva'
+//             }
+//         } catch (error) {
+//             console.error('Error en eliminación masiva:', error)
+//             return { success: false, error: error.message || 'Error de conexión' }
+//         }
+//     }
+
+
+
     async deleteMaterials(materialIds) {
         try {
             console.log('Eliminación masiva de materiales:', materialIds)
@@ -254,7 +289,8 @@ class MaterialServices {
                 }
             }
 
-            const response = await apiService.delete('/materiales/bulk/delete', {
+            // ✅ CORRECCIÓN: Usar POST en lugar de DELETE para enviar body
+            const response = await apiService.post('/materiales/bulk/delete', {
                 materialIds
             })
 
@@ -262,7 +298,43 @@ class MaterialServices {
                 return {
                     success: true,
                     data: response.data,
-                    message: response.message || 'MyMateriales eliminados exitosamente'
+                    message: response.message || 'Materiales eliminados exitosamente'
+                }
+            }
+
+            return {
+                success: false,
+                error: response.message || 'Error en eliminación masiva'
+            }
+        } catch (error) {
+            console.error('Error en eliminación masiva:', error)
+            return { success: false, error: error.message || 'Error de conexión' }
+        }
+    }
+
+// ========== ALTERNATIVA: Mantener DELETE pero enviar en URL ==========
+// Si prefieres mantener DELETE, puedes usar esta versión:
+
+    async deleteMaterialsAlternative(materialIds) {
+        try {
+            console.log('Eliminación masiva de materiales:', materialIds)
+
+            if (!Array.isArray(materialIds) || materialIds.length === 0) {
+                return {
+                    success: false,
+                    error: 'Lista de IDs de materiales es requerida'
+                }
+            }
+
+            // Enviar IDs como query params
+            const idsParam = materialIds.join(',')
+            const response = await apiService.delete(`/materiales/bulk/delete?ids=${idsParam}`)
+
+            if (response.success) {
+                return {
+                    success: true,
+                    data: response.data,
+                    message: response.message || 'Materiales eliminados exitosamente'
                 }
             }
 
