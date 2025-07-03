@@ -2270,12 +2270,12 @@ const AdminUsers = () => {
                                         >
                                             Editar Usuario
                                         </button>
-                                        <button
-                                            onClick={() => handleUserViewProgress(selectedUser)}
-                                            className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                                        >
-                                            Ver Progreso Detallado
-                                        </button>
+                                        {/*<button*/}
+                                        {/*    onClick={() => handleUserViewProgress(selectedUser)}*/}
+                                        {/*    className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"*/}
+                                        {/*>*/}
+                                        {/*    Ver Progreso Detallado*/}
+                                        {/*</button>*/}
                                         <button
                                             onClick={() => {
                                                 setShowViewModal(false)
