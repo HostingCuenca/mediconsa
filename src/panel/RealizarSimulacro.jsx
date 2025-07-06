@@ -346,18 +346,26 @@ const RealizarSimulacro = () => {
             setSubmitting(true)
             clearAllTimers()
 
-            const tiempoEmpleado = Math.ceil((Date.now() - tiempoInicio) / (1000 * 60))
+            const tiempoTranscurrido = Date.now() - tiempoInicio
+            const tiempoEmpleadoMinutos = Math.max(1, Math.ceil(tiempoTranscurrido / (1000 * 60)))
+
             const respuestasFormateadas = formatRespuestasForSubmit()
 
-            const result = await simulacrosService.submitSimulacro(simulacroId, {
+            const payload = {
                 respuestas: respuestasFormateadas,
-                tiempoEmpleadoMinutos: tiempoEmpleado
+                tiempoEmpleadoMinutos: tiempoEmpleadoMinutos
+            }
+
+            console.log('🔍 Enviando simulacro con', respuestasFormateadas.length, 'respuestas')
+
+            // ✅ ÚNICA CORRECCIÓN: Timeout de 5 minutos
+            const result = await simulacrosService.submitSimulacro(simulacroId, payload, {
+                timeout: 300000 // 5 minutos = 300,000 ms
             })
 
             if (result.success) {
                 const mensaje = isAutoSubmit ? `⏰ ${reason}` : '✅ Simulacro completado exitosamente'
 
-                // Navegar a resultados con los datos del resultado
                 navigate('/simulacros/resultado', {
                     state: {
                         completed: true,
@@ -368,12 +376,24 @@ const RealizarSimulacro = () => {
                     }
                 })
             } else {
-                alert('Error enviando simulacro: ' + result.error)
+                console.error('❌ Error del servidor:', result)
+                alert('Error enviando simulacro: ' + (result.error || result.message || 'Error desconocido'))
                 setSubmitting(false)
             }
         } catch (error) {
-            console.error('Error:', error)
-            alert('Error de conexión. Por favor, intenta nuevamente.')
+            console.error('❌ Error en handleSubmit:', error)
+
+            let errorMessage = 'Error de conexión. Por favor, intenta nuevamente.'
+
+            if (error.name === 'AbortError' || error.message?.includes('timeout')) {
+                errorMessage = 'El simulacro tardó demasiado tiempo. Puede haberse enviado correctamente. Verifica en "Mis Intentos".'
+            } else if (error.message) {
+                errorMessage = error.message
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message
+            }
+
+            alert(errorMessage)
             setSubmitting(false)
         } finally {
             setShowConfirmModal(false)

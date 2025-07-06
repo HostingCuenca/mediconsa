@@ -51,15 +51,60 @@ class SimulacrosService {
     }
 
     // ==================== ENVÍO DE RESPUESTAS ====================
-    async submitSimulacro(simulacroId, submissionData) {
+    // async submitSimulacro(simulacroId, submissionData) {
+    //     try {
+    //         console.log('Enviando respuestas del simulacro:', simulacroId)
+    //         const response = await apiService.post(`/simulacros/${simulacroId}/submit`, {
+    //             respuestas: submissionData.respuestas,
+    //             tiempoEmpleadoMinutos: submissionData.tiempoEmpleadoMinutos
+    //         })
+    //
+    //         if (response.success && response.data) {
+    //             return {
+    //                 success: true,
+    //                 data: {
+    //                     intentoId: response.data.intentoId,
+    //                     puntaje: response.data.puntaje,
+    //                     respuestasCorrectas: response.data.respuestasCorrectas,
+    //                     totalPreguntas: response.data.totalPreguntas,
+    //                     tiempoEmpleado: response.data.tiempoEmpleado,
+    //                     // 🆕 CAMPOS NUEVOS DEL BACKEND REFACTORIZADO
+    //                     modoEvaluacion: response.data.modoEvaluacion,
+    //                     modoEstudio: response.data.modoEstudio,
+    //                     detalle: response.data.detalle || [],
+    //                     resumen: response.data.resumen || '',
+    //                     estadisticas: response.data.estadisticas || {}
+    //                 }
+    //             }
+    //         }
+    //
+    //         return { success: false, error: 'No se pudo procesar el simulacro' }
+    //     } catch (error) {
+    //         console.error('Error enviando simulacro:', error)
+    //         return { success: false, error: error.message }
+    //     }
+    // }
+
+
+    async submitSimulacro(simulacroId, submissionData, options = {}) {
         try {
-            console.log('Enviando respuestas del simulacro:', simulacroId)
-            const response = await apiService.post(`/simulacros/${simulacroId}/submit`, {
-                respuestas: submissionData.respuestas,
-                tiempoEmpleadoMinutos: submissionData.tiempoEmpleadoMinutos
-            })
+            console.log('📤 Enviando respuestas del simulacro:', simulacroId)
+            console.log('🔍 Total de respuestas:', submissionData.respuestas?.length)
+
+            // ✅ ÚNICA CORRECCIÓN: Pasar timeout al apiService
+            const response = await apiService.post(
+                `/simulacros/${simulacroId}/submit`,
+                {
+                    respuestas: submissionData.respuestas,
+                    tiempoEmpleadoMinutos: submissionData.tiempoEmpleadoMinutos
+                },
+                {
+                    timeout: options.timeout || 300000 // 5 minutos por defecto
+                }
+            )
 
             if (response.success && response.data) {
+                console.log('✅ Simulacro enviado exitosamente')
                 return {
                     success: true,
                     data: {
@@ -68,7 +113,6 @@ class SimulacrosService {
                         respuestasCorrectas: response.data.respuestasCorrectas,
                         totalPreguntas: response.data.totalPreguntas,
                         tiempoEmpleado: response.data.tiempoEmpleado,
-                        // 🆕 CAMPOS NUEVOS DEL BACKEND REFACTORIZADO
                         modoEvaluacion: response.data.modoEvaluacion,
                         modoEstudio: response.data.modoEstudio,
                         detalle: response.data.detalle || [],
@@ -80,10 +124,19 @@ class SimulacrosService {
 
             return { success: false, error: 'No se pudo procesar el simulacro' }
         } catch (error) {
-            console.error('Error enviando simulacro:', error)
+            console.error('❌ Error enviando simulacro:', error)
+
+            if (error.name === 'AbortError' || error.message?.includes('timeout')) {
+                return {
+                    success: false,
+                    error: 'Timeout: El simulacro puede haberse enviado correctamente. Verifica en "Mis Intentos".'
+                }
+            }
+
             return { success: false, error: error.message }
         }
     }
+
 
     // ==================== INTENTOS DEL USUARIO ====================
     async getMyAttempts(filters = {}) {
