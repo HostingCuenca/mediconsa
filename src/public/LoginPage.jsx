@@ -379,7 +379,8 @@ const LoginPage = ({ mode = 'login' }) => {
         password: '',
         confirmPassword: '',
         nombreCompleto: '',
-        nombreUsuario: ''
+        nombreUsuario: '',
+        telefono: ''
     })
 
     // ✅ FUNCIÓN PARA DETERMINAR RUTA SEGÚN ROL
@@ -418,10 +419,20 @@ const LoginPage = ({ mode = 'login' }) => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }))
+
+        // Si es el campo de teléfono, solo permitir números, espacios, guiones y símbolo +
+        if (name === 'telefono') {
+            const cleanedValue = value.replace(/[^0-9+\s-]/g, '')
+            setFormData(prev => ({
+                ...prev,
+                [name]: cleanedValue
+            }))
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }))
+        }
         setError('')
     }
 
@@ -432,7 +443,7 @@ const LoginPage = ({ mode = 'login' }) => {
         }
 
         if (!isLogin) {
-            if (!formData.nombreCompleto || !formData.nombreUsuario) {
+            if (!formData.nombreCompleto || !formData.nombreUsuario || !formData.telefono) {
                 setError('Todos los campos son requeridos')
                 return false
             }
@@ -458,6 +469,13 @@ const LoginPage = ({ mode = 'login' }) => {
             const usernameRegex = /^[a-zA-Z0-9._-]+$/
             if (!usernameRegex.test(formData.nombreUsuario)) {
                 setError('El nombre de usuario solo puede contener letras, números, puntos, guiones')
+                return false
+            }
+
+            // Validar teléfono (al menos 10 dígitos)
+            const phoneDigits = formData.telefono.replace(/[^0-9]/g, '')
+            if (phoneDigits.length < 10) {
+                setError('El teléfono debe tener al menos 10 dígitos')
                 return false
             }
         }
@@ -488,7 +506,8 @@ const LoginPage = ({ mode = 'login' }) => {
                     email: formData.email,
                     password: formData.password,
                     nombreCompleto: formData.nombreCompleto,
-                    nombreUsuario: formData.nombreUsuario
+                    nombreUsuario: formData.nombreUsuario,
+                    telefono: formData.telefono
                 })
             }
 
@@ -619,6 +638,26 @@ const LoginPage = ({ mode = 'login' }) => {
                                         />
                                         <p className="text-xs text-medico-gray mt-1">
                                             Solo letras, números, puntos y guiones. Sin espacios.
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="telefono" className="block text-sm font-medium text-medico-gray mb-1">
+                                            Teléfono *
+                                        </label>
+                                        <input
+                                            id="telefono"
+                                            name="telefono"
+                                            type="tel"
+                                            required={!isLogin}
+                                            value={formData.telefono}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            placeholder="+593 99 999 9999"
+                                            maxLength="20"
+                                        />
+                                        <p className="text-xs text-medico-gray mt-1">
+                                            Mínimo 10 dígitos. Solo números, espacios, + y guiones.
                                         </p>
                                     </div>
                                 </>

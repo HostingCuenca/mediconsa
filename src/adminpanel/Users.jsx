@@ -1324,6 +1324,8 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
 import UsersTable from '../components/UsersTable'
 import userManagementService from '../services/userManagement'
+import enrollmentsService from '../services/enrollments'
+import apiService from '../services/api'
 
 const AdminUsers = () => {
     const navigate = useNavigate()
@@ -1337,6 +1339,22 @@ const AdminUsers = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
+
+    // Estados para la nueva funcionalidad de Cursos
+    const [activeTab, setActiveTab] = useState('users') // 'users' | 'courses'
+    const [courses, setCourses] = useState([])
+    const [courseEnrollments, setCourseEnrollments] = useState([])
+    const [loadingCourses, setLoadingCourses] = useState(false)
+    const [selectedCourse, setSelectedCourse] = useState(null)
+    const [showCourseStudentsModal, setShowCourseStudentsModal] = useState(false)
+
+    // Estados para gestión de accesos en el modal
+    const [selectedStudents, setSelectedStudents] = useState([]) // IDs de inscripciones seleccionadas
+    const [actionLoading, setActionLoading] = useState(false)
+    const [studentFilter, setStudentFilter] = useState('todos') // 'todos' | 'activos' | 'inactivos'
+    const [studentSearch, setStudentSearch] = useState('') // Búsqueda por nombre o usuario
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [confirmAction, setConfirmAction] = useState(null) // 'suspend' | 'reactivate'
 
     // Estados para modales/formularios
     const [showCreateForm, setShowCreateForm] = useState(false)
@@ -1426,6 +1444,54 @@ const AdminUsers = () => {
         }
     }
 
+    // Función para cargar cursos con información de estudiantes inscritos
+    const loadCoursesWithEnrollments = async () => {
+        try {
+            setLoadingCourses(true)
+            setError('')
+
+            // Cargar cursos
+            const coursesResult = await apiService.get('/courses')
+
+            // Cargar todas las inscripciones
+            const enrollmentsResult = await enrollmentsService.getAllEnrollments({})
+
+            if (coursesResult.success && enrollmentsResult.success) {
+                const allCourses = coursesResult.data.cursos || []
+                const allEnrollments = enrollmentsResult.data.inscripciones || []
+
+                // Agrupar inscripciones por curso
+                const enrollmentsByCourse = allEnrollments.reduce((acc, enrollment) => {
+                    if (!acc[enrollment.curso_id]) {
+                        acc[enrollment.curso_id] = []
+                    }
+                    acc[enrollment.curso_id].push(enrollment)
+                    return acc
+                }, {})
+
+                // Enriquecer cursos con información de inscripciones
+                const coursesWithData = allCourses.map(course => ({
+                    ...course,
+                    inscripciones: enrollmentsByCourse[course.id] || [],
+                    total_inscritos: (enrollmentsByCourse[course.id] || []).length,
+                    pendientes: (enrollmentsByCourse[course.id] || []).filter(e => e.estado_pago === 'pendiente').length,
+                    habilitados: (enrollmentsByCourse[course.id] || []).filter(e => e.estado_pago === 'habilitado').length,
+                    rechazados: (enrollmentsByCourse[course.id] || []).filter(e => e.estado_pago === 'rechazado').length
+                }))
+
+                setCourses(coursesWithData)
+                setCourseEnrollments(allEnrollments)
+            } else {
+                setError('Error cargando cursos o inscripciones')
+            }
+        } catch (error) {
+            console.error('Error cargando cursos:', error)
+            setError('Error de conexión al cargar cursos')
+        } finally {
+            setLoadingCourses(false)
+        }
+    }
+
     // Filtrar usuarios en el cliente
     useEffect(() => {
         let filtered = [...allUsers]
@@ -1460,6 +1526,13 @@ const AdminUsers = () => {
         loadUsers()
         loadUserStats()
     }, [])
+
+    // Cargar cursos cuando se cambie a la pestaña de cursos
+    useEffect(() => {
+        if (activeTab === 'courses' && courses.length === 0) {
+            loadCoursesWithEnrollments()
+        }
+    }, [activeTab])
 
     useEffect(() => {
         if (success) {
@@ -1752,6 +1825,150 @@ const AdminUsers = () => {
         return user.activo ? 'Activo' : 'Inactivo'
     }
 
+    // Handlers para la funcionalidad de Cursos
+    const handleViewCourseStudents = (course) => {
+        setSelectedCourse(course)
+        setShowCourseStudentsModal(true)
+        setSelectedStudents([]) // Limpiar selección
+        setStudentFilter('todos') // Resetear filtro
+        setStudentSearch('') // Limpiar búsqueda
+    }
+
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('es-EC', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(amount)
+    }
+
+    // Obtener estudiantes filtrados (solo habilitados)
+    const getFilteredStudents = () => {
+        if (!selectedCourse || !selectedCourse.inscripciones) return []
+
+        // Solo mostrar estudiantes habilitados
+        let students = selectedCourse.inscripciones.filter(
+            enrollment => enrollment.estado_pago === 'habilitado'
+        )
+
+        // Aplicar filtro de activos/inactivos
+        if (studentFilter === 'activos') {
+            students = students.filter(s => s.acceso_activo === true)
+        } else if (studentFilter === 'inactivos') {
+            students = students.filter(s => s.acceso_activo === false)
+        }
+
+        // Aplicar búsqueda por nombre o usuario
+        if (studentSearch.trim()) {
+            const searchTerm = studentSearch.toLowerCase().trim()
+            students = students.filter(s =>
+                s.nombre_completo?.toLowerCase().includes(searchTerm) ||
+                s.nombre_usuario?.toLowerCase().includes(searchTerm) ||
+                s.email?.toLowerCase().includes(searchTerm)
+            )
+        }
+
+        return students
+    }
+
+    // Manejar selección individual
+    const handleSelectStudent = (inscripcionId) => {
+        setSelectedStudents(prev => {
+            if (prev.includes(inscripcionId)) {
+                return prev.filter(id => id !== inscripcionId)
+            } else {
+                return [...prev, inscripcionId]
+            }
+        })
+    }
+
+    // Seleccionar todos los visibles
+    const handleSelectAll = () => {
+        const filteredStudents = getFilteredStudents()
+        if (selectedStudents.length === filteredStudents.length) {
+            setSelectedStudents([])
+        } else {
+            setSelectedStudents(filteredStudents.map(s => s.id))
+        }
+    }
+
+    // Mostrar modal de confirmación para desactivar
+    const handleSuspendAccess = () => {
+        if (selectedStudents.length === 0) {
+            setError('Debes seleccionar al menos un estudiante')
+            return
+        }
+        setConfirmAction('suspend')
+        setShowConfirmModal(true)
+    }
+
+    // Mostrar modal de confirmación para reactivar
+    const handleReactivateAccess = () => {
+        if (selectedStudents.length === 0) {
+            setError('Debes seleccionar al menos un estudiante')
+            return
+        }
+        setConfirmAction('reactivate')
+        setShowConfirmModal(true)
+    }
+
+    // Ejecutar la acción confirmada
+    const executeConfirmedAction = async () => {
+        setActionLoading(true)
+        setError('')
+        setShowConfirmModal(false)
+
+        const endpoint = confirmAction === 'suspend' ? '/enrollments/suspend' : '/enrollments/reactivate'
+        const successMessage = confirmAction === 'suspend'
+            ? 'Accesos desactivados exitosamente'
+            : 'Accesos reactivados exitosamente'
+
+        try {
+            const response = await apiService.post(endpoint, {
+                inscripcionIds: selectedStudents
+            })
+
+            if (response.success) {
+                setSuccess(successMessage)
+
+                // ✅ ACTUALIZAR ESTADO LOCAL INMEDIATAMENTE
+                const newAccesoActivo = confirmAction === 'reactivate'
+
+                setSelectedCourse(prev => ({
+                    ...prev,
+                    inscripciones: prev.inscripciones.map(enrollment =>
+                        selectedStudents.includes(enrollment.id)
+                            ? { ...enrollment, acceso_activo: newAccesoActivo }
+                            : enrollment
+                    )
+                }))
+
+                // Actualizar también en la lista de cursos
+                setCourses(prevCourses => prevCourses.map(course =>
+                    course.id === selectedCourse.id
+                        ? {
+                            ...course,
+                            inscripciones: course.inscripciones.map(enrollment =>
+                                selectedStudents.includes(enrollment.id)
+                                    ? { ...enrollment, acceso_activo: newAccesoActivo }
+                                    : enrollment
+                            )
+                        }
+                        : course
+                ))
+
+                setSelectedStudents([])
+            } else {
+                setError(response.error || `Error al ${confirmAction === 'suspend' ? 'desactivar' : 'reactivar'} accesos`)
+            }
+        } catch (error) {
+            console.error('Error:', error)
+            setError(`Error de conexión al ${confirmAction === 'suspend' ? 'desactivar' : 'reactivar'} accesos`)
+        } finally {
+            setActionLoading(false)
+            setConfirmAction(null)
+        }
+    }
+
     return (
         <Layout showSidebar={true}>
             <div className="p-8">
@@ -1811,8 +2028,50 @@ const AdminUsers = () => {
                     </div>
                 )}
 
+                {/* Tabs para cambiar entre Usuarios y Cursos */}
+                {!showCreateForm && !showEditForm && (
+                    <div className="mb-6">
+                        <div className="border-b border-gray-200">
+                            <nav className="-mb-px flex space-x-8">
+                                <button
+                                    onClick={() => setActiveTab('users')}
+                                    className={`${
+                                        activeTab === 'users'
+                                            ? 'border-medico-blue text-medico-blue'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors`}
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                    </svg>
+                                    <span>Usuarios</span>
+                                    <span className="bg-medico-blue text-white text-xs px-2 py-1 rounded-full">
+                                        {allUsers.length}
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('courses')}
+                                    className={`${
+                                        activeTab === 'courses'
+                                            ? 'border-medico-blue text-medico-blue'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors`}
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                    <span>Cursos</span>
+                                    <span className="bg-medico-blue text-white text-xs px-2 py-1 rounded-full">
+                                        {courses.length}
+                                    </span>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                )}
+
                 {/* Estadísticas */}
-                {!showCreateForm && !showEditForm && userStats.usuarios && (
+                {!showCreateForm && !showEditForm && activeTab === 'users' && userStats.usuarios && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                             <div className="flex items-center justify-between">
@@ -2093,7 +2352,7 @@ const AdminUsers = () => {
                 )}
 
                 {/* Tabla de usuarios */}
-                {!showCreateForm && !showEditForm && (
+                {!showCreateForm && !showEditForm && activeTab === 'users' && (
                     <UsersTable
                         users={currentUsers}
                         pagination={pagination}
@@ -2107,6 +2366,133 @@ const AdminUsers = () => {
                         onUserPasswordReset={handleUserPasswordReset}
                         onUserViewProgress={handleUserViewProgress}
                     />
+                )}
+
+                {/* Tabla de Cursos con Estudiantes */}
+                {!showCreateForm && !showEditForm && activeTab === 'courses' && (
+                    <div>
+                        {loadingCourses ? (
+                            <div className="flex items-center justify-center py-12">
+                                <div className="text-center">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medico-blue mx-auto"></div>
+                                    <p className="mt-4 text-medico-gray">Cargando cursos...</p>
+                                </div>
+                            </div>
+                        ) : courses.length > 0 ? (
+                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Curso
+                                                </th>
+                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Precio
+                                                </th>
+                                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Total Inscritos
+                                                </th>
+                                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Habilitados
+                                                </th>
+                                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Pendientes
+                                                </th>
+                                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Rechazados
+                                                </th>
+                                                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Acciones
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {courses.map((course) => (
+                                                <tr key={course.id} className="hover:bg-gray-50">
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center">
+                                                            <div className="flex-shrink-0 h-16 w-16">
+                                                                {course.miniatura_url ? (
+                                                                    <img
+                                                                        className="h-16 w-16 rounded object-cover"
+                                                                        src={course.miniatura_url}
+                                                                        alt={course.titulo}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="h-16 w-16 rounded bg-medico-blue flex items-center justify-center">
+                                                                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                                                        </svg>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="ml-4">
+                                                                <div className="text-sm font-medium text-gray-900">
+                                                                    {course.titulo}
+                                                                </div>
+                                                                <div className="text-sm text-gray-500">
+                                                                    {course.es_gratuito && (
+                                                                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                                                            Gratuito
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm font-bold text-medico-blue">
+                                                            {course.es_gratuito ? 'Gratuito' : formatCurrency(parseFloat(course.precio))}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                        <div className="text-2xl font-bold text-medico-blue">
+                                                            {course.total_inscritos}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                        <div className="text-2xl font-bold text-green-600">
+                                                            {course.habilitados}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                        <div className="text-2xl font-bold text-yellow-600">
+                                                            {course.pendientes}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                        <div className="text-2xl font-bold text-red-600">
+                                                            {course.rechazados}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                        <button
+                                                            onClick={() => handleViewCourseStudents(course)}
+                                                            className="inline-flex items-center px-3 py-2 border border-medico-blue text-sm font-medium rounded-md text-medico-blue bg-white hover:bg-medico-blue hover:text-white transition-colors"
+                                                        >
+                                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                                            </svg>
+                                                            Ver Estudiantes
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-12">
+                                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No hay cursos disponibles</h3>
+                                <p className="text-gray-500">No se encontraron cursos en el sistema</p>
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 {/* Modal de visualización */}
@@ -2385,6 +2771,343 @@ const AdminUsers = () => {
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                     )}
                                     <span>{formLoading ? 'Reseteando...' : 'Resetear Contraseña'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal para ver estudiantes de un curso */}
+                {showCourseStudentsModal && selectedCourse && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg w-full max-w-6xl flex flex-col" style={{maxHeight: '90vh'}}>
+                            {/* Header fijo */}
+                            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-medico-blue">Estudiantes del Curso</h2>
+                                    <p className="text-gray-600 mt-1">{selectedCourse.titulo}</p>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowCourseStudentsModal(false)
+                                        setSelectedCourse(null)
+                                    }}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {/* Estadísticas del curso - fijas */}
+                            <div className="px-6 pt-4 pb-2 border-b border-gray-200">
+                                <div className="grid grid-cols-4 gap-3">
+                                    <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                                        <div className="text-xs text-blue-600 font-medium">Total Habilitados</div>
+                                        <div className="text-2xl font-bold text-blue-700">{selectedCourse.habilitados}</div>
+                                    </div>
+                                    <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                                        <div className="text-xs text-green-600 font-medium">Accesos Activos</div>
+                                        <div className="text-2xl font-bold text-green-700">
+                                            {selectedCourse.inscripciones?.filter(e => e.estado_pago === 'habilitado' && e.acceso_activo === true).length || 0}
+                                        </div>
+                                    </div>
+                                    <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+                                        <div className="text-xs text-orange-600 font-medium">Accesos Inactivos</div>
+                                        <div className="text-2xl font-bold text-orange-700">
+                                            {selectedCourse.inscripciones?.filter(e => e.estado_pago === 'habilitado' && e.acceso_activo === false).length || 0}
+                                        </div>
+                                    </div>
+                                    <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                                        <div className="text-xs text-yellow-600 font-medium">Pendientes de Pago</div>
+                                        <div className="text-2xl font-bold text-yellow-700">{selectedCourse.pendientes}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Barra de búsqueda y filtros */}
+                            <div className="px-6 pt-4 pb-2 border-b border-gray-200">
+                                <div className="flex items-center justify-between mb-3">
+                                    {/* Campo de búsqueda */}
+                                    <div className="flex-1 max-w-md">
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={studentSearch}
+                                                onChange={(e) => setStudentSearch(e.target.value)}
+                                                placeholder="Buscar por nombre, usuario o email..."
+                                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-medico-blue focus:border-medico-blue sm:text-sm"
+                                            />
+                                            {studentSearch && (
+                                                <button
+                                                    onClick={() => setStudentSearch('')}
+                                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                                >
+                                                    <svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Filtros y acciones */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <label className="text-sm font-medium text-gray-700">Estado:</label>
+                                        <select
+                                            value={studentFilter}
+                                            onChange={(e) => setStudentFilter(e.target.value)}
+                                            className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:ring-medico-blue focus:border-medico-blue"
+                                        >
+                                            <option value="todos">Todos los habilitados</option>
+                                            <option value="activos">Solo activos</option>
+                                            <option value="inactivos">Solo inactivos</option>
+                                        </select>
+                                        {selectedStudents.length > 0 && (
+                                            <span className="text-sm text-medico-blue font-medium">
+                                                {selectedStudents.length} seleccionado(s)
+                                            </span>
+                                        )}
+                                        {studentSearch && (
+                                            <span className="text-xs text-gray-500">
+                                                ({getFilteredStudents().length} resultado(s))
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center space-x-2">
+                                        {selectedStudents.length > 0 && (
+                                            <>
+                                                <button
+                                                    onClick={handleSuspendAccess}
+                                                    disabled={actionLoading}
+                                                    className="inline-flex items-center px-3 py-1.5 border border-orange-500 text-sm font-medium rounded-md text-orange-700 bg-white hover:bg-orange-50 transition-colors disabled:opacity-50"
+                                                >
+                                                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                    </svg>
+                                                    Desactivar
+                                                </button>
+                                                <button
+                                                    onClick={handleReactivateAccess}
+                                                    disabled={actionLoading}
+                                                    className="inline-flex items-center px-3 py-1.5 border border-green-500 text-sm font-medium rounded-md text-green-700 bg-white hover:bg-green-50 transition-colors disabled:opacity-50"
+                                                >
+                                                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Reactivar
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Lista de estudiantes con scroll */}
+                            <div className="flex-1 overflow-y-auto px-6 py-4">
+                            {getFilteredStudents().length > 0 ? (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50 sticky top-0">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedStudents.length === getFilteredStudents().length && getFilteredStudents().length > 0}
+                                                        onChange={handleSelectAll}
+                                                        className="h-4 w-4 text-medico-blue focus:ring-medico-blue border-gray-300 rounded"
+                                                    />
+                                                </th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Estudiante
+                                                </th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Email
+                                                </th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Teléfono
+                                                </th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Fecha Inscripción
+                                                </th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    Estado Acceso
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {getFilteredStudents().map((enrollment) => (
+                                                <tr key={enrollment.id} className="hover:bg-gray-50">
+                                                    <td className="px-4 py-3">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selectedStudents.includes(enrollment.id)}
+                                                            onChange={() => handleSelectStudent(enrollment.id)}
+                                                            className="h-4 w-4 text-medico-blue focus:ring-medico-blue border-gray-300 rounded"
+                                                        />
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center">
+                                                            <div className="flex-shrink-0 h-8 w-8">
+                                                                <div className="h-8 w-8 rounded-full bg-medico-blue flex items-center justify-center">
+                                                                    <span className="text-white font-medium text-xs">
+                                                                        {enrollment.nombre_completo?.charAt(0)?.toUpperCase() || 'U'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="ml-3">
+                                                                <div className="text-sm font-medium text-gray-900">
+                                                                    {enrollment.nombre_completo}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500">
+                                                                    @{enrollment.nombre_usuario}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="text-sm text-gray-900">{enrollment.email}</div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="text-sm text-gray-900">
+                                                            {enrollment.telefono || '-'}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <div className="text-xs text-gray-500">
+                                                            {formatDate(enrollment.fecha_inscripcion)}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                            enrollment.acceso_activo === true
+                                                                ? 'bg-green-100 text-green-800'
+                                                                : 'bg-orange-100 text-orange-800'
+                                                        }`}>
+                                                            {enrollment.acceso_activo === true ? '✅ Activo' : '🔒 Inactivo'}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                    </svg>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                        {studentFilter === 'activos' ? 'No hay estudiantes activos' :
+                                         studentFilter === 'inactivos' ? 'No hay estudiantes inactivos' :
+                                         'No hay estudiantes habilitados'}
+                                    </h3>
+                                    <p className="text-gray-500">
+                                        {studentFilter === 'todos'
+                                            ? 'Este curso aún no tiene estudiantes con pagos habilitados'
+                                            : 'Prueba cambiando el filtro para ver otros estudiantes'}
+                                    </p>
+                                </div>
+                            )}
+                            </div>
+
+                            {/* Footer fijo */}
+                            <div className="border-t border-gray-200 px-6 py-4 flex justify-end">
+                                <button
+                                    onClick={() => {
+                                        setShowCourseStudentsModal(false)
+                                        setSelectedCourse(null)
+                                    }}
+                                    className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal de confirmación para desactivar/reactivar */}
+                {showConfirmModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+                        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                            <div className="flex items-center mb-4">
+                                <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+                                    confirmAction === 'suspend' ? 'bg-orange-100' : 'bg-green-100'
+                                }`}>
+                                    {confirmAction === 'suspend' ? (
+                                        <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    )}
+                                </div>
+                                <div className="ml-4">
+                                    <h3 className="text-lg font-medium text-gray-900">
+                                        {confirmAction === 'suspend' ? 'Desactivar Accesos' : 'Reactivar Accesos'}
+                                    </h3>
+                                    <p className="text-sm text-gray-500">
+                                        {selectedStudents.length} estudiante(s) seleccionado(s)
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <p className="text-gray-700">
+                                    {confirmAction === 'suspend' ? (
+                                        <>
+                                            ¿Estás seguro de que deseas <strong className="text-orange-600">desactivar</strong> el acceso a{' '}
+                                            <strong>{selectedStudents.length}</strong> estudiante(s)?
+                                            <br /><br />
+                                            Los estudiantes <strong>NO podrán acceder al curso</strong> hasta que sean reactivados.
+                                        </>
+                                    ) : (
+                                        <>
+                                            ¿Estás seguro de que deseas <strong className="text-green-600">reactivar</strong> el acceso a{' '}
+                                            <strong>{selectedStudents.length}</strong> estudiante(s)?
+                                            <br /><br />
+                                            Los estudiantes <strong>recuperarán el acceso completo al curso</strong>.
+                                        </>
+                                    )}
+                                </p>
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={() => {
+                                        setShowConfirmModal(false)
+                                        setConfirmAction(null)
+                                    }}
+                                    disabled={actionLoading}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={executeConfirmedAction}
+                                    disabled={actionLoading}
+                                    className={`px-4 py-2 rounded-lg text-white transition-colors disabled:opacity-50 flex items-center ${
+                                        confirmAction === 'suspend'
+                                            ? 'bg-orange-600 hover:bg-orange-700'
+                                            : 'bg-green-600 hover:bg-green-700'
+                                    }`}
+                                >
+                                    {actionLoading && (
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                    )}
+                                    {actionLoading ? 'Procesando...' : confirmAction === 'suspend' ? 'Desactivar' : 'Reactivar'}
                                 </button>
                             </div>
                         </div>

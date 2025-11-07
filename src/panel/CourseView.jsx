@@ -1383,13 +1383,16 @@ const CourseView = () => {
             if (accessResult.success) {
                 const accessData = accessResult.data
 
+                // ✅ ACTUALIZADO: Usar tieneAcceso que considera acceso_activo
+                const tieneAccesoReal = accessData.tieneAcceso || curso.es_gratuito
+
                 setEnrollmentStatus({
                     isEnrolled: accessData.inscrito || false,
-                    accessStatus: accessData.estado_pago || 'denied',
-                    needsPayment: !curso.es_gratuito && accessData.estado_pago !== 'habilitado'
+                    accessStatus: tieneAccesoReal ? 'habilitado' : (accessData.estadoPago || 'denied'),
+                    needsPayment: !curso.es_gratuito && !tieneAccesoReal
                 })
 
-                if (accessData.estado_pago === 'habilitado' || curso.es_gratuito) {
+                if (tieneAccesoReal) {
                     await loadProgressData()
                 }
             } else {

@@ -159,7 +159,7 @@ const Footer = () => {
                 © {currentYear} Mediconsa. Todos los derechos reservados.
             </p>
             <p className="text-medico-gray text-sm">
-                Desarrollado por{' '}
+                Plataforma educativa desarrollada por{' '}
                 <a
                 href="https://torisoftt.com"
                 target="_blank"

@@ -853,13 +853,6 @@ const CoursesPage = () => {
                                             ))}
                                         </div>
 
-                                        {/* Precio */}
-                                        <div className="text-center mb-6">
-                                            <div className="text-3xl font-bold text-gray-900">
-                                                {formatPrice(curso.precio)}
-                                            </div>
-                                        </div>
-
                                         {/* CTAs */}
                                         <div className="flex flex-col sm:flex-row gap-3">
                                             <button
@@ -1020,7 +1013,7 @@ const CoursesPage = () => {
                                         </h3>
 
                                         {/* Descripción */}
-                                        <p className="text-sm text-medico-gray mb-4 line-clamp-3 min-h-[4rem]">
+                                        <p className="text-sm text-medico-gray mb-4 line-clamp-6 min-h-[4rem]">
                                             {curso.descripcion || 'Curso de preparación médica completa'}
                                         </p>
 
@@ -1104,87 +1097,168 @@ const CoursesPage = () => {
                     </div>
                 </div>
 
-                {/* Testimonios Section */}
-                <div className="py-20 bg-white">
+                {/* Testimonios Section - Mejorado */}
+                <div className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
-                            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                            <div className="inline-block bg-medico-blue/10 px-4 py-2 rounded-full mb-4">
+                                <span className="text-medico-blue font-semibold">⭐ Testimonios</span>
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                                 Lo que dicen nuestros <span className="text-medico-blue">estudiantes</span>
                             </h2>
-                            <p className="text-xl text-gray-600">
-                                Resultados reales de estudiantes que lograron sus objetivos
+                            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                                Historias reales de éxito de profesionales que transformaron su carrera con nosotros y lograron sus objetivos
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="bg-gray-50 rounded-xl p-8 text-center">
-                                <div className="flex justify-center mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {/* Testimonio 1 */}
+                            <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-medico-blue">
+                                <div className="flex justify-center mb-6">
                                     {[...Array(5)].map((_, i) => (
-                                        <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg key={i} className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                         </svg>
                                     ))}
                                 </div>
-                                <p className="text-gray-700 mb-6 italic">
-                                    "Gracias al curso de CACES logré aprobar en mi primer intento. Los simulacros fueron clave para mi preparación."
+                                <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                                    "Gracias al curso de CACES logré <strong className="text-medico-blue">aprobar en mi primer intento</strong>. Los simulacros fueron clave."
                                 </p>
-                                <div className="flex items-center justify-center">
+                                <div className="flex items-center">
                                     <img
-                                        src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=60&h=60&fit=crop&crop=face"
+                                        src="https://randomuser.me/api/portraits/women/65.jpg"
                                         alt="Maria Rodriguez"
-                                        className="w-12 h-12 rounded-full mr-4"
+                                        className="w-14 h-14 rounded-full mr-4 border-2 border-medico-blue"
                                     />
                                     <div>
-                                        <div className="font-semibold text-gray-900">María Rodríguez</div>
+                                        <div className="font-bold text-gray-900">María Rodríguez</div>
                                         <div className="text-sm text-gray-600">Médica General</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 rounded-xl p-8 text-center">
-                                <div className="flex justify-center mb-4">
+                            {/* Testimonio 2 */}
+                            <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-green-500">
+                                <div className="flex justify-center mb-6">
                                     {[...Array(5)].map((_, i) => (
-                                        <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg key={i} className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                         </svg>
                                     ))}
                                 </div>
-                                <p className="text-gray-700 mb-6 italic">
-                                    "El curso PRE-RURAL me preparó perfectamente para el año rural. Excelente material y soporte."
+                                <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                                    "El curso PRE-RURAL me preparó <strong className="text-green-600">perfectamente para el año rural</strong>. Excelente material y soporte."
                                 </p>
-                                <div className="flex items-center justify-center">
+                                <div className="flex items-center">
                                     <img
-                                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop&crop=face"
+                                        src="https://randomuser.me/api/portraits/men/32.jpg"
                                         alt="Carlos Mendez"
-                                        className="w-12 h-12 rounded-full mr-4"
+                                        className="w-14 h-14 rounded-full mr-4 border-2 border-green-500"
                                     />
                                     <div>
-                                        <div className="font-semibold text-gray-900">Carlos Méndez</div>
+                                        <div className="font-bold text-gray-900">Carlos Méndez</div>
                                         <div className="text-sm text-gray-600">Médico Rural</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 rounded-xl p-8 text-center">
-                                <div className="flex justify-center mb-4">
+                            {/* Testimonio 3 */}
+                            <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-purple-500">
+                                <div className="flex justify-center mb-6">
                                     {[...Array(5)].map((_, i) => (
-                                        <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg key={i} className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                         </svg>
                                     ))}
                                 </div>
-                                <p className="text-gray-700 mb-6 italic">
-                                    "Las clases en vivo y el seguimiento personalizado hicieron la diferencia en mi preparación."
+                                <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                                    "Las clases en vivo y el <strong className="text-purple-600">seguimiento personalizado</strong> hicieron la diferencia. ¡Increíble!"
                                 </p>
-                                <div className="flex items-center justify-center">
+                                <div className="flex items-center">
                                     <img
-                                        src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face"
+                                        src="https://randomuser.me/api/portraits/women/44.jpg"
                                         alt="Ana Lopez"
-                                        className="w-12 h-12 rounded-full mr-4"
+                                        className="w-14 h-14 rounded-full mr-4 border-2 border-purple-500"
                                     />
                                     <div>
-                                        <div className="font-semibold text-gray-900">Ana López</div>
-                                        <div className="text-sm text-gray-600">Enfermera</div>
+                                        <div className="font-bold text-gray-900">Ana López</div>
+                                        <div className="text-sm text-gray-600">Licenciada en Enfermería</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Testimonio 4 - NUEVO */}
+                            <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-yellow-500">
+                                <div className="flex justify-center mb-6">
+                                    {[...Array(5)].map((_, i) => (
+                                        <svg key={i} className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    ))}
+                                </div>
+                                <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                                    "Aprobé el ENARM gracias a los <strong className="text-yellow-600">simulacros ultra realistas</strong>. La inversión valió cada centavo."
+                                </p>
+                                <div className="flex items-center">
+                                    <img
+                                        src="https://randomuser.me/api/portraits/men/75.jpg"
+                                        alt="Diego Torres"
+                                        className="w-14 h-14 rounded-full mr-4 border-2 border-yellow-500"
+                                    />
+                                    <div>
+                                        <div className="font-bold text-gray-900">Diego Torres</div>
+                                        <div className="text-sm text-gray-600">Residente de Medicina Interna</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Testimonio 5 - NUEVO */}
+                            <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-pink-500">
+                                <div className="flex justify-center mb-6">
+                                    {[...Array(5)].map((_, i) => (
+                                        <svg key={i} className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    ))}
+                                </div>
+                                <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                                    "La <strong className="text-pink-600">plataforma es excelente</strong> y los profesores siempre disponibles. 100% recomendado."
+                                </p>
+                                <div className="flex items-center">
+                                    <img
+                                        src="https://randomuser.me/api/portraits/women/68.jpg"
+                                        alt="Sofia Ramirez"
+                                        className="w-14 h-14 rounded-full mr-4 border-2 border-pink-500"
+                                    />
+                                    <div>
+                                        <div className="font-bold text-gray-900">Sofía Ramírez</div>
+                                        <div className="text-sm text-gray-600">Médica General</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Testimonio 6 - NUEVO */}
+                            <div className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-t-4 border-orange-500">
+                                <div className="flex justify-center mb-6">
+                                    {[...Array(5)].map((_, i) => (
+                                        <svg key={i} className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                        </svg>
+                                    ))}
+                                </div>
+                                <p className="text-gray-700 mb-6 text-lg leading-relaxed">
+                                    "Obtuve mi <strong className="text-orange-600">plaza como especialista</strong> gracias a la preparación integral. ¡Mil gracias Mediconsa!"
+                                </p>
+                                <div className="flex items-center">
+                                    <img
+                                        src="https://randomuser.me/api/portraits/men/46.jpg"
+                                        alt="Luis Herrera"
+                                        className="w-14 h-14 rounded-full mr-4 border-2 border-orange-500"
+                                    />
+                                    <div>
+                                        <div className="font-bold text-gray-900">Luis Herrera</div>
+                                        <div className="text-sm text-gray-600">Especialista en Pediatría</div>
                                     </div>
                                 </div>
                             </div>
