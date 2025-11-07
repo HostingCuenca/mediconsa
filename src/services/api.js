@@ -115,11 +115,18 @@ class ApiService {
         })
     }
 
-    async delete(endpoint, requireAuth = true) {
-        return await this.createRequest(endpoint, {
+    async delete(endpoint, data = null, requireAuth = true) {
+        const options = {
             method: 'DELETE',
             headers: this.getHeaders(requireAuth)
-        })
+        }
+
+        // Si se proporciona data, agregarlo al body
+        if (data !== null && data !== undefined) {
+            options.body = JSON.stringify(data)
+        }
+
+        return await this.createRequest(endpoint, options)
     }
 
     // =============================================

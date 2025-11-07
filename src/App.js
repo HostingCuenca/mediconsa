@@ -36,6 +36,7 @@ import AdminPayments from './adminpanel/Payments'
 import AdminSimulacros from './adminpanel/Simulacros'
 import AdminReports from './adminpanel/Reports'
 import AdminApiDocs from './adminpanel/ApiDocs'
+import SimulacrosMantenimiento from './adminpanel/SimulacrosMantenimiento'
 
 import CourseManager from './adminpanel/CourseManager'
 import QuestionManager from './adminpanel/QuestionManager'
@@ -119,6 +120,7 @@ function App() {
                     <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
                     <Route path="/admin/usuarios" element={<ProtectedRoute role="admin"><AdminUsers /></ProtectedRoute>} />
                     <Route path="/admin/pagos" element={<ProtectedRoute role="admin"><AdminPayments /></ProtectedRoute>} />
+                    <Route path="/admin/mantenimiento" element={<ProtectedRoute role="admin"><SimulacrosMantenimiento /></ProtectedRoute>} />
                     <Route path="/admin/reportes" element={<ProtectedRoute role="admin"><AdminReports /></ProtectedRoute>} />
                     <Route path="/admin/api-docs" element={<ProtectedRoute role="admin"><AdminApiDocs /></ProtectedRoute>} />
 
