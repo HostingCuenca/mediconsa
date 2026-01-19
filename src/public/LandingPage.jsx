@@ -1,7 +1,7 @@
 // src/pages/LandingPage.jsx
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Stethoscope, Syringe, Pill, Leaf } from 'lucide-react'
+import { Stethoscope, Syringe, Pill, Leaf, Users, Award, Star, ChevronDown, Heart, Activity, Brain } from 'lucide-react'
 import Layout from '../utils/Layout'
 
 // Componente para el efecto de máquina de escribir
@@ -49,84 +49,157 @@ const TypewriterEffect = () => {
     );
 };
 
+// Componente para íconos flotantes decorativos
+const FloatingIcon = ({ Icon, className, delay = 0 }) => (
+    <div
+        className={`absolute opacity-20 text-white animate-pulse ${className}`}
+        style={{ animationDelay: `${delay}s`, animationDuration: '3s' }}
+    >
+        <Icon className="w-8 h-8 md:w-12 md:h-12" />
+    </div>
+);
+
 const LandingPage = () => {
     return (
         <Layout>
             {/* Hero Section */}
-            <section className="relative bg-gradient-to-br from-blue-600 via-blue-800 to-gray-900 min-h-screen flex items-center">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&h=800')] bg-cover bg-center opacity-20"></div>
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-blue-800/90 to-gray-900/90"></div>
+            <section className="relative bg-gradient-to-br from-blue-700 via-blue-900 to-slate-900 min-h-screen flex items-center overflow-hidden">
+                {/* Background decorativo con formas geométricas */}
+                <div className="absolute inset-0">
+                    {/* Gradiente principal */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-blue-800/95 to-slate-900"></div>
 
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    {/* Círculos decorativos difuminados */}
+                    <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-400/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-400/5 rounded-full blur-3xl"></div>
+
+                    {/* Patrón de grid sutil */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px]"></div>
+                </div>
+
+                {/* Íconos flotantes decorativos */}
+                <FloatingIcon Icon={Stethoscope} className="top-[15%] left-[8%]" delay={0} />
+                <FloatingIcon Icon={Heart} className="top-[25%] right-[12%]" delay={0.5} />
+                <FloatingIcon Icon={Activity} className="bottom-[30%] left-[5%]" delay={1} />
+                <FloatingIcon Icon={Brain} className="bottom-[20%] right-[8%]" delay={1.5} />
+                <FloatingIcon Icon={Syringe} className="top-[60%] left-[15%]" delay={2} />
+                <FloatingIcon Icon={Pill} className="top-[40%] right-[5%]" delay={2.5} />
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
 
                         {/* Content */}
-                        <div className="text-white">
-                            <div className="mb-6">
-                                <span className="inline-block bg-black/30 text-yellow-300 px-6 py-3 rounded-full text-lg font-medium backdrop-blur-sm border border-yellow-300/30">
+                        <div className="text-white order-2 lg:order-1">
+                            {/* Badge superior */}
+                            <div className="mb-6 inline-block">
+                                <span className="inline-flex items-center gap-2 bg-black/30 text-yellow-300 px-6 py-3 rounded-full text-lg font-medium backdrop-blur-sm border border-yellow-300/30">
                                     🏥 Sistema de Entrenamiento de Alto Rendimiento
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl md:text-4xl font-heading leading-tight mb-6">
+                            {/* Título principal */}
+                            <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading leading-tight mb-6">
                                 Domina tu examen del
-                                <span className="block text-yellow-300 text-4xl md:text-6xl">CACES de</span>
-                                <span className="block text-yellow-300 text-4xl md:text-6xl"><TypewriterEffect /></span>
+                                <span className="block text-yellow-300 text-4xl md:text-5xl lg:text-6xl">CACES de</span>
+                                <span className="block text-yellow-300 text-4xl md:text-5xl lg:text-6xl"><TypewriterEffect /></span>
                                 <span className="block text-white">con Mediconsa</span>
                             </h1>
 
+                            {/* Descripción */}
                             <p className="text-xl text-blue-100 mb-8 leading-relaxed">
                                 Plataforma moderna con simulacros oficiales, contenido actualizado y entrenamiento
                                 personalizado que garantiza resultados reales. Diseñado para que apruebes el EHEP
                                 y accedas con seguridad al Año Rural.
                             </p>
 
+                            {/* CTAs mejorados */}
                             <div className="flex flex-col sm:flex-row gap-4 mb-8">
                                 <Link
                                     to="/registro"
-                                    className="bg-yellow-400 text-black px-8 py-4 rounded-lg font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 text-center transform hover:scale-105"
+                                    className="group relative bg-gradient-to-r from-yellow-400 to-amber-500 text-black px-8 py-4 rounded-xl font-bold text-lg shadow-lg shadow-yellow-400/30 hover:shadow-yellow-400/50 transition-all duration-300 text-center transform hover:scale-[1.02] hover:-translate-y-0.5 overflow-hidden"
                                 >
-                                    Comenzar Gratis
+                                    <span className="relative z-10 flex items-center justify-center gap-2">
+                                        Comenzar Gratis
+                                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                        </svg>
+                                    </span>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-yellow-300 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 </Link>
                                 <Link
                                     to="/cursos"
-                                    className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300 text-center"
+                                    className="group border-2 border-white/30 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/10 hover:border-white/50 transition-all duration-300 text-center backdrop-blur-sm"
                                 >
-                                    Ver Cursos
+                                    <span className="flex items-center justify-center gap-2">
+                                        Ver Cursos
+                                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </span>
                                 </Link>
                             </div>
 
-                            {/* Stats */}
-                            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-white/20">
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-yellow-300">500+</div>
-                                    <div className="text-sm text-blue-100">Estudiantes</div>
+                            {/* Stats con íconos */}
+                            <div className="grid grid-cols-3 gap-4 md:gap-6 pt-8 border-t border-white/10">
+                                <div className="text-center md:text-left">
+                                    <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+                                        <Users className="w-5 h-5 text-yellow-400" />
+                                        <span className="text-2xl md:text-3xl font-bold text-white">500+</span>
+                                    </div>
+                                    <div className="text-sm text-blue-200/70">Estudiantes</div>
                                 </div>
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-yellow-300">99%</div>
-                                    <div className="text-sm text-blue-100">Aprobación</div>
+                                <div className="text-center md:text-left">
+                                    <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+                                        <Award className="w-5 h-5 text-yellow-400" />
+                                        <span className="text-2xl md:text-3xl font-bold text-white">99%</span>
+                                    </div>
+                                    <div className="text-sm text-blue-200/70">Aprobación</div>
                                 </div>
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold text-yellow-300">4.9★</div>
-                                    <div className="text-sm text-blue-100">Valoración</div>
+                                <div className="text-center md:text-left">
+                                    <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+                                        <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                                        <span className="text-2xl md:text-3xl font-bold text-white">4.9</span>
+                                    </div>
+                                    <div className="text-sm text-blue-200/70">Valoración</div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Hero Image */}
-                        <div className="relative">
-                            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
-                                <img
-                                    src="https://i.ibb.co/bgc2q1Lv/8df9677f-f7e5-4afb-ad8c-6ba998a5661b.png"
-                                    alt="Estudiantes de medicina preparándose para CACES"
-                                    className="rounded-xl w-full h-auto shadow-2xl"
-                                />
-                                <div className="absolute -top-4 -right-4 bg-yellow-400 text-black px-4 py-2 rounded-lg font-bold shadow-lg">
-                                    ¡Nuevo 2025!
+                        {/* Hero Visual - Diseño moderno */}
+                        <div className="relative order-1 lg:order-2">
+                            {/* Contenedor principal con efecto glassmorphism */}
+                            <div className="relative">
+                                {/* Glow detrás de la imagen */}
+                                <div className="absolute -inset-4 bg-gradient-to-r from-yellow-400/20 via-blue-500/20 to-cyan-400/20 rounded-3xl blur-2xl"></div>
+
+                                {/* Card principal */}
+                                <div className="relative bg-white/5 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/10 shadow-2xl">
+                                    <img
+                                        src="https://i.ibb.co/bgc2q1Lv/8df9677f-f7e5-4afb-ad8c-6ba998a5661b.png"
+                                        alt="Estudiantes de medicina preparándose para CACES"
+                                        className="rounded-xl w-full h-auto shadow-xl"
+                                    />
+
+                                    {/* Badge flotante */}
+                                    <div className="absolute -top-3 -right-3 md:-top-4 md:-right-4">
+                                        <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-black px-4 py-2 md:px-5 md:py-2.5 rounded-xl font-bold text-sm md:text-base shadow-lg shadow-yellow-400/30">
+                                            ¡Empieza el 2026!
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* Elementos decorativos alrededor */}
+                                <div className="absolute -top-8 -left-8 w-16 h-16 border-2 border-yellow-400/30 rounded-full"></div>
+                                <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-yellow-400/10 rounded-full"></div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Scroll indicator */}
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center text-white/50 animate-bounce">
+                        <span className="text-xs mb-2">Explorar</span>
+                        <ChevronDown className="w-5 h-5" />
                     </div>
                 </div>
             </section>
@@ -155,7 +228,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">EHEP CACES MEDICINA</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Examen de Medicina del CACES. Septiembre 2025 (curso 4 meses).
+                                Preparación completa para el Examen de Medicina del CACES. Septiembre 2026 (curso 4 meses).
                             </p>
                             <div className="text-blue-600 text-sm font-semibold">+3,500 preguntas</div>
                         </Link>
@@ -170,7 +243,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">EHEP CACES ENFERMERÍA</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Examen de Enfermería del CACES. Septiembre 2025 (curso 4 meses).
+                                Preparación completa para el Examen de Enfermería del CACES. Septiembre 2026 (curso 4 meses).
                             </p>
                             <div className="text-green-600 text-sm font-semibold">+3,000 preguntas</div>
                         </Link>
