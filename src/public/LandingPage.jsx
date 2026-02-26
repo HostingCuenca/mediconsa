@@ -2,27 +2,28 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Stethoscope, Syringe, Pill, Leaf, Users, Award, Star, ArrowRight, ChevronLeft, ChevronRight, ClipboardCheck, TrendingUp, MessageCircle } from 'lucide-react'
+import { Stethoscope, Syringe, Pill, Leaf, Star, ArrowRight, ChevronLeft, ChevronRight, ClipboardCheck, TrendingUp, MessageCircle } from 'lucide-react'
 import Layout from '../utils/Layout'
 import herodoctorsImg from './herodoctors.png'
 
 // ─── Typewriter ───────────────────────────────────────────────────────────────
+const TYPEWRITER_WORDS = ['Medicina', 'Enfermería', 'Odontología']
+
 const TypewriterEffect = () => {
-    const words = ['Medicina', 'Enfermería', 'Odontología']
     const [currentWordIndex, setCurrentWordIndex] = useState(0)
     const [currentText, setCurrentText] = useState('')
     const [isDeleting, setIsDeleting] = useState(false)
     const [isPaused, setIsPaused] = useState(false)
 
     useEffect(() => {
-        const currentWord = words[currentWordIndex]
+        const currentWord = TYPEWRITER_WORDS[currentWordIndex]
         const timeout = setTimeout(() => {
             if (isPaused) { setIsPaused(false); setIsDeleting(true); return }
             if (isDeleting) {
                 setCurrentText(currentWord.substring(0, currentText.length - 1))
                 if (currentText === '') {
                     setIsDeleting(false)
-                    setCurrentWordIndex(i => (i + 1) % words.length)
+                    setCurrentWordIndex(i => (i + 1) % TYPEWRITER_WORDS.length)
                 }
             } else {
                 setCurrentText(currentWord.substring(0, currentText.length + 1))

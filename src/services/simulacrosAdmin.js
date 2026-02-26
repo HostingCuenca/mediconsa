@@ -264,4 +264,5 @@ class SimulacrosAdminService {
     }
 }
 
-export default new SimulacrosAdminService()
+const simulacrosAdminService = new SimulacrosAdminService()
+export default simulacrosAdminService

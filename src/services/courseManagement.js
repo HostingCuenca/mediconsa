@@ -1165,4 +1165,5 @@ class CourseManagementService {
     }
 }
 
-export default new CourseManagementService()
+const courseManagementService = new CourseManagementService()
+export default courseManagementService

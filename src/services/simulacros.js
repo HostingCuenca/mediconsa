@@ -564,4 +564,5 @@ class SimulacrosService {
     }
 }
 
-export default new SimulacrosService()
+const simulacrosService = new SimulacrosService()
+export default simulacrosService

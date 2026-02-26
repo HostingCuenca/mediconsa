@@ -137,4 +137,5 @@ class ConnectionTester {
     }
 }
 
-export default new ConnectionTester()
+const connectionTester = new ConnectionTester()
+export default connectionTester

@@ -39,4 +39,5 @@ class ReportsService {
     }
 }
 
-export default new ReportsService()
+const reportsService = new ReportsService()
+export default reportsService

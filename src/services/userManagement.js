@@ -314,4 +314,5 @@ class UserManagementService {
 
 }
 
-export default new UserManagementService()
+const userManagementService = new UserManagementService()
+export default userManagementService

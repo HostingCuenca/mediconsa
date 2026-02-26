@@ -342,4 +342,5 @@ class CoursesService {
 }
 
 // ✅ EXPORT DEFAULT CORRECTOx
-export default new CoursesService()
+const coursesService = new CoursesService()
+export default coursesService

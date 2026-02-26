@@ -616,4 +616,5 @@ class EnrollmentsService {
 }
 
 // ✅ EXPORT DEFAULT CORRECTO
-export default new EnrollmentsService()
+const enrollmentsService = new EnrollmentsService()
+export default enrollmentsService
