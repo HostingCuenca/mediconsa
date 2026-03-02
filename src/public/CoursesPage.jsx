@@ -587,15 +587,15 @@ const CoursesPage = () => {
         {
             id: 'caces-medicina',
             titulo: 'EHEP CACES MEDICINA',
-            descripcion: 'Preparación completa para el Examen de Medicina del CACES. Septiembre 2025 (curso 4 meses).',
+            descripcion: 'Preparación completa para el Examen de Medicina del CACES. Septiembre 2026 (curso 4 meses).',
             precio: 74.99,
-            fecha: 'Septiembre 2025',
-            examen: 'Examen CACES MEDICINA 2025',
+            fecha: 'Septiembre 2026',
+            examen: 'Examen CACES MEDICINA 2026',
             caracteristicas: [
                 'Más de 3,500 preguntas tipo CACES',
                 'Más de 50 simuladores cronometrados y retroalimentados',
                 'Clases en vivo todos los días y grabaciones disponibles 24/7',
-                'Acceso al último examen Medicina EHEP CACES (mayo 2025)',
+                'Acceso al último examen Medicina EHEP CACES (mayo 2026)',
                 'Manuales clínicos actualizados y guías condensadas',
                 'Flashcards inteligentes y presentaciones dinámicas',
                 'Seguimiento de metas personalizado con retroalimentación continua'
@@ -608,15 +608,15 @@ const CoursesPage = () => {
         {
             id: 'caces-enfermeria',
             titulo: 'EHEP CACES ENFERMERÍA',
-            descripcion: 'Preparación completa para el Examen de Enfermería del CACES. Septiembre 2025 (curso 4 meses).',
+            descripcion: 'Preparación completa para el Examen de Enfermería del CACES. Septiembre 2026 (curso 4 meses).',
             precio: 74.99,
-            fecha: 'Septiembre 2025',
-            examen: 'Examen CACES ENFERMERÍA 2025',
+            fecha: 'Septiembre 2026',
+            examen: 'Examen CACES ENFERMERÍA 2026',
             caracteristicas: [
                 'Más de 3,500 preguntas tipo CACES',
                 'Más de 50 simuladores cronometrados y retroalimentados',
                 'Clases en vivo todos los días y grabaciones disponibles 24/7',
-                'Acceso al último examen Enfermería EHEP CACES (mayo 2025)',
+                'Acceso al último examen Enfermería EHEP CACES (mayo 2026)',
                 'Manuales clínicos actualizados y guías condensadas',
                 'Flashcards inteligentes y presentaciones dinámicas',
                 'Seguimiento de metas personalizado con retroalimentación continua'
@@ -628,15 +628,15 @@ const CoursesPage = () => {
         {
             id: 'caces-odontologia',
             titulo: 'EHEP CACES ODONTOLOGÍA',
-            descripcion: 'Preparación completa para el Examen de Odontología del CACES. Septiembre 2025 (curso 4 meses).',
+            descripcion: 'Preparación completa para el Examen de Odontología del CACES. Septiembre 2026 (curso 4 meses).',
             precio: 74.99,
-            fecha: 'Septiembre 2025',
-            examen: 'Examen CACES ODONTOLOGÍA 2025',
+            fecha: 'Septiembre 2026',
+            examen: 'Examen CACES ODONTOLOGÍA 2026',
             caracteristicas: [
                 'Más de 3,500 preguntas tipo CACES',
                 'Más de 50 simuladores cronometrados y retroalimentados',
                 'Clases en vivo todos los días y grabaciones disponibles 24/7',
-                'Acceso al último examen Odontología EHEP CACES (mayo 2025)',
+                'Acceso al último examen Odontología EHEP CACES (mayo 2026)',
                 'Manuales clínicos actualizados y guías condensadas',
                 'Flashcards inteligentes y presentaciones dinámicas',
                 'Seguimiento de metas personalizado con retroalimentación continua'
@@ -648,10 +648,10 @@ const CoursesPage = () => {
         {
             id: 'pre-rural',
             titulo: 'CURSO PRE-RURAL',
-            descripcion: 'Preparación completa para el Ingreso al año rural. Septiembre 2025 (curso 3 meses).',
+            descripcion: 'Preparación completa para el Ingreso al año rural. Septiembre 2026 (curso 3 meses).',
             precio: 22.99,
-            fecha: 'Septiembre 2025',
-            examen: 'Ingreso MEDICINA RURAL 2025',
+            fecha: 'Septiembre 2026',
+            examen: 'Ingreso MEDICINA RURAL 2026',
             caracteristicas: [
                 'Más de 100 documentos clave para la práctica médica',
                 'Clases en vivo y grabaciones disponibles 24/7',

@@ -221,7 +221,7 @@ const LandingPage = () => {
                             {/* Stats */}
                             <motion.div variants={fadeUp} className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-100">
                                 <div>
-                                    <div className="text-xl md:text-2xl font-bold text-blue-600">500+</div>
+                                    <div className="text-xl md:text-2xl font-bold text-blue-600">1000+</div>
                                     <div className="text-xs text-gray-400 mt-0.5">Estudiantes</div>
                                 </div>
                                 <div>
@@ -248,7 +248,7 @@ const LandingPage = () => {
                                 style={{
                                     position: 'absolute',
                                     bottom: 0,
-                                    left: '-30%',
+                                    left: '-20%',
                                     height: '90%',
                                     maxHeight: '100%',
                                     width: 'auto',

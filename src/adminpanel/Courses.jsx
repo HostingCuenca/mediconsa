@@ -414,7 +414,7 @@ const AdminCourses = () => {
                                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent ${
                                             formErrors.titulo ? 'border-red-300' : 'border-gray-300'
                                         }`}
-                                        placeholder="Ej: Preparación ENARM 2025"
+                                        placeholder="Ej: Preparación ENARM 2026"
                                     />
                                     {formErrors.titulo && <p className="mt-1 text-sm text-red-600">{formErrors.titulo}</p>}
                                 </div>

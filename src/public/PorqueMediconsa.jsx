@@ -18,7 +18,7 @@ const PorQueMediconsa = () => {
         },
         {
             icon: BookOpen,
-            title: "Contenido Actualizado 2025",
+            title: "Contenido Actualizado 2026",
             description: "Material de estudio completamente actualizado con las últimas normativas y cambios en el examen EHEP-CACES para el período 2025.",
             stats: "+10,000 preguntas actualizadas"
         },

@@ -153,7 +153,7 @@ const LegalPages = () => {
 
                     <div className="mt-6 bg-gray-100 rounded-lg p-6">
                         <p className="text-sm text-gray-600 text-center">
-                            <strong>Última actualización:</strong> Julio 2025 •
+                            <strong>Última actualización:</strong> Marzo 2026 •
                             <strong> Ley aplicable:</strong> República del Ecuador
                         </p>
                     </div>
