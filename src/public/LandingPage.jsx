@@ -343,7 +343,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">EHEP CACES MEDICINA</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Examen de Medicina del CACES. Septiembre 2026 (curso 4 meses).
+                                Preparación completa para el Examen de Medicina del CACES. Mayo 2026 (curso 4 meses).
                             </p>
                             <div className="text-blue-600 text-sm font-semibold">+3,500 preguntas</div>
                         </Link>
@@ -354,7 +354,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">EHEP CACES ENFERMERÍA</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Examen de Enfermería del CACES. Septiembre 2026 (curso 4 meses).
+                                Preparación completa para el Examen de Enfermería del CACES. Mayo 2026 (curso 4 meses).
                             </p>
                             <div className="text-green-600 text-sm font-semibold">+3,000 preguntas</div>
                         </Link>
@@ -365,7 +365,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">EHEP CACES ODONTOLOGÍA</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Examen de Odontología del CACES. Septiembre 2026 (curso 4 meses).
+                                Preparación completa para el Examen de Odontología del CACES. Mayo 2026 (curso 4 meses).
                             </p>
                             <div className="text-yellow-600 text-sm font-semibold">+3,000 preguntas</div>
                         </Link>
@@ -376,7 +376,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">CURSO PRE-RURAL</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Ingreso al año rural. Septiembre 2026 (curso 2 meses).
+                                Preparación completa para el Ingreso al año rural. Mayo 2026 (curso 2 meses).
                             </p>
                             <div className="text-purple-600 text-sm font-semibold">+100 documentos</div>
                         </Link>
