@@ -1,4 +1,4 @@
-// src/panel/Canales.jsx
+
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'

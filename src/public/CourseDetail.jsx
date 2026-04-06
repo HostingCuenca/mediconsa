@@ -376,7 +376,7 @@ const CourseDetail = () => {
 
     const handleWhatsApp = () => {
         const message = `Hola, estoy interesado en el curso "${curso.titulo}". ¿Podrían darme más información?`
-        const whatsappUrl = `https://wa.me/593981833667?text=${encodeURIComponent(message)}`
+        const whatsappUrl = `https://wa.me/593985036066?text=${encodeURIComponent(message)}`
         window.open(whatsappUrl, '_blank')
         setShowModal(false)
     }

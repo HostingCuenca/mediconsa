@@ -336,7 +336,7 @@ const MyCourses = () => {
                     }
                 } else {
                     const whatsappMessage = `Hola, quiero acceso al curso "${enrollmentModal.course.titulo}". Precio: $${enrollmentModal.course.precio}`
-                    const whatsappUrl = `https://wa.me/+593981833667?text=${encodeURIComponent(whatsappMessage)}`
+                    const whatsappUrl = `https://wa.me/+593985036066?text=${encodeURIComponent(whatsappMessage)}`
 
                     if (window.confirm(`Solicitud enviada. ¿Quieres contactar por WhatsApp para completar el pago?`)) {
                         window.open(whatsappUrl, '_blank')
@@ -882,7 +882,7 @@ const MyCourses = () => {
                                                         </>
                                                     ) : (
 <a
-                                                        href={`https://wa.me/+593981833667?text=${encodeURIComponent(`Hola, soy ${perfil?.nombre_usuario} y quiero acceso al curso "${curso.titulo || curso.curso_titulo}". Precio: ${curso.precio}`)}`}
+                                                        href={`https://wa.me/+593985036066?text=${encodeURIComponent(`Hola, soy ${perfil?.nombre_usuario} y quiero acceso al curso "${curso.titulo || curso.curso_titulo}". Precio: ${curso.precio}`)}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium text-center flex items-center justify-center"

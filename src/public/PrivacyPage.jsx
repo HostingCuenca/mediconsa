@@ -169,8 +169,8 @@ const LegalPages = () => {
                         <ContactItem
                             icon={Phone}
                             title="WhatsApp"
-                            content="+593 98 183 3667"
-                            link="https://wa.me/593981833667?text=Hola, necesito información sobre Mediconsa"
+                            content="+593 98 503 6066"
+                            link="https://wa.me/593985036066?text=Hola, necesito información sobre Mediconsa"
                         />
                         <ContactItem
                             icon={Mail}
@@ -192,7 +192,7 @@ const LegalPages = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <InfoCard title="📱 Canales de Comunicación" bgColor="bg-blue-50" borderColor="border-blue-200">
-                            <p><strong>WhatsApp:</strong> +593 98 183 3667 (Canal principal - Respuesta rápida)</p>
+                            <p><strong>WhatsApp:</strong> +593 98 503 6066 (Canal principal - Respuesta rápida)</p>
                             <p><strong>Email:</strong> info@mediconsa.ec (Consultas formales y documentación)</p>
                             <p><strong>Horario:</strong> Lunes a Viernes de 8:00 AM a 8:00 PM</p>
                         </InfoCard>
@@ -211,7 +211,7 @@ const LegalPages = () => {
                             Estamos aquí para ayudarte en tu proceso de preparación académica
                         </p>
 <a
-                        href="https://wa.me/593981833667?text=Hola, tengo una consulta sobre Mediconsa"
+                        href="https://wa.me/593985036066?text=Hola, tengo una consulta sobre Mediconsa"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center bg-yellow-400 text-black px-8 py-4 rounded-lg font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105"

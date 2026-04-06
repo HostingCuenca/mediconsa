@@ -299,7 +299,7 @@ const LandingPage = () => {
                                         <div className="text-xs text-gray-400">Experto Médico</div>
                                     </div>
                                     <a
-                                        href="https://wa.me/593981833667?text=Hola, quiero información sobre los cursos de Mediconsa"
+                                        href="https://wa.me/593985036066?text=Hola, quiero información sobre los cursos de Mediconsa"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="ml-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-semibold transition-colors"
@@ -625,7 +625,7 @@ const LandingPage = () => {
                             Empezar mi Preparación
                         </Link>
                         <a
-                            href="https://wa.me/593981833667?text=Hola, quiero información sobre los cursos de Mediconsa"
+                            href="https://wa.me/593985036066?text=Hola, quiero información sobre los cursos de Mediconsa"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300"

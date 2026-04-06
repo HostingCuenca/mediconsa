@@ -409,7 +409,7 @@ const PorQueMediconsa = () => {
                     Comenzar mi Preparación EHEP-CACES
                 </a>
 <a
-                href="https://wa.me/593981833667?text=Hola, quiero información sobre por qué Mediconsa es la mejor opción para mi EHEP-CACES"
+                href="https://wa.me/593985036066?text=Hola, quiero información sobre por qué Mediconsa es la mejor opción para mi EHEP-CACES"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-blue-600 transition-all duration-300"
