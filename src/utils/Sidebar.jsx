@@ -253,6 +253,39 @@ const Sidebar = () => {
 
             {/* Footer del Sidebar */}
             <div className="p-4 border-t border-gray-100 space-y-3">
+                {/* Branding Torisoftt */}
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 flex flex-col gap-2.5">
+                    <p className="text-xs text-gray-400 tracking-wide">Plataforma desarrollada por</p>
+                    <div className="flex items-center gap-2">
+                        <img
+                            src="/torisoftt.png"
+                            alt="Torisoftt"
+                            className="h-5 w-auto"
+                            style={{ filter: 'brightness(0)' }}
+                        />
+                        <span className="text-sm font-semibold text-gray-700">Torisoftt</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <a
+                            href="https://wa.me/593984264910"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-gray-500 hover:text-gray-800 transition-colors"
+                        >
+                            Contáctanos →
+                        </a>
+                        <span className="text-gray-300 text-xs">·</span>
+                        <a
+                            href="https://torisoftt.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-gray-500 hover:text-gray-800 transition-colors"
+                        >
+                            torisoftt.com
+                        </a>
+                    </div>
+                </div>
+
                 {/* Información del usuario */}
                 {perfil && (
                     <div className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
