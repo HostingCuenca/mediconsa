@@ -658,7 +658,7 @@ const Navbar = () => {
 
     return (
         <nav className={navbarClasses}>
-            <div className={`${isAuthenticated ? 'pl-0' : 'px-4 sm:px-6 lg:px-8'}`}>
+            <div className={`${isAuthenticated ? 'pl-0' : 'max-w-8xl mx-auto px-4 sm:px-6 lg:px-8'}`}>
                 <div className="flex justify-between items-center h-16">
 
                     {/* Logo */}

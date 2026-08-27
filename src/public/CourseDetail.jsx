@@ -93,7 +93,7 @@
 //             <div className="min-h-screen bg-medico-light">
 //                 {/* Hero Section */}
 //                 <div className="bg-white border-b border-gray-200">
-//                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+//                     <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 //                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 //                             <div className="lg:col-span-2">
 //                                 <div className="flex items-center space-x-4 mb-4">
@@ -190,7 +190,7 @@
 //                 </div>
 //
 //                 {/* Content Tabs */}
-//                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+//                 <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 //                     <div className="lg:grid lg:grid-cols-3 lg:gap-8">
 //                         <div className="lg:col-span-2">
 //                             {/* Tab Navigation */}
@@ -531,7 +531,7 @@ const CourseDetail = () => {
             <div className="min-h-screen bg-medico-light">
                 {/* Hero Section */}
                 <div className="bg-white border-b border-gray-200">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-2">
                                 <div className="flex items-center space-x-4 mb-4">
@@ -628,7 +628,7 @@ const CourseDetail = () => {
                 </div>
 
                 {/* Content Tabs */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="lg:grid lg:grid-cols-3 lg:gap-8">
                         <div className="lg:col-span-2">
                             {/* Tab Navigation */}

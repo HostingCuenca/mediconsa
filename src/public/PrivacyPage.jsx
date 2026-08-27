@@ -43,7 +43,7 @@ const LegalPages = () => {
         <Layout>
             {/* Hero Section */}
             <section className="bg-gradient-to-r from-blue-600 to-green-600 py-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <h1 className="text-4xl md:text-5xl font-heading text-white mb-6">
                         Políticas y Contacto
                     </h1>
@@ -55,7 +55,7 @@ const LegalPages = () => {
 
             {/* Política de Privacidad */}
             <section className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                     <SectionTitle icon={Shield}>Política de Privacidad</SectionTitle>
 
                     <div className="mb-8">
@@ -107,7 +107,7 @@ const LegalPages = () => {
 
             {/* Términos y Condiciones */}
             <section className="py-20 bg-gray-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                     <SectionTitle icon={FileText}>Términos y Condiciones</SectionTitle>
 
                     <div className="mb-8">
@@ -162,7 +162,7 @@ const LegalPages = () => {
 
             {/* Contacto */}
             <section className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                     <SectionTitle icon={Phone}>Contacto</SectionTitle>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -225,7 +225,7 @@ const LegalPages = () => {
 
     {/* Soporte Tecnológico */}
     <section className="py-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-gray-100 rounded-lg p-6">
                 <h4 className="font-heading text-gray-800 mb-3 text-center">💻 Soporte Tecnológico</h4>
                 <p className="text-sm text-gray-600 text-center mb-3">

@@ -28,15 +28,15 @@ const CoursesPage = () => {
         {
             id: 'caces-medicina',
             titulo: 'EHEP CACES MEDICINA',
-            descripcion: 'Preparación completa para el Examen de Medicina del CACES. Mayo 2026 (curso 4 meses).',
+            descripcion: 'Preparación completa para el examen EHEP CACES de Medicina.',
             precio: 74.99,
-            fecha: 'Mayo 2026',
-            examen: 'Examen CACES MEDICINA 2026',
+            fecha: 'Próxima convocatoria',
+            examen: 'Examen EHEP CACES MEDICINA',
             caracteristicas: [
                 'Más de 3,500 preguntas tipo CACES',
                 'Más de 50 simuladores cronometrados y retroalimentados',
                 'Clases en vivo todos los días y grabaciones disponibles 24/7',
-                'Acceso al último examen Medicina EHEP CACES (mayo 2026)',
+                'Acceso al último examen Medicina EHEP CACES disponible',
                 'Manuales clínicos actualizados y guías condensadas',
                 'Flashcards inteligentes y presentaciones dinámicas',
                 'Seguimiento de metas personalizado con retroalimentación continua'
@@ -49,15 +49,15 @@ const CoursesPage = () => {
         {
             id: 'caces-enfermeria',
             titulo: 'EHEP CACES ENFERMERÍA',
-            descripcion: 'Preparación completa para el Examen de Enfermería del CACES. Mayo 2026 (curso 4 meses).',
+            descripcion: 'Preparación completa para el examen EHEP CACES de Enfermería.',
             precio: 74.99,
-            fecha: 'Mayo 2026',
-            examen: 'Examen CACES ENFERMERÍA 2026',
+            fecha: 'Próxima convocatoria',
+            examen: 'Examen EHEP CACES ENFERMERÍA',
             caracteristicas: [
                 'Más de 3,500 preguntas tipo CACES',
                 'Más de 50 simuladores cronometrados y retroalimentados',
                 'Clases en vivo todos los días y grabaciones disponibles 24/7',
-                'Acceso al último examen Enfermería EHEP CACES (mayo 2026)',
+                'Acceso al último examen Enfermería EHEP CACES disponible',
                 'Manuales clínicos actualizados y guías condensadas',
                 'Flashcards inteligentes y presentaciones dinámicas',
                 'Seguimiento de metas personalizado con retroalimentación continua'
@@ -69,15 +69,15 @@ const CoursesPage = () => {
         {
             id: 'caces-odontologia',
             titulo: 'EHEP CACES ODONTOLOGÍA',
-            descripcion: 'Preparación completa para el Examen de Odontología del CACES. Mayo 2026 (curso 4 meses).',
+            descripcion: 'Preparación completa para el examen EHEP CACES de Odontología.',
             precio: 74.99,
-            fecha: 'Mayo 2026',
-            examen: 'Examen CACES ODONTOLOGÍA 2026',
+            fecha: 'Próxima convocatoria',
+            examen: 'Examen EHEP CACES ODONTOLOGÍA',
             caracteristicas: [
                 'Más de 3,500 preguntas tipo CACES',
                 'Más de 50 simuladores cronometrados y retroalimentados',
                 'Clases en vivo todos los días y grabaciones disponibles 24/7',
-                'Acceso al último examen Odontología EHEP CACES (mayo 2026)',
+                'Acceso al último examen Odontología EHEP CACES disponible',
                 'Manuales clínicos actualizados y guías condensadas',
                 'Flashcards inteligentes y presentaciones dinámicas',
                 'Seguimiento de metas personalizado con retroalimentación continua'
@@ -89,10 +89,10 @@ const CoursesPage = () => {
         {
             id: 'pre-rural',
             titulo: 'CURSO PRE-RURAL',
-            descripcion: 'Preparación completa para el Ingreso al año rural. Mayo 2026 (curso 3 meses).',
+            descripcion: 'Preparación completa teórica y práctica para el ingreso al año rural.',
             precio: 22.99,
-            fecha: 'Mayo 2026',
-            examen: 'Ingreso MEDICINA RURAL 2026',
+            fecha: 'Próxima convocatoria',
+            examen: 'Ingreso MEDICINA RURAL',
             caracteristicas: [
                 'Más de 100 documentos clave para la práctica médica',
                 'Clases en vivo y grabaciones disponibles 24/7',
@@ -198,7 +198,7 @@ const CoursesPage = () => {
 
                 {/* Hero Section */}
                 <div className="bg-gradient-to-br from-medico-blue via-blue-600 to-blue-800 text-white py-20">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                         <h1 className="text-5xl font-bold mb-6">
                             Prepárate para el <span className="text-yellow-300">Éxito</span>
                         </h1>
@@ -231,7 +231,7 @@ const CoursesPage = () => {
 
                 {/* Cursos Destacados Section */}
                 <div className="py-20 bg-white">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
                             <h2 className="text-4xl font-bold text-gray-900 mb-4">
                                 Cursos <span className="text-medico-blue">Destacados</span>
@@ -347,7 +347,7 @@ const CoursesPage = () => {
 
                 {/* Sección de Cursos Regulares */}
                 <div id="todos-los-cursos" className="py-16 bg-gray-50">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
 
                         {/* Header */}
                         <div className="text-center mb-12">
@@ -496,7 +496,7 @@ const CoursesPage = () => {
                                                             {formatPrice(curso.precio)}
                                                         </div>
                                                         <div className="text-sm text-gray-500 mt-1">
-                                                            Curso completo - 4 meses
+                                                            Acceso completo al curso
                                                         </div>
                                                     </>
                                                 )}
@@ -540,7 +540,7 @@ const CoursesPage = () => {
 
                 {/* Testimonios Section - Mejorado */}
                 <div className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center mb-16">
                             <div className="inline-block bg-medico-blue/10 px-4 py-2 rounded-full mb-4">
                                 <span className="text-medico-blue font-semibold">⭐ Testimonios</span>

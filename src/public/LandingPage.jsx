@@ -4,7 +4,12 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Stethoscope, Syringe, Pill, Leaf, Star, ArrowRight, ChevronLeft, ChevronRight, ClipboardCheck, TrendingUp, MessageCircle } from 'lucide-react'
 import Layout from '../utils/Layout'
-import herodoctorsImg from './herodoctors.png'
+import heroImg from './IMG_6784.PNG'
+import drSantiagoImg from './foto_nueva_doctor.jpeg'
+import logoUSFQ from '../assets/universidades/usfq.png'
+import logoUAM from '../assets/universidades/uam.jpg'
+import logoUIDE from '../assets/universidades/uide.png'
+import logoUTPL from '../assets/universidades/utpl.png'
 
 // ─── Typewriter ───────────────────────────────────────────────────────────────
 const TYPEWRITER_WORDS = ['Medicina', 'Enfermería', 'Odontología']
@@ -161,7 +166,7 @@ const LandingPage = () => {
                 <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-50 rounded-full blur-[120px] opacity-60 -translate-x-1/3 -translate-y-1/3 pointer-events-none" />
                 <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-cyan-50 rounded-full blur-[80px] opacity-50 translate-x-1/4 -translate-y-1/4 pointer-events-none" />
 
-                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 md:pt-14 lg:pt-16 pb-10 md:pb-14">
+                <div className="relative max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 md:pt-14 lg:pt-16 pb-10 md:pb-14">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-end">
 
                         {/* ── Columna izquierda: texto ── */}
@@ -229,7 +234,7 @@ const LandingPage = () => {
                                     <div className="text-xs text-gray-400 mt-0.5">Aprobación</div>
                                 </div>
                                 <div>
-                                    <div className="text-xl md:text-2xl font-bold text-blue-600">4.9 ★</div>
+                                    <div className="text-xl md:text-2xl font-bold text-blue-600">5.0 ★</div>
                                     <div className="text-xs text-gray-400 mt-0.5">Valoración</div>
                                 </div>
                             </motion.div>
@@ -242,31 +247,13 @@ const LandingPage = () => {
                             transition={{ duration: 0.8, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
                             className="relative self-stretch hidden lg:block"
                         >
-                            <img
-                                src={herodoctorsImg}
-                                alt="Médicos Mediconsa"
-                                style={{
-                                    position: 'absolute',
-                                    bottom: 0,
-                                    left: '-20%',
-                                    height: '90%',
-                                    maxHeight: '100%',
-                                    width: 'auto',
-                                    maxWidth: '900px',
-                                    zIndex: 0,
-                                }}
-                            />
-                            {/* Gradiente blanco bottom */}
-                            <div style={{
-                                position: 'absolute',
-                                bottom: 0,
-                                left: '-30%',
-                                width: '900px',
-                                height: '80px',
-                                background: 'linear-gradient(to top, rgba(255,255,255,1) 0%, transparent 100%)',
-                                zIndex: 1,
-                                pointerEvents: 'none',
-                            }} />
+                            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-blue-900/10 ring-1 ring-gray-100 h-full min-h-[440px]">
+                                <img
+                                    src={heroImg}
+                                    alt="Profesionales de la salud preparándose con Mediconsa"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
                             {/* Floating card — rating */}
                             <motion.div
                                 initial={{ opacity: 0, y: -12 }}
@@ -311,14 +298,18 @@ const LandingPage = () => {
                         </motion.div>
 
                         {/* Imagen móvil (solo visible en < lg) */}
-                        <motion.img
-                            src={herodoctorsImg}
-                            alt="Médicos Mediconsa"
+                        <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.7, delay: 0.3 }}
-                            className="block lg:hidden w-full h-auto"
-                        />
+                            className="block lg:hidden rounded-2xl overflow-hidden shadow-xl ring-1 ring-gray-100"
+                        >
+                            <img
+                                src={heroImg}
+                                alt="Profesionales de la salud preparándose con Mediconsa"
+                                className="w-full h-auto object-cover"
+                            />
+                        </motion.div>
 
                     </div>
                 </div>
@@ -326,7 +317,7 @@ const LandingPage = () => {
 
             {/* ── TIPOS DE EXAMEN (original) ────────────────────────────────── */}
             <section className="py-20 bg-blue-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl md:text-4xl font-heading text-blue-600 mb-4">
                             Preparación Especializada para Cada Examen
@@ -343,7 +334,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">EHEP CACES MEDICINA</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Examen de Medicina del CACES. Mayo 2026 (curso 4 meses).
+                                Preparación completa para el examen EHEP CACES de Medicina.
                             </p>
                             <div className="text-blue-600 text-sm font-semibold">+3,500 preguntas</div>
                         </Link>
@@ -354,7 +345,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">EHEP CACES ENFERMERÍA</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Examen de Enfermería del CACES. Mayo 2026 (curso 4 meses).
+                                Preparación completa para el examen EHEP CACES de Enfermería.
                             </p>
                             <div className="text-green-600 text-sm font-semibold">+3,000 preguntas</div>
                         </Link>
@@ -365,7 +356,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">EHEP CACES ODONTOLOGÍA</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Examen de Odontología del CACES. Mayo 2026 (curso 4 meses).
+                                Preparación completa para el examen EHEP CACES de Odontología.
                             </p>
                             <div className="text-yellow-600 text-sm font-semibold">+3,000 preguntas</div>
                         </Link>
@@ -376,7 +367,7 @@ const LandingPage = () => {
                             </div>
                             <h3 className="text-xl font-heading text-blue-600 mb-2">CURSO PRE-RURAL</h3>
                             <p className="text-gray-600 text-sm mb-4">
-                                Preparación completa para el Ingreso al año rural. Mayo 2026 (curso 2 meses).
+                                Preparación completa teórica y práctica para el ingreso al año rural.
                             </p>
                             <div className="text-purple-600 text-sm font-semibold">+100 documentos</div>
                         </Link>
@@ -386,7 +377,7 @@ const LandingPage = () => {
 
             {/* ── DR. SANTIAGO (original) ───────────────────────────────────── */}
             <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl md:text-4xl font-heading text-blue-600 mb-4">
                             Preparación junto al
@@ -398,11 +389,11 @@ const LandingPage = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <div className="text-center lg:text-left">
-                            <div className="relative inline-block">
+                            <div className="relative inline-block w-full max-w-sm md:max-w-[500px]">
                                 <img
-                                    src="/DR SANTIAGO LOPEZ.JPG"
+                                    src={drSantiagoImg}
                                     alt="Dr. Santiago López A."
-                                    className="w-96 h-96 md:w-[450px] md:h-[450px] object-cover rounded-2xl shadow-2xl mx-auto"
+                                    className="w-full aspect-[4/5] object-cover object-top rounded-2xl shadow-2xl"
                                 />
                                 <div className="absolute -bottom-4 -right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg">
                                     <span className="text-base font-bold">Mejor puntuación</span>
@@ -415,11 +406,14 @@ const LandingPage = () => {
                             <div className="bg-white p-6 rounded-xl shadow-lg border border-blue-100">
                                 <h4 className="text-xl font-heading text-blue-600 mb-4">Formación Académica</h4>
                                 <p className="text-gray-700 leading-relaxed mb-4">
-                                    Médico formado en la <strong>Universidad San Francisco de Quito (Ecuador)</strong> y en la
-                                    <strong> Universidad Autónoma de Madrid (España)</strong>.
+                                    Médico por la <strong>Universidad San Francisco de Quito (USFQ)</strong>, con formación
+                                    internacional en la <strong>Universidad Autónoma de Madrid (UAM)</strong>, España.
                                 </p>
                                 <p className="text-gray-700 leading-relaxed mb-4">
-                                    Maestrante en <strong>Gerencia Hospitalaria</strong> por la Universidad Internacional del Ecuador (UIDE)
+                                    Actualmente en formación de posgrado en <strong>Cirugía General</strong> en Río de Janeiro, Brasil.
+                                </p>
+                                <p className="text-gray-700 leading-relaxed mb-4">
+                                    Máster en <strong>Gerencia Hospitalaria</strong> por la Universidad Internacional del Ecuador (UIDE)
                                     y estudiante de <strong>Derecho</strong> en la Universidad Técnica Particular de Loja (UTPL).
                                 </p>
                             </div>
@@ -456,19 +450,19 @@ const LandingPage = () => {
                         <div className="bg-white p-8 rounded-2xl shadow-lg">
                             <div className="flex flex-wrap justify-center items-center gap-12 md:gap-16">
                                 <div className="flex flex-col items-center group">
-                                    <img src="https://www.iberonex.com/wp-content/uploads/2023/09/universidad-san-franfisco-de-quito.png" alt="Universidad San Francisco de Quito" className="h-20 md:h-28 object-contain group-hover:scale-110 transition-all duration-300" />
+                                    <img src={logoUSFQ} alt="Universidad San Francisco de Quito" className="h-20 md:h-28 object-contain group-hover:scale-110 transition-all duration-300" />
                                     <span className="text-sm text-gray-600 mt-3 text-center font-medium">Universidad San Francisco de Quito</span>
                                 </div>
                                 <div className="flex flex-col items-center group">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Logo_UAM.jpg/330px-Logo_UAM.jpg" alt="Universidad Autónoma de Madrid" className="h-20 md:h-28 object-contain group-hover:scale-110 transition-all duration-300" />
+                                    <img src={logoUAM} alt="Universidad Autónoma de Madrid" className="h-20 md:h-28 object-contain group-hover:scale-110 transition-all duration-300" />
                                     <span className="text-sm text-gray-600 mt-3 text-center font-medium">Universidad Autónoma de Madrid</span>
                                 </div>
                                 <div className="flex flex-col items-center group">
-                                    <img src="https://images.credly.com/images/5371ddc2-611e-4071-8480-8d8e2b2e3cdb/large_blob.png" alt="Universidad Internacional del Ecuador" className="h-20 md:h-28 object-contain group-hover:scale-110 transition-all duration-300" />
+                                    <img src={logoUIDE} alt="Universidad Internacional del Ecuador" className="h-20 md:h-28 object-contain group-hover:scale-110 transition-all duration-300" />
                                     <span className="text-sm text-gray-600 mt-3 text-center font-medium">Universidad Internacional del Ecuador</span>
                                 </div>
                                 <div className="flex flex-col items-center group">
-                                    <img src="https://utpl.edu.ec/recursos/img/utpl2.png" alt="Universidad Técnica Particular de Loja" className="h-20 md:h-28 object-contain group-hover:scale-110 transition-all duration-300" />
+                                    <img src={logoUTPL} alt="Universidad Técnica Particular de Loja" className="h-20 md:h-28 object-contain group-hover:scale-110 transition-all duration-300" />
                                     <span className="text-sm text-gray-600 mt-3 text-center font-medium">Universidad Técnica Particular de Loja</span>
                                 </div>
                             </div>
@@ -479,7 +473,7 @@ const LandingPage = () => {
 
             {/* ── CARACTERÍSTICAS ───────────────────────────────────────────── */}
             <section className="py-20 bg-gray-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-14">
                         <span className="inline-block bg-blue-50 text-blue-600 text-xs font-semibold px-4 py-1.5 rounded-full border border-blue-100 mb-4">
                             ¿Por qué Mediconsa?
@@ -540,7 +534,7 @@ const LandingPage = () => {
 
             {/* ── TESTIMONIOS (original) ────────────────────────────────────── */}
             <section className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl md:text-4xl font-heading text-blue-600 mb-4">
                             Los Mejores del País Confían en Nosotros
@@ -558,44 +552,41 @@ const LandingPage = () => {
                     <TestimonialCarousel />
 
                     {/* Estadísticas */}
-                    <div className="mt-16 bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-8 text-white">
+                    <div className="mt-16 bg-blue-50 border border-blue-100 rounded-2xl p-8">
                         <div className="text-center mb-8">
-                            <h3 className="text-2xl md:text-3xl font-heading mb-2">Resultados que Nos Respaldan 📊</h3>
-                            <p className="text-blue-100">La preparación médica, odontológica y de enfermería para el CACES más efectiva del país 🇪🇨</p>
+                            <h3 className="text-2xl md:text-3xl font-heading text-blue-600 mb-2">Resultados que Nos Respaldan 📊</h3>
+                            <p className="text-gray-600">La preparación médica, odontológica y de enfermería para el CACES más efectiva del país 🇪🇨</p>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                             <div>
-                                <div className="text-3xl md:text-4xl font-bold text-yellow-300">99% ✅</div>
-                                <div className="text-sm text-blue-100">Tasa de Aprobación</div>
+                                <div className="text-3xl md:text-4xl font-bold text-blue-600">99% ✅</div>
+                                <div className="text-sm text-gray-500">Tasa de Aprobación</div>
                             </div>
                             <div>
-                                <div className="text-3xl md:text-4xl font-bold text-yellow-300">500+ 🩺</div>
-                                <div className="text-sm text-blue-100">Profesionales Preparados</div>
+                                <div className="text-3xl md:text-4xl font-bold text-blue-600">500+ 🩺</div>
+                                <div className="text-sm text-gray-500">Profesionales Preparados</div>
                             </div>
                             <div>
-                                <div className="text-3xl md:text-4xl font-bold text-yellow-300">94 📈</div>
-                                <div className="text-sm text-blue-100">Puntuación Promedio</div>
+                                <div className="text-3xl md:text-4xl font-bold text-blue-600">94 📈</div>
+                                <div className="text-sm text-gray-500">Puntuación Promedio</div>
                             </div>
                             <div>
-                                <div className="text-3xl md:text-4xl font-bold text-yellow-300">4.9⭐</div>
-                                <div className="text-sm text-blue-100">Valoración Estudiantes</div>
+                                <div className="text-3xl md:text-4xl font-bold text-blue-600">5.0⭐</div>
+                                <div className="text-sm text-gray-500">Valoración Estudiantes</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Mensaje especial */}
-                    <div className="mt-12 bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-6 rounded-lg">
-                        <div className="flex items-center">
-                            <div className="text-2xl mr-3">💬</div>
-                            <div>
-                                <h4 className="text-lg font-semibold text-gray-900 mb-2">Mensaje del Dr. Santiago López</h4>
-                                <p className="text-gray-700 italic">
-                                    "Cada testimonio representa horas de dedicación y noches de estudio compartidas.
-                                    Me llena de orgullo ver cómo nuestros estudiantes no solo aprueban, sino que se convierten
-                                    en los mejores profesionales del país. ¡Sigamos construyendo el futuro de la juventud ecuatoriana juntos! 🩺❤️"
-                                </p>
-                            </div>
-                        </div>
+                    <div className="mt-12 bg-yellow-50 border border-yellow-100 p-6 rounded-lg">
+                        <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                            <span className="mr-2">💬</span>Mensaje del Dr. Santiago López
+                        </h4>
+                        <p className="text-gray-700 italic">
+                            "Cada testimonio representa horas de dedicación y noches de estudio compartidas.
+                            Me llena de orgullo ver cómo nuestros estudiantes no solo aprueban, sino que se convierten
+                            en los mejores profesionales del país. ¡Sigamos construyendo el futuro de la juventud ecuatoriana juntos! 🩺❤️"
+                        </p>
                     </div>
 
                     <div className="mt-12 text-center">

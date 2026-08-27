@@ -18,8 +18,8 @@ const PorQueMediconsa = () => {
         },
         {
             icon: BookOpen,
-            title: "Contenido Actualizado 2026",
-            description: "Material de estudio completamente actualizado con las últimas normativas y cambios en el examen EHEP-CACES para el período 2025.",
+            title: "Contenido Siempre Actualizado",
+            description: "Material de estudio completamente actualizado con las últimas normativas y cambios vigentes en el examen EHEP-CACES.",
             stats: "+10,000 preguntas actualizadas"
         },
         {
@@ -67,16 +67,16 @@ const PorQueMediconsa = () => {
         { number: "99%", label: "Tasa de Aprobación", subtext: "La más alta del país" },
         { number: "500+", label: "Médicos Preparados", subtext: "En todo Ecuador" },
         { number: "95.2", label: "Puntuación Promedio", subtext: "Sobre 100 puntos" },
-        { number: "4.9⭐", label: "Valoración", subtext: "De nuestros estudiantes" },
+        { number: "5.0⭐", label: "Valoración", subtext: "De nuestros estudiantes" },
         { number: "2024", label: "Mejor Puntuación", subtext: "Nacional EHEP-CACES" },
-        { number: "10,000+", label: "Preguntas", subtext: "Actualizadas para 2025" }
+        { number: "10,000+", label: "Preguntas", subtext: "En constante actualización" }
     ]
 
     return (
         <Layout>
             {/* Hero Section - SEO Optimized */}
             <section className="bg-gradient-to-r from-blue-600 to-green-600 py-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
                         <h1 className="text-4xl md:text-6xl font-heading text-white mb-6">
                             ¿Por Qué Mediconsa es la <span className="text-yellow-300">Mejor Opción</span> para tu EHEP-CACES?
@@ -108,7 +108,7 @@ const PorQueMediconsa = () => {
 
     {/* Razones Principales - SEO Keywords */}
     <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
                 <h2 className="text-3xl md:text-4xl font-heading text-blue-600 mb-6">
                     6 Razones Comprobadas por las que Mediconsa es tu Mejor Inversión
@@ -138,14 +138,14 @@ const PorQueMediconsa = () => {
 
     {/* Especialidades por Carrera */}
     <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
                 <h2 className="text-3xl md:text-4xl font-heading text-blue-600 mb-6">
                     Preparación Especializada por Carrera Profesional
                 </h2>
                 <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                     Cada profesión tiene sus particularidades. Por eso desarrollamos contenido específico
-                    para <strong>Medicina, Enfermería y Odontología</strong> con las últimas actualizaciones 2025.
+                    para <strong>Medicina, Enfermería y Odontología</strong> siempre con las últimas actualizaciones.
                 </p>
             </div>
 
@@ -190,7 +190,7 @@ const PorQueMediconsa = () => {
 
     {/* Estadísticas Impresionantes */}
     <section className="py-20 bg-gradient-to-r from-blue-600 to-green-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
                 <h2 className="text-3xl md:text-4xl font-heading text-white mb-6">
                     Resultados que Hablan por Sí Solos
@@ -223,7 +223,7 @@ const PorQueMediconsa = () => {
 
     {/* Metodología Única */}
     <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div>
                     <h2 className="text-3xl md:text-4xl font-heading text-blue-600 mb-6">
@@ -293,7 +293,7 @@ const PorQueMediconsa = () => {
 
     {/* Comparación con Competencia */}
     <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
                 <h2 className="text-3xl md:text-4xl font-heading text-blue-600 mb-6">
                     ¿Por Qué Elegir Mediconsa Sobre la Competencia?
@@ -332,7 +332,7 @@ const PorQueMediconsa = () => {
                             </td>
                         </tr>
                         <tr className="hover:bg-gray-50">
-                            <td className="px-6 py-4 font-medium text-gray-900">Contenido Actualizado 2025</td>
+                            <td className="px-6 py-4 font-medium text-gray-900">Contenido siempre actualizado</td>
                             <td className="px-6 py-4 text-center">
                                 <CheckCircle className="w-6 h-6 text-green-600 mx-auto" />
                             </td>
