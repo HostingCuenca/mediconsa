@@ -3,9 +3,11 @@ import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../utils/AuthContext'
 
-const ProtectedRoute = ({ children, requiredRole = null }) => {
+// Acepta tanto `role` (como se usa en App.js) como `requiredRole` (nombre anterior)
+const ProtectedRoute = ({ children, role = null, requiredRole = null }) => {
     const { user, perfil, loading, isAuthenticated } = useAuth()
     const location = useLocation()
+    const rolRequerido = role || requiredRole
 
     // Mostrar loading mientras verifica autenticación
     if (loading) {
@@ -25,8 +27,9 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
     }
 
     // Verificar rol específico si es requerido
-    if (requiredRole) {
-        const userRole = perfil?.tipo_usuario
+    if (rolRequerido) {
+        // El perfil normalizado usa camelCase (tipoUsuario); se mantiene snake_case por compatibilidad
+        const userRole = perfil?.tipoUsuario || perfil?.tipo_usuario
 
         if (!userRole) {
             return (
@@ -40,7 +43,7 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
         }
 
         // Verificar si tiene el rol requerido
-        if (requiredRole === 'admin' && userRole !== 'admin') {
+        if (rolRequerido === 'admin' && userRole !== 'admin') {
             return (
                 <div className="min-h-screen bg-medico-light flex items-center justify-center">
                     <div className="text-center max-w-md mx-auto p-8">
@@ -57,7 +60,7 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
             )
         }
 
-        if (requiredRole === 'instructor' && !['admin', 'instructor'].includes(userRole)) {
+        if (rolRequerido === 'instructor' && !['admin', 'instructor'].includes(userRole)) {
             return <Navigate to="/dashboard" replace />
         }
     }

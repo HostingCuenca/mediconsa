@@ -160,12 +160,24 @@ export const AuthProvider = ({ children }) => {
         const result = await authService.register(userData)
         // console.log('📦 Resultado completo registro:', result)
 
-        if (result.success) {
-            // console.log('✅ Registro exitoso, actualizando estado')
-            // console.log('👤 Usuario recibido:', result.data?.user)
+        // Solo hay sesión si el backend entregó token (no cuando exige verificar el correo primero)
+        if (result.success && result.data?.token) {
             await updateAuthState()
         }
         return result
+    }
+
+    const loginWithGoogle = async (credential) => {
+        const result = await authService.loginWithGoogle(credential)
+        if (result.success) {
+            await updateAuthState()
+        }
+        return result
+    }
+
+    // Marca el correo como verificado en el estado (tras confirmar el enlace)
+    const markEmailVerified = () => {
+        setPerfil(prev => (prev ? { ...prev, emailVerificado: true } : prev))
     }
 
     const logout = () => {
@@ -192,6 +204,8 @@ export const AuthProvider = ({ children }) => {
         updateAuthState,
         login,
         register,
+        loginWithGoogle,
+        markEmailVerified,
         logout
     }
 

@@ -5,6 +5,7 @@ import React from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import Sidebar from './Sidebar'
+import EmailVerificationBanner from '../components/EmailVerificationBanner'
 import { useAuth } from './AuthContext'
 
 const Layout = ({ children, showSidebar = false }) => {
@@ -24,6 +25,7 @@ const Layout = ({ children, showSidebar = false }) => {
     return (
         <div className="min-h-screen bg-medico-light flex flex-col">
             <Navbar />
+            <EmailVerificationBanner />
 
             <div className="flex flex-1 relative">
                 {showSidebar && (

@@ -6,6 +6,9 @@ import ProtectedRoute from './utils/ProtectedRoute'
 // PÚBLICAS
 import LandingPage from './public/LandingPage'
 import LoginPage from './public/LoginPage'
+import ForgotPasswordPage from './public/ForgotPasswordPage'
+import ResetPasswordPage from './public/ResetPasswordPage'
+import VerifyEmailPage from './public/VerifyEmailPage'
 import CoursesPage from './public/CoursesPage'
 import CourseDetail from './public/CourseDetail'
 import NotFound from './public/NotFound'
@@ -67,6 +70,9 @@ function App() {
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<LoginPage mode="login" />} />
                     <Route path="/registro" element={<LoginPage mode="registro" />} />
+                    <Route path="/recuperar-contrasena" element={<ForgotPasswordPage />} />
+                    <Route path="/restablecer-contrasena" element={<ResetPasswordPage />} />
+                    <Route path="/verificar-correo" element={<VerifyEmailPage />} />
                     <Route path="/cursos" element={<CoursesPage />} />
                     <Route path="/materiales" element={<MaterialesPublic />} />
                     <Route path="/politica-de-privacidad" element={<PrivacyPage />} />

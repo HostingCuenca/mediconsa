@@ -360,8 +360,11 @@
 // src/pages/LoginPage1.jsx - CORREGIDO para redirección por rol
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../utils/AuthContext'
 import Layout from '../utils/Layout'
+import authService from '../services/auth'
+import { GOOGLE_ENABLED } from '../config/google'
 
 const LoginPage = ({ mode = 'login' }) => {
     const [isLogin, setIsLogin] = useState(mode === 'login')
@@ -369,7 +372,12 @@ const LoginPage = ({ mode = 'login' }) => {
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
 
-    const { isAuthenticated, isAdmin, isInstructor, login, register } = useAuth()
+    // Verificación de correo pendiente (cuando el backend exige confirmar antes de entrar)
+    const [unverifiedEmail, setUnverifiedEmail] = useState('')
+    const [resendLoading, setResendLoading] = useState(false)
+    const [resendMessage, setResendMessage] = useState('')
+
+    const { isAuthenticated, isAdmin, isInstructor, login, register, loginWithGoogle } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
 
@@ -514,7 +522,20 @@ const LoginPage = ({ mode = 'login' }) => {
             console.log('Resultado:', result)
 
             if (result.success) {
-                const successMessage = isLogin ? '¡Bienvenido de vuelta!' : '¡Cuenta creada exitosamente!'
+                // Registro con verificación obligatoria: no hay sesión, se pide confirmar el correo
+                if (!isLogin && result.data?.requiresEmailVerification) {
+                    setSuccess(result.message || 'Cuenta creada. Revisa tu correo para confirmar tu cuenta antes de iniciar sesión.')
+                    setUnverifiedEmail(formData.email)
+                    setIsLogin(true)
+                    setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }))
+                    return
+                }
+
+                const successMessage = isLogin
+                    ? '¡Bienvenido de vuelta!'
+                    : (result.data?.verificationSent
+                        ? '¡Cuenta creada! Te enviamos un correo para confirmar tu cuenta.'
+                        : '¡Cuenta creada exitosamente!')
                 setSuccess(successMessage)
 
                 // ✅ REDIRECCIÓN MEJORADA CON DELAY PARA QUE EL CONTEXT SE ACTUALICE
@@ -525,6 +546,9 @@ const LoginPage = ({ mode = 'login' }) => {
                 }, 1500) // Aumentado el delay para asegurar que el context se actualice
             } else {
                 setError(result.error || `Error al ${isLogin ? 'iniciar sesión' : 'crear cuenta'}`)
+                if (result.code === 'EMAIL_NOT_VERIFIED') {
+                    setUnverifiedEmail(formData.email)
+                }
             }
         } catch (error) {
             console.error('Error en autenticación:', error)
@@ -532,6 +556,52 @@ const LoginPage = ({ mode = 'login' }) => {
         } finally {
             setLoading(false)
         }
+    }
+
+    // Reenviar correo de verificación
+    const handleResendVerification = async () => {
+        setResendLoading(true)
+        setResendMessage('')
+        try {
+            const result = await authService.resendVerification(unverifiedEmail)
+            setResendMessage(result.success ? result.message : (result.error || 'No se pudo reenviar el correo'))
+        } finally {
+            setResendLoading(false)
+        }
+    }
+
+    // Login / registro con Google (credential = ID token)
+    const handleGoogleSuccess = async (credentialResponse) => {
+        if (!credentialResponse?.credential) {
+            setError('Google no devolvió una credencial válida')
+            return
+        }
+
+        setLoading(true)
+        setError('')
+        setSuccess('')
+
+        try {
+            const result = await loginWithGoogle(credentialResponse.credential)
+
+            if (result.success) {
+                setSuccess(result.data?.isNewUser ? '¡Cuenta creada con Google!' : '¡Bienvenido de vuelta!')
+                setTimeout(() => {
+                    navigate(determineRedirectPath(), { replace: true })
+                }, 1200)
+            } else {
+                setError(result.error || 'No se pudo iniciar sesión con Google')
+            }
+        } catch (err) {
+            console.error('Error con Google:', err)
+            setError('Error de conexión. Verifica tu internet y que el servidor esté corriendo.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleGoogleError = () => {
+        setError('No se pudo completar el inicio de sesión con Google. Intenta de nuevo.')
     }
 
     return (
@@ -598,6 +668,23 @@ const LoginPage = ({ mode = 'login' }) => {
                         {success && (
                             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                                 <p className="text-green-600 text-sm">{success}</p>
+                            </div>
+                        )}
+
+                        {unverifiedEmail && (
+                            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                                <p>
+                                    Tu correo <strong>{unverifiedEmail}</strong> aún no está confirmado. Revisa tu bandeja de entrada o spam.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={handleResendVerification}
+                                    disabled={resendLoading}
+                                    className="mt-1 font-medium text-medico-blue hover:text-blue-700 disabled:opacity-50"
+                                >
+                                    {resendLoading ? 'Enviando...' : 'Reenviar correo de verificación'}
+                                </button>
+                                {resendMessage && <p className="mt-1 text-yellow-700">{resendMessage}</p>}
                             </div>
                         )}
 
@@ -695,6 +782,16 @@ const LoginPage = ({ mode = 'login' }) => {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                     placeholder={isLogin ? "Tu contraseña" : "Mínimo 6 caracteres"}
                                 />
+                                {isLogin && (
+                                    <div className="mt-2 text-right">
+                                        <Link
+                                            to="/recuperar-contrasena"
+                                            className="text-sm text-medico-blue hover:text-blue-700 font-medium"
+                                        >
+                                            ¿Olvidaste tu contraseña?
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Confirm Password */}
@@ -732,6 +829,31 @@ const LoginPage = ({ mode = 'login' }) => {
                                 )}
                             </button>
                         </form>
+
+                        {/* Google Sign-In */}
+                        {GOOGLE_ENABLED && (
+                            <div className="mt-6">
+                                <div className="relative mb-4">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-gray-200"></div>
+                                    </div>
+                                    <div className="relative flex justify-center text-xs">
+                                        <span className="bg-white px-3 text-medico-gray">o continúa con</span>
+                                    </div>
+                                </div>
+                                <div className="flex justify-center">
+                                    <GoogleLogin
+                                        onSuccess={handleGoogleSuccess}
+                                        onError={handleGoogleError}
+                                        text={isLogin ? 'signin_with' : 'signup_with'}
+                                        locale="es"
+                                        shape="rectangular"
+                                        size="large"
+                                        width="320"
+                                    />
+                                </div>
+                            </div>
+                        )}
 
                         {/* Footer */}
                         <div className="mt-6 text-center">
