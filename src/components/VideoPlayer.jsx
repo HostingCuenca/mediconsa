@@ -1,5 +1,5 @@
 // src/components/VideoPlayer.jsx - VERSIÓN COMPLETA CORREGIDA 100%
-import { Maximize, Minimize } from 'lucide-react'
+import { Maximize, Minimize, RotateCcw, RotateCw } from 'lucide-react'
 import React, { useState, useRef, useEffect } from 'react'
 
 // ========== CARGADOR ÚNICO DE LA YOUTUBE IFRAME API ==========
@@ -420,6 +420,42 @@ const VideoPlayer = ({
         }
     }
 
+    const SALTO_SEG = 10
+    const [saltoAviso, setSaltoAviso] = useState(null)   // { lado: 'atras'|'adelante', n } para el aviso visual
+    const saltoTimeoutRef = useRef(null)
+    const saltar = (segundos) => {
+        const p = playerRef.current
+        if (!p || !playerInitialized) return
+        try {
+            const actual = typeof p.getCurrentTime === 'function' ? p.getCurrentTime() : currentTime
+            const destino = Math.max(0, Math.min(duration || Infinity, actual + segundos))
+            p.seekTo(destino, true)
+            setCurrentTime(destino)
+            setSaltoAviso({ lado: segundos < 0 ? 'atras' : 'adelante', n: Math.abs(segundos) })
+            if (saltoTimeoutRef.current) clearTimeout(saltoTimeoutRef.current)
+            saltoTimeoutRef.current = setTimeout(() => setSaltoAviso(null), 700)
+        } catch { /* noop */ }
+    }
+    // Atajos de teclado (YouTube tiene disablekb: 1, así que los manejamos nosotros): ← → 10 s, J/L 10 s, espacio play/pausa, F pantalla completa
+    useEffect(() => {
+        const onKey = (e) => {
+            if (!playerInitialized) return
+            const t = e.target
+            if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+            // Solo cuando el reproductor está a la vista (o en pantalla completa)
+            const el = wrapperRef.current
+            if (!el) return
+            if (!pantallaCompleta) { const r = el.getBoundingClientRect(); if (r.bottom < 0 || r.top > window.innerHeight) return }
+            if (e.key === 'ArrowLeft' || e.key === 'j' || e.key === 'J') { e.preventDefault(); saltar(-SALTO_SEG) }
+            else if (e.key === 'ArrowRight' || e.key === 'l' || e.key === 'L') { e.preventDefault(); saltar(SALTO_SEG) }
+            else if (e.key === ' ' || e.key === 'k' || e.key === 'K') { e.preventDefault(); togglePlayPause() }
+            else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); togglePantallaCompleta() }
+        }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [playerInitialized, pantallaCompleta, duration])
+
     const seekTo = (percentage) => {
         if (!playerRef.current || !duration || !playerInitialized) {
             console.warn('⚠️ No se puede buscar: player no listo')
@@ -639,10 +675,26 @@ const VideoPlayer = ({
             <div
                 className="absolute inset-0 z-10"
                 onClick={togglePlayPause}
-                onDoubleClick={togglePantallaCompleta}
+                onDoubleClick={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect()
+                    const x = (e.clientX - r.left) / r.width
+                    if (x < 0.3) saltar(-SALTO_SEG)
+                    else if (x > 0.7) saltar(SALTO_SEG)
+                    else togglePantallaCompleta()
+                }}
                 onContextMenu={(e) => e.preventDefault()}
                 style={{ userSelect: 'none', pointerEvents: 'auto' }}
             />
+
+            {/* Aviso "−10 s / +10 s" al saltar */}
+            {saltoAviso && (
+                <div className={`absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none ${saltoAviso.lado === 'atras' ? 'left-[12%]' : 'right-[12%]'}`}>
+                    <div className="flex flex-col items-center text-white bg-black/50 rounded-full w-20 h-20 justify-center">
+                        {saltoAviso.lado === 'atras' ? <RotateCcw className="w-6 h-6" /> : <RotateCw className="w-6 h-6" />}
+                        <span className="text-xs font-semibold mt-1">{saltoAviso.lado === 'atras' ? '−' : '+'}{saltoAviso.n} s</span>
+                    </div>
+                </div>
+            )}
 
             {/* CONTROLES PERSONALIZADOS */}
             <div className={`absolute inset-0 transition-opacity duration-300 ${
@@ -693,7 +745,7 @@ const VideoPlayer = ({
 
                     {/* Controles */}
                     <div className="flex items-center justify-between text-white">
-                        <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-0.5 sm:space-x-2">
                             {/* Play/Pause */}
                             <button
                                 onClick={togglePlayPause}
@@ -709,6 +761,14 @@ const VideoPlayer = ({
                                         <path d="M8 5v14l11-7z"/>
                                     </svg>
                                 )}
+                            </button>
+
+                            {/* Retroceder / adelantar 10 s */}
+                            <button onClick={() => saltar(-SALTO_SEG)} disabled={!playerInitialized} title="Retroceder 10 s (←)" className="p-2 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50 relative">
+                                <RotateCcw className="w-5 h-5" /><span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold pt-0.5">10</span>
+                            </button>
+                            <button onClick={() => saltar(SALTO_SEG)} disabled={!playerInitialized} title="Adelantar 10 s (→)" className="p-2 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50 relative">
+                                <RotateCw className="w-5 h-5" /><span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold pt-0.5">10</span>
                             </button>
 
                             {/* Volumen */}
@@ -735,7 +795,7 @@ const VideoPlayer = ({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                             {/* Subtítulos */}
                             <button
                                 onClick={toggleSubtitulos}
@@ -767,7 +827,7 @@ const VideoPlayer = ({
                             </div>
 
                             {/* Progreso */}
-                            <div className="bg-red-600/20 text-red-400 px-3 py-1 rounded-full text-sm">
+                            <div className="hidden sm:block bg-red-600/20 text-red-400 px-3 py-1 rounded-full text-sm">
                                 {Math.floor(getProgressPercentage())}%
                             </div>
 
