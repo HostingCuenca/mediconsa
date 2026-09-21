@@ -51,41 +51,6 @@ class SimulacrosService {
     }
 
     // ==================== ENVÍO DE RESPUESTAS ====================
-    // async submitSimulacro(simulacroId, submissionData) {
-    //     try {
-    //         console.log('Enviando respuestas del simulacro:', simulacroId)
-    //         const response = await apiService.post(`/simulacros/${simulacroId}/submit`, {
-    //             respuestas: submissionData.respuestas,
-    //             tiempoEmpleadoMinutos: submissionData.tiempoEmpleadoMinutos
-    //         })
-    //
-    //         if (response.success && response.data) {
-    //             return {
-    //                 success: true,
-    //                 data: {
-    //                     intentoId: response.data.intentoId,
-    //                     puntaje: response.data.puntaje,
-    //                     respuestasCorrectas: response.data.respuestasCorrectas,
-    //                     totalPreguntas: response.data.totalPreguntas,
-    //                     tiempoEmpleado: response.data.tiempoEmpleado,
-    //                     // 🆕 CAMPOS NUEVOS DEL BACKEND REFACTORIZADO
-    //                     modoEvaluacion: response.data.modoEvaluacion,
-    //                     modoEstudio: response.data.modoEstudio,
-    //                     detalle: response.data.detalle || [],
-    //                     resumen: response.data.resumen || '',
-    //                     estadisticas: response.data.estadisticas || {}
-    //                 }
-    //             }
-    //         }
-    //
-    //         return { success: false, error: 'No se pudo procesar el simulacro' }
-    //     } catch (error) {
-    //         console.error('Error enviando simulacro:', error)
-    //         return { success: false, error: error.message }
-    //     }
-    // }
-
-
     async submitSimulacro(simulacroId, submissionData, options = {}) {
         try {
             console.log('📤 Enviando respuestas del simulacro:', simulacroId)
@@ -98,9 +63,8 @@ class SimulacrosService {
                     respuestas: submissionData.respuestas,
                     tiempoEmpleadoMinutos: submissionData.tiempoEmpleadoMinutos
                 },
-                {
-                    timeout: options.timeout || 300000 // 5 minutos por defecto
-                }
+                true,
+                { timeout: options.timeout || 300000 } // 5 minutos: el envío de 100+ preguntas puede tardar
             )
 
             if (response.success && response.data) {
@@ -139,6 +103,14 @@ class SimulacrosService {
 
 
     // ==================== INTENTOS DEL USUARIO ====================
+    // Repaso de mis errores (preguntas falladas en simulacros): cuántas quedan pendientes
+    async getMisErrores() {
+        try {
+            const r = await apiService.get('/simulacros/errores/resumen')
+            return r.success ? { success: true, data: r.data } : { success: false, error: r.message }
+        } catch (e) { return { success: false, error: e.message } }
+    }
+
     async getMyAttempts(filters = {}) {
         try {
             console.log('Obteniendo mis intentos:', filters)
@@ -385,7 +357,7 @@ class SimulacrosService {
         if (modo === 'examen_real') {
             config.shouldShow = true
             config.level = 'critical'
-            config.title = '🚨 FINALIZAR EXAMEN OFICIAL'
+            config.title = 'Finalizar examen oficial'
             config.message = `Esta acción es DEFINITIVA e IRREVERSIBLE.\n\nResumen:\n• Preguntas respondidas: ${respuestasCount}/${preguntasCount}\n• Modo: Examen Oficial\n• No podrás repetir este examen`
             config.confirmText = 'FINALIZAR EXAMEN'
         }
@@ -393,7 +365,7 @@ class SimulacrosService {
         else if (modo === 'evaluacion') {
             config.shouldShow = true
             config.level = 'warning'
-            config.title = '⚠️ Finalizar Evaluación'
+            config.title = 'Finalizar evaluación'
             config.message = `Una vez enviado no podrás modificar tus respuestas.\n\nResumen:\n• Preguntas respondidas: ${respuestasCount}/${preguntasCount}\n• Modo: Evaluación Formal`
             config.confirmText = 'Finalizar Evaluación'
         }
@@ -401,7 +373,7 @@ class SimulacrosService {
         else if (respuestasCount < preguntasCount) {
             config.shouldShow = true
             config.level = 'normal'
-            config.title = '📝 Finalizar Simulacro'
+            config.title = 'Finalizar simulacro'
             config.message = `Tienes ${preguntasCount - respuestasCount} preguntas sin responder.\n\n¿Deseas finalizar de todas formas?`
             config.confirmText = 'Sí, Finalizar'
         }
@@ -429,6 +401,23 @@ class SimulacrosService {
         if (grade >= 70) return 'Bueno'
         if (grade >= 60) return 'Regular'
         return 'Necesita Mejorar'
+    }
+
+    // Año, convocatoria, dificultad y tipo deducidos del título ("EXAMEN MAYO 2025 PT. 2", "DIFICULTAD MEDIA-ALTA", "- 2025").
+    // Los simulacros legacy no guardan estos campos; sirven para filtrar en la lista del alumno y del admin.
+    extraerMeta(titulo = '') {
+        const t = String(titulo).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        const anio = (t.match(/\b(20[2-3][0-9])\b/) || [])[1] || null
+        const mes = (t.match(/\b(ENERO|FEBRERO|MARZO|ABRIL|MAYO|JUNIO|JULIO|AGOSTO|SEPTIEMBRE|OCTUBRE|NOVIEMBRE|DICIEMBRE)\b/) || [])[1] || null
+        const dif = (t.match(/DIFICULTAD\s+(BAJA|MEDIA-ALTA|MEDIA|ALTA)/) || [])[1] || null
+        const tipo = /\bEXAMEN\b/.test(t) ? 'examen' : /\bDEMO\b/.test(t) ? 'demo' : /[|:]\s*[A-Z]/.test(t) && !/DIFICULTAD/.test(t) ? 'especialidad' : 'general'
+        const cap = (s) => s ? s.charAt(0) + s.slice(1).toLowerCase() : s
+        return {
+            anio,
+            convocatoria: mes && anio ? `${cap(mes)} ${anio}` : null,
+            dificultad: dif ? cap(dif.replace('MEDIA-ALTA', 'Media-alta')) : null,
+            tipo
+        }
     }
 
     // ==================== HELPERS DE FORMATO ====================

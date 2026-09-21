@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { CronogramaCursoCard } from '../cronograma/CronogramaWidgets'
+import {
+    BookOpen, CheckCircle2, FileText, FileSpreadsheet, Presentation,
+    Archive, Image as ImageIcon, Video, Music, Paperclip
+} from 'lucide-react'
 import Layout from '../utils/Layout'
+import { PageHeader } from '../simulador/ui'
 import { useAuth } from '../utils/AuthContext'
 import enrollmentsService from '../services/enrollments'
 import coursesService from '../services/courses'
@@ -374,27 +380,22 @@ const MyCourses = () => {
     }
 
     // ⭐ NUEVA FUNCIÓN PARA IR A MATERIALES
+    // Los materiales del curso se leen en la Biblioteca (lector integrado), filtrada por este curso
     const goToCourseMaterials = (curso) => {
         const cursoId = curso.curso_id || curso.id
-        const cursoTitulo = curso.titulo || curso.curso_titulo
-
-        if (!cursoId) {
-            console.error('No se encontró ID del curso:', curso)
-            alert('Error: No se puede acceder a los materiales')
-            return
-        }
-
-        setSelectedCourseId(cursoId)
-        setSelectedCourseName(cursoTitulo)
-        setActiveTab('course-materials')
-        setMaterialsFilters({ search: '', tipo: 'all' })
-        setMaterialsSortBy('fecha_creacion')
+        if (!cursoId) return
+        navigate(`/biblioteca?curso=${cursoId}`)
     }
 
     // ⭐ FUNCIÓN PARA DESCARGAR MATERIAL
     const downloadMaterial = (material) => {
+        // Los PDF se leen dentro de la plataforma (Biblioteca), sin exponer la URL del archivo
+        if ((material.tipo_archivo || '').toLowerCase() === 'pdf') {
+            navigate(`/biblioteca/leer/${material.id}`)
+            return
+        }
         if (!material.archivo_url) {
-            alert('URL de archivo no disponible')
+            alert('Archivo no disponible')
             return
         }
         window.open(material.archivo_url, '_blank')
@@ -440,19 +441,20 @@ const MyCourses = () => {
         return texts[estado] || 'Desconocido'
     }
 
-    // ⭐ FUNCIÓN PARA ICONO DE ARCHIVO
-    const getFileIcon = (tipoArchivo) => {
-        const icons = {
-            'pdf': '📄',
-            'doc': '📝', 'docx': '📝',
-            'xls': '📊', 'xlsx': '📊',
-            'ppt': '📽️', 'pptx': '📽️',
-            'zip': '🗜️', 'rar': '🗜️',
-            'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️',
-            'mp4': '🎥', 'avi': '🎥', 'mov': '🎥',
-            'mp3': '🎵', 'wav': '🎵'
+    // Ícono representativo según el tipo de archivo (consistente con el resto de la interfaz)
+    const FileTypeIcon = ({ tipoArchivo, className = 'w-6 h-6' }) => {
+        const map = {
+            'pdf': FileText,
+            'doc': FileText, 'docx': FileText,
+            'xls': FileSpreadsheet, 'xlsx': FileSpreadsheet,
+            'ppt': Presentation, 'pptx': Presentation,
+            'zip': Archive, 'rar': Archive,
+            'jpg': ImageIcon, 'jpeg': ImageIcon, 'png': ImageIcon,
+            'mp4': Video, 'avi': Video, 'mov': Video,
+            'mp3': Music, 'wav': Music
         }
-        return icons[tipoArchivo?.toLowerCase()] || '📎'
+        const Icon = map[tipoArchivo?.toLowerCase()] || Paperclip
+        return <Icon className={className} />
     }
 
     const calculateMyCoursesStats = () => {
@@ -571,13 +573,13 @@ const MyCourses = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER CON PESTAÑAS ========== */}
+                <PageHeader
+                    eyebrow="Mi aprendizaje"
+                    title={activeTab === 'course-materials' ? `Materiales: ${selectedCourseName}` : 'Mis Cursos'}
+                />
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-medico-blue mb-4">
-                        {activeTab === 'course-materials' ? `Materiales: ${selectedCourseName}` : 'Mis Cursos'}
-                    </h1>
-
                     {/* Pestañas */}
                     <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
                         <button
@@ -610,7 +612,10 @@ const MyCourses = () => {
                                         : 'text-gray-600 hover:text-gray-900'
                                 }`}
                             >
-                                📚 Materiales ({materialsData.estadisticas.total_materiales})
+                                <span className="inline-flex items-center gap-1.5">
+                                    <BookOpen className="w-4 h-4" />
+                                    Materiales ({materialsData.estadisticas.total_materiales})
+                                </span>
                             </button>
                         )}
                     </div>
@@ -653,7 +658,7 @@ const MyCourses = () => {
                         {/* Estadísticas para Mis Cursos */}
                         {showStats && myCoursesData.inscripciones.length > 0 && (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                                     <div className="flex items-center">
                                         <svg className="w-8 h-8 text-medico-blue mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253" />
@@ -665,7 +670,7 @@ const MyCourses = () => {
                                     </div>
                                 </div>
 
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                                     <div className="flex items-center">
                                         <svg className="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -677,7 +682,7 @@ const MyCourses = () => {
                                     </div>
                                 </div>
 
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                                     <div className="flex items-center">
                                         <svg className="w-8 h-8 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -689,7 +694,7 @@ const MyCourses = () => {
                                     </div>
                                 </div>
 
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                                     <div className="flex items-center">
                                         <svg className="w-8 h-8 text-orange-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -704,7 +709,7 @@ const MyCourses = () => {
                         )}
 
                         {/* Filtros para Mis Cursos */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
                             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                                 <div className="flex-1 max-w-md">
                                     <div className="relative">
@@ -716,7 +721,7 @@ const MyCourses = () => {
                                             placeholder="Buscar mis cursos..."
                                             value={myCoursesFilters.search}
                                             onChange={(e) => handleMyCoursesFilterChange('search', e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         />
                                     </div>
                                 </div>
@@ -725,7 +730,7 @@ const MyCourses = () => {
                                     <select
                                         value={myCoursesFilters.status}
                                         onChange={(e) => handleMyCoursesFilterChange('status', e.target.value)}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue"
+                                        className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue"
                                     >
                                         <option value="all">Todos los estados</option>
                                         <option value="habilitado">Activos</option>
@@ -735,7 +740,7 @@ const MyCourses = () => {
                                     <select
                                         value={myCoursesFilters.progress}
                                         onChange={(e) => handleMyCoursesFilterChange('progress', e.target.value)}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue"
+                                        className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue"
                                     >
                                         <option value="all">Todo el progreso</option>
                                         <option value="completed">Completados</option>
@@ -746,7 +751,7 @@ const MyCourses = () => {
                                     <select
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value)}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue"
+                                        className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue"
                                     >
                                         <option value="fecha_inscripcion">Más recientes</option>
                                         <option value="progreso">Por progreso</option>
@@ -776,7 +781,7 @@ const MyCourses = () => {
                                 {myCoursesData.inscripciones.map((curso) => {
                                     const progress = parseFloat(curso.porcentaje_progreso) || 0
                                     return (
-                                        <div key={curso.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                                        <div key={curso.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-sm transition-shadow">
                                             {/* Miniatura */}
                                             <div className="relative">
                                                 {curso.miniatura_url ? (
@@ -858,41 +863,44 @@ const MyCourses = () => {
                                                     )}
                                                 </div>
 
+                                                {/* Cronograma del curso (si está publicado) */}
+                                                {curso.estado_pago === 'habilitado' && <CronogramaCursoCard cursoId={curso.curso_id || curso.id} />}
+
                                                 {/* Acciones CORREGIDAS */}
                                                 <div className="flex gap-2">
                                                     {curso.estado_pago === 'habilitado' ? (
                                                         <>
                                                             <button
                                                                 onClick={() => goToCourse(curso)}
-                                                                className="flex-1 bg-medico-blue text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center"
+                                                                className="flex-1 bg-medico-blue text-white px-3 py-2 rounded-full hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center"
                                                             >
                                                                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                                                 </svg>
                                                                 {progress > 0 ? 'Continuar' : 'Empezar'}
                                                             </button>
-                                                            {/* ⭐ NUEVO BOTÓN DE MATERIALES */}
+                                                            {/* Botón de materiales del curso */}
                                                             <button
                                                                 onClick={() => goToCourseMaterials(curso)}
-                                                                className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                                                                className="px-3 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors text-sm"
                                                                 title="Ver materiales del curso"
                                                             >
-                                                                📚
+                                                                <BookOpen className="w-4 h-4" />
                                                             </button>
                                                         </>
                                                     ) : (
-<a
-                                                        href={`https://wa.me/+593985036066?text=${encodeURIComponent(`Hola, soy ${perfil?.nombre_usuario} y quiero acceso al curso "${curso.titulo || curso.curso_titulo}". Precio: ${curso.precio}`)}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium text-center flex items-center justify-center"
+                                                        <a
+                                                            href={`https://wa.me/+593985036066?text=${encodeURIComponent(`Hola, soy ${perfil?.nombre_usuario} y quiero acceso al curso "${curso.titulo || curso.curso_titulo}". Precio: ${curso.precio}`)}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="flex-1 bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors text-sm font-medium text-center flex items-center justify-center"
                                                         >
-                                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                                        </svg>
-                                                        Contactar WhatsApp
+                                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                            </svg>
+                                                            Contactar WhatsApp
                                                         </a>
-                                                        )}
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -911,7 +919,7 @@ const MyCourses = () => {
                                 <p className="text-gray-500 mb-6">Explora nuestro catálogo y encuentra el curso perfecto para tu carrera médica</p>
                                 <button
                                     onClick={() => handleTabChange('explore-courses')}
-                                    className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                    className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors font-medium"
                                 >
                                     Explorar Cursos
                                 </button>
@@ -921,7 +929,7 @@ const MyCourses = () => {
                 ) : activeTab === 'explore-courses' ? (
                     <div>
                         {/* Filtros para Explorar Cursos */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
                             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                                 <div className="flex-1 max-w-md">
                                     <div className="relative">
@@ -933,7 +941,7 @@ const MyCourses = () => {
                                             placeholder="Buscar cursos disponibles..."
                                             value={exploreFilters.search}
                                             onChange={(e) => handleExploreFilterChange('search', e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         />
                                     </div>
                                 </div>
@@ -942,7 +950,7 @@ const MyCourses = () => {
                                     <select
                                         value={exploreFilters.tipo}
                                         onChange={(e) => handleExploreFilterChange('tipo', e.target.value)}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue"
+                                        className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue"
                                     >
                                         <option value="">Todos los tipos</option>
                                         <option value="medicina_rural">Medicina Rural</option>
@@ -954,7 +962,7 @@ const MyCourses = () => {
                                     <select
                                         value={exploreFilters.gratuito}
                                         onChange={(e) => handleExploreFilterChange('gratuito', e.target.value)}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue"
+                                        className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue"
                                     >
                                         <option value="all">Todos los precios</option>
                                         <option value="true">Cursos gratuitos</option>
@@ -964,7 +972,7 @@ const MyCourses = () => {
                                     <select
                                         value={exploreSortBy}
                                         onChange={(e) => setExploreSortBy(e.target.value)}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue"
+                                        className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue"
                                     >
                                         <option value="fecha_creacion">Más recientes</option>
                                         <option value="titulo">Alfabético</option>
@@ -995,7 +1003,7 @@ const MyCourses = () => {
                                 {availableCoursesData.cursos.map((curso) => {
                                     const isEnrolled = isEnrolledInCourse(curso.id)
                                     return (
-                                        <div key={curso.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                                        <div key={curso.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-sm transition-shadow">
                                             {/* Miniatura */}
                                             <div className="relative">
                                                 {curso.miniatura_url ? (
@@ -1032,8 +1040,9 @@ const MyCourses = () => {
 
                                                 {isEnrolled && (
                                                     <div className="absolute top-3 right-3">
-                                                       <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                                                           ✓ Inscrito
+                                                       <span className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                                           <CheckCircle2 className="w-3.5 h-3.5" />
+                                                           Inscrito
                                                        </span>
                                                     </div>
                                                 )}
@@ -1074,7 +1083,7 @@ const MyCourses = () => {
                                                     {isEnrolled ? (
                                                         <button
                                                             onClick={() => goToCourse({ id: curso.id })}
-                                                            className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center"
+                                                            className="flex-1 bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center"
                                                         >
                                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1086,7 +1095,7 @@ const MyCourses = () => {
                                                             <button
                                                                 onClick={() => handleEnrollCourse(curso)}
                                                                 disabled={enrollingCourseId === curso.id}
-                                                                className="flex-1 bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center justify-center"
+                                                                className="flex-1 bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 flex items-center justify-center"
                                                             >
                                                                 {enrollingCourseId === curso.id ? (
                                                                     <>
@@ -1104,7 +1113,7 @@ const MyCourses = () => {
                                                             </button>
                                                             <button
                                                                 onClick={() => navigate(`/curso/${curso.id}`)}
-                                                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                                                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors text-sm"
                                                                 title="Ver información del curso"
                                                             >
                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1131,7 +1140,7 @@ const MyCourses = () => {
                                 <p className="text-gray-500 mb-6">Intenta ajustar los filtros para encontrar lo que buscas</p>
                                 <button
                                     onClick={clearExploreFilters}
-                                    className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                    className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors font-medium"
                                 >
                                     Limpiar Filtros
                                 </button>
@@ -1144,7 +1153,7 @@ const MyCourses = () => {
                         {/* Estadísticas para Materiales */}
                         {materialsData.estadisticas.total_materiales > 0 && (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                                     <div className="flex items-center">
                                         <svg className="w-8 h-8 text-medico-blue mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
@@ -1156,7 +1165,7 @@ const MyCourses = () => {
                                     </div>
                                 </div>
 
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                                     <div className="flex items-center">
                                         <svg className="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -1168,7 +1177,7 @@ const MyCourses = () => {
                                     </div>
                                 </div>
 
-                                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                                     <div className="flex items-center">
                                         <svg className="w-8 h-8 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -1184,7 +1193,7 @@ const MyCourses = () => {
 
                         {/* Información del curso */}
                         {materialsData.curso && (
-                            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
                                 <div className="flex items-center space-x-4">
                                     <div className="flex-shrink-0">
                                         <div className="w-16 h-16 bg-medico-blue rounded-lg flex items-center justify-center">
@@ -1213,7 +1222,7 @@ const MyCourses = () => {
                         )}
 
                         {/* Filtros para Materiales */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
                             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                                 <div className="flex-1 max-w-md">
                                     <div className="relative">
@@ -1225,7 +1234,7 @@ const MyCourses = () => {
                                             placeholder="Buscar materiales..."
                                             value={materialsFilters.search}
                                             onChange={(e) => handleMaterialsFilterChange('search', e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         />
                                     </div>
                                 </div>
@@ -1234,7 +1243,7 @@ const MyCourses = () => {
                                     <select
                                         value={materialsFilters.tipo}
                                         onChange={(e) => handleMaterialsFilterChange('tipo', e.target.value)}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue"
+                                        className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue"
                                     >
                                         <option value="all">Todos los tipos</option>
                                         <option value="gratuito">Solo gratuitos</option>
@@ -1244,7 +1253,7 @@ const MyCourses = () => {
                                     <select
                                         value={materialsSortBy}
                                         onChange={(e) => setMaterialsSortBy(e.target.value)}
-                                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue"
+                                        className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue"
                                     >
                                         <option value="fecha_creacion">Más recientes</option>
                                         <option value="titulo">Alfabético</option>
@@ -1272,13 +1281,13 @@ const MyCourses = () => {
                         {!materialsLoading && materialsData.materiales.length > 0 && (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {materialsData.materiales.map((material) => (
-                                    <div key={material.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                                    <div key={material.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-sm transition-shadow">
                                         {/* Header del material */}
                                         <div className="p-6">
                                             <div className="flex items-start justify-between mb-3">
                                                 <div className="flex items-center space-x-3">
-                                                    <div className="text-2xl">
-                                                        {getFileIcon(material.tipo_archivo)}
+                                                    <div className="w-10 h-10 rounded-lg bg-blue-50 text-medico-blue flex items-center justify-center flex-shrink-0">
+                                                        <FileTypeIcon tipoArchivo={material.tipo_archivo} />
                                                     </div>
                                                     <div className="flex-1">
                                                         <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
@@ -1328,17 +1337,17 @@ const MyCourses = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => downloadMaterial(material)}
-                                                    className="flex-1 bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center"
+                                                    className="flex-1 bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center"
                                                 >
                                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                     </svg>
-                                                    {material.es_gratuito ? 'Descargar' : 'Ver'}
+                                                    {(material.tipo_archivo || '').toLowerCase() === 'pdf' ? 'Leer' : 'Ver'}
                                                 </button>
 
                                                 {/* Botón de información adicional */}
                                                 <button
-                                                    className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                                                    className="px-3 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors text-sm"
                                                     title="Información del material"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1368,7 +1377,7 @@ const MyCourses = () => {
                                 {(materialsFilters.search || materialsFilters.tipo !== 'all') && (
                                     <button
                                         onClick={clearMaterialsFilters}
-                                        className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                        className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors font-medium"
                                     >
                                         Limpiar Filtros
                                     </button>
@@ -1383,10 +1392,10 @@ const MyCourses = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                 </svg>
                                 <h3 className="text-xl font-medium text-gray-900 mb-2">Selecciona un curso</h3>
-                                <p className="text-gray-500 mb-6">Ve a "Mis Cursos" y haz clic en el botón 📚 para ver los materiales de ese curso</p>
+                                <p className="text-gray-500 mb-6">Ve a "Mis Cursos" y haz clic en el botón de materiales para ver los materiales de ese curso</p>
                                 <button
                                     onClick={() => handleTabChange('my-courses')}
-                                    className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                    className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors font-medium"
                                 >
                                     Ir a Mis Cursos
                                 </button>
@@ -1398,7 +1407,7 @@ const MyCourses = () => {
                 {/* ========== MODAL DE CONFIRMACIÓN DE INSCRIPCIÓN ========== */}
                 {enrollmentModal.show && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">
                                 Confirmar Inscripción
                             </h3>
@@ -1455,14 +1464,14 @@ const MyCourses = () => {
                                 <button
                                     onClick={() => setEnrollmentModal({ show: false, course: null, loading: false })}
                                     disabled={enrollmentModal.loading}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors disabled:opacity-50"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={confirmEnrollment}
                                     disabled={enrollmentModal.loading}
-                                    className="flex-1 bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center"
+                                    className="flex-1 bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center"
                                 >
                                     {enrollmentModal.loading ? (
                                         <>
@@ -1480,7 +1489,7 @@ const MyCourses = () => {
 
                 {/* ========== ACCIONES RÁPIDAS ========== */}
                 {activeTab === 'my-courses' && myCoursesData.inscripciones.length > 0 && (
-                    <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <button

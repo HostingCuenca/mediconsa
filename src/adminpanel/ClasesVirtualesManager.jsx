@@ -271,11 +271,11 @@ const ClasesVirtualesManager = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
                 <div className="flex justify-between items-start mb-8">
                     <div>
-                        <div className="flex items-center space-x-4 mb-2">
+                        <div className="flex items-center space-x-4 mb-1">
                             {selectedCurso && (
                                 <button
                                     onClick={handleBackToCursos}
@@ -286,12 +286,10 @@ const ClasesVirtualesManager = () => {
                                     </svg>
                                 </button>
                             )}
-                            <h1 className="text-3xl font-bold text-medico-blue flex items-center space-x-2">
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                                <span>Clases Virtuales</span>
-                            </h1>
+                            <div>
+                                <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Comunicación · Admin</span>
+                                <h1 className="text-3xl text-gray-900 tracking-tight">Clases Virtuales</h1>
+                            </div>
                         </div>
 
                         {selectedCurso ? (
@@ -314,7 +312,7 @@ const ClasesVirtualesManager = () => {
                     {selectedCurso && (
                         <button
                             onClick={() => setShowForm(true)}
-                            className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                            className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -369,7 +367,7 @@ const ClasesVirtualesManager = () => {
                             <div
                                 key={curso.id}
                                 onClick={() => handleSelectCurso(curso)}
-                                className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-medico-blue"
+                                className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-all duration-200 cursor-pointer hover:border-medico-blue"
                             >
                                 <div className="flex items-center space-x-4">
                                     {curso.miniatura_url && (
@@ -427,7 +425,7 @@ const ClasesVirtualesManager = () => {
                                     const estadoBadge = getEstadoBadge(clase.estado_tiempo)
 
                                     return (
-                                        <div key={clase.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
+                                        <div key={clase.id} className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-all duration-200">
                                             <div className="flex justify-between items-start">
                                                 <div className="flex-1">
                                                     <div className="flex items-center space-x-3 mb-3">
@@ -471,7 +469,7 @@ const ClasesVirtualesManager = () => {
                                                 <div className="flex flex-col space-y-2 ml-6">
                                                     <button
                                                         onClick={() => window.open(clase.link_reunion, '_blank')}
-                                                        className="bg-green-50 text-green-700 py-2 px-4 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium flex items-center space-x-2"
+                                                        className="bg-green-50 text-green-700 py-2 px-4 rounded-full hover:bg-green-100 transition-colors text-sm font-medium flex items-center space-x-2"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -482,7 +480,7 @@ const ClasesVirtualesManager = () => {
                                                     <div className="flex space-x-2">
                                                         <button
                                                             onClick={() => handleEditClase(clase)}
-                                                            className="bg-blue-50 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                                                            className="bg-blue-50 text-blue-700 py-2 px-3 rounded-full hover:bg-blue-100 transition-colors text-sm font-medium"
                                                             title="Editar clase"
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -492,7 +490,7 @@ const ClasesVirtualesManager = () => {
 
                                                         <button
                                                             onClick={() => setShowDeleteConfirm(clase)}
-                                                            className="bg-red-50 text-red-700 py-2 px-3 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                                                            className="bg-red-50 text-red-700 py-2 px-3 rounded-full hover:bg-red-100 transition-colors text-sm font-medium"
                                                             title="Eliminar clase"
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -518,7 +516,7 @@ const ClasesVirtualesManager = () => {
                                         </p>
                                         <button
                                             onClick={() => setShowForm(true)}
-                                            className="bg-medico-blue text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 mx-auto"
+                                            className="bg-medico-blue text-white px-8 py-3 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2 mx-auto"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -578,7 +576,7 @@ const ClasesVirtualesManager = () => {
                                             type="text"
                                             value={claseForm.titulo}
                                             onChange={(e) => setClaseForm(prev => ({ ...prev, titulo: e.target.value }))}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                             required
                                             placeholder="Ej: Clase Virtual: Cardiología Avanzada"
                                         />
@@ -592,7 +590,7 @@ const ClasesVirtualesManager = () => {
                                             value={claseForm.descripcion}
                                             onChange={(e) => setClaseForm(prev => ({ ...prev, descripcion: e.target.value }))}
                                             rows={3}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                             placeholder="Descripción de los temas a tratar en la clase..."
                                         />
                                     </div>
@@ -605,7 +603,7 @@ const ClasesVirtualesManager = () => {
                                             <select
                                                 value={claseForm.plataforma}
                                                 onChange={(e) => setClaseForm(prev => ({ ...prev, plataforma: e.target.value }))}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                                 required
                                             >
                                                 <option value="meet">🎥 Google Meet</option>
@@ -624,7 +622,7 @@ const ClasesVirtualesManager = () => {
                                                 max="480"
                                                 value={claseForm.duracionMinutos}
                                                 onChange={(e) => setClaseForm(prev => ({ ...prev, duracionMinutos: e.target.value }))}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                                 placeholder="60"
                                             />
                                         </div>
@@ -638,7 +636,7 @@ const ClasesVirtualesManager = () => {
                                             type="url"
                                             value={claseForm.linkReunion}
                                             onChange={(e) => setClaseForm(prev => ({ ...prev, linkReunion: e.target.value }))}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                             required
                                             placeholder="https://meet.google.com/xyz-abcd-efgh"
                                         />
@@ -652,7 +650,7 @@ const ClasesVirtualesManager = () => {
                                             type="datetime-local"
                                             value={claseForm.fechaProgramada || getDefaultDateTime()}
                                             onChange={(e) => setClaseForm(prev => ({ ...prev, fechaProgramada: e.target.value }))}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                             required
                                             min={new Date().toISOString().slice(0, 16)}
                                         />
@@ -683,14 +681,14 @@ const ClasesVirtualesManager = () => {
                                                 setShowForm(false)
                                                 resetForm()
                                             }}
-                                            className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                            className="px-6 py-3 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors font-medium"
                                         >
                                             Cancelar
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={formLoading}
-                                            className="px-8 py-3 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 font-medium"
+                                            className="px-8 py-3 bg-medico-blue text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 font-medium"
                                         >
                                             {formLoading && (
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -745,13 +743,13 @@ const ClasesVirtualesManager = () => {
                                 <div className="flex space-x-3">
                                     <button
                                         onClick={() => setShowDeleteConfirm(null)}
-                                        className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                        className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors font-medium"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         onClick={() => handleDeleteClase(showDeleteConfirm.id)}
-                                        className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                                        className="flex-1 px-4 py-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors font-medium"
                                     >
                                         Eliminar
                                     </button>

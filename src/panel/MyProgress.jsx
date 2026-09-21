@@ -1,390 +1,277 @@
-// src/panel/MyProgress.jsx - PÁGINA DE PROGRESO COMPLETA
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+// src/panel/MyProgress.jsx — Mi progreso: una sola vista con todo lo que el alumno avanza en la plataforma.
+// Cursos (clases), cronograma, entrenador (mapa de dominio, racha), plan de estudio, lecturas y simulacros.
+// Layout en dos columnas para que no queden huecos: izquierda cronograma + cursos; derecha entrenador, para hoy,
+// lecturas y últimos simulacros.
+import React, { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import {
+    BookOpen, CheckCircle2, ClipboardList, Flame, Zap, Target, Dumbbell, ChevronRight, RotateCcw, CalendarClock, Video, Trophy, Sparkles, Play
+} from 'lucide-react'
 import Layout from '../utils/Layout'
+import { PageHeader, Card, Pill, ProgressBar, Ring, Loading } from '../simulador/ui'
 import { useAuth } from '../utils/AuthContext'
 import progressService from '../services/progress'
+import simuladorService from '../services/simulador'
+import simulacrosService from '../services/simulacros'
+import bibliotecaService from '../services/biblioteca'
+import { useCached } from '../simulador/useCached'
+import { CronogramaProgreso } from '../cronograma/CronogramaWidgets'
+import { limpiarTitulo } from '../biblioteca/Biblioteca'
+
+const colorPuntaje = (p) => p >= 80 ? 'text-medico-green' : p >= 70 ? 'text-medico-blue' : p >= 60 ? 'text-medico-orange' : 'text-medico-red'
+const hace = (d) => {
+    if (!d) return ''
+    const dias = Math.floor((Date.now() - new Date(d).getTime()) / 86400000)
+    return dias <= 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias} d`
+}
 
 const MyProgress = () => {
     const navigate = useNavigate()
     const { isAuthenticated } = useAuth()
-
     const [loading, setLoading] = useState(true)
     const [estadisticas, setEstadisticas] = useState({})
     const [cursos, setCursos] = useState([])
-    const [selectedCourse, setSelectedCourse] = useState(null)
-    const [detalleCurso, setDetalleCurso] = useState(null)
-    const [loadingDetalle, setLoadingDetalle] = useState(false)
+    const [intentos, setIntentos] = useState([])
+
+    // Entrenador y plan: cacheados como en el resto del simulador (sin micro recargas)
+    const carrerasQ = useCached('carreras', () => simuladorService.getCarreras())
+    const carrera = carrerasQ.data?.carreras?.[0]?.carrera || null
+    const mapaQ = useCached(carrera ? `mapa:${carrera}` : null, () => simuladorService.getMapa(carrera))
+    const planQ = useCached(carrera ? `plan:${carrera}` : null, () => simuladorService.getPlan(carrera))
+    const bibliotecaQ = useCached('biblioteca', () => bibliotecaService.listar())
+    const mapa = mapaQ.data
+    const plan = planQ.data
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            navigate('/login')
-            return
-        }
-        loadProgressData()
-    }, [isAuthenticated])
-
-    const loadProgressData = async () => {
-        try {
-            setLoading(true)
-            const result = await progressService.getMyOverallProgress()
-
-            if (result.success) {
-                setEstadisticas(result.data.estadisticas || {})
-                setCursos(result.data.cursos || [])
-            }
-        } catch (error) {
-            console.error('Error cargando progreso:', error)
-        } finally {
+        if (!isAuthenticated) { navigate('/login'); return }
+        let vivo = true
+        ;(async () => {
+            const [r, a] = await Promise.all([progressService.getMyOverallProgress(), simulacrosService.getMyAttempts()])
+            if (!vivo) return
+            if (r.success) { setEstadisticas(r.data.estadisticas || {}); setCursos(r.data.cursos || []) }
+            if (a.success) setIntentos((a.data.intentos || []).slice(0, 5))
             setLoading(false)
-        }
-    }
+        })()
+        return () => { vivo = false }
+    }, [isAuthenticated, navigate])
 
-    const loadCourseDetail = async (cursoId) => {
-        try {
-            setLoadingDetalle(true)
-            const result = await progressService.getCourseProgress(cursoId)
+    const lecturas = useMemo(() => {
+        const mats = (bibliotecaQ.data?.grupos || []).flatMap(g => g.materiales || [])
+        return mats.filter(m => m.lectura && !m.lectura.completado).sort((a, b) => new Date(b.lectura.ultimaVez) - new Date(a.lectura.ultimaVez)).slice(0, 3)
+    }, [bibliotecaQ.data])
+    const debiles = useMemo(() => (mapa?.areas || []).filter(a => a.nivel === 'debil').sort((a, b) => (a.acierto ?? 0) - (b.acierto ?? 0)).slice(0, 3), [mapa])
+    const sinExplorar = mapa?.resumen?.sinExplorar || 0
+    const totalClases = cursos.reduce((s, c) => s + (parseInt(c.total_clases) || 0), 0)
+    const ph = plan?.paraHoy
 
-            if (result.success) {
-                setDetalleCurso(result.data)
-                setSelectedCourse(cursoId)
-            }
-        } catch (error) {
-            console.error('Error cargando detalle:', error)
-        } finally {
-            setLoadingDetalle(false)
-        }
-    }
-
-    const getProgressColor = (porcentaje) => {
-        if (porcentaje >= 90) return 'bg-green-500'
-        if (porcentaje >= 70) return 'bg-blue-500'
-        if (porcentaje >= 40) return 'bg-yellow-500'
-        if (porcentaje >= 10) return 'bg-orange-500'
-        return 'bg-gray-300'
-    }
-
-    const getProgressStats = (porcentaje) => {
-        return progressService.getProgressStats({ porcentaje_progreso: porcentaje })
-    }
-
-    const handleContinueCourse = (curso) => {
-        navigate(`/estudiar/${curso.curso_id}`)
-    }
-
-    if (loading) {
-        return (
-            <Layout showSidebar={true}>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                </div>
-            </Layout>
-        )
-    }
+    if (loading) return <Layout showSidebar><Loading text="Cargando tu progreso…" /></Layout>
 
     return (
-        <Layout showSidebar={true}>
-            <div className="p-6">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Mi Progreso</h1>
-                    <p className="text-gray-600">
-                        Revisa tu avance en los cursos y mantén el momentum de aprendizaje
-                    </p>
+        <Layout showSidebar>
+            <div className="p-4 sm:p-6 md:p-8">
+                <PageHeader eyebrow="Mi aprendizaje" title="Mi progreso" subtitle="Todo lo que avanzas en la plataforma, en un solo lugar." />
+
+                {/* ===== Indicadores ===== */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                    <Indicador icon={Video} tint="bg-blue-50 text-medico-blue" valor={estadisticas.total_clases_completadas || 0} label="Clases completadas" sub={totalClases ? `de ${totalClases}` : ''} />
+                    <Indicador icon={ClipboardList} tint="bg-purple-50 text-purple-700" valor={estadisticas.simulacros_realizados || 0} label="Simulacros" sub={estadisticas.promedio_simulacros ? `promedio ${Math.round(estadisticas.promedio_simulacros)}%` : 'sin intentos aún'} />
+                    <Indicador icon={Zap} tint="bg-emerald-50 text-medico-green" valor={mapa?.resumen?.vistas ?? 0} label="Preguntas entrenadas" sub={mapa?.resumen ? `${mapa.resumen.dominadas} áreas dominadas` : 'entrenador'} />
+                    <Indicador icon={Flame} tint="bg-orange-50 text-medico-orange" valor={mapa?.stats?.rachaDias ?? 0} label="Días de racha" sub={mapa?.stats ? `mejor ${mapa.stats.mejorRacha} · ${mapa.stats.xp} XP` : ''} />
                 </div>
 
-                {/* Estadísticas Generales */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white p-6 rounded-lg shadow border">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-blue-100">
-                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {estadisticas.cursos_inscritos || 0}
-                                </p>
-                                <p className="text-gray-600">Cursos Inscritos</p>
-                            </div>
-                        </div>
-                    </div>
+                <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px] gap-6 items-start">
+                    {/* ===== Columna principal ===== */}
+                    <div className="space-y-6 min-w-0">
+                        <CronogramaProgreso unaColumna />
 
-                    <div className="bg-white p-6 rounded-lg shadow border">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-green-100">
-                                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {estadisticas.total_clases_completadas || 0}
-                                </p>
-                                <p className="text-gray-600">Clases Completadas</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-lg shadow border">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-purple-100">
-                                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {estadisticas.simulacros_realizados || 0}
-                                </p>
-                                <p className="text-gray-600">Simulacros Realizados</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-lg shadow border">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-yellow-100">
-                                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                </svg>
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {estadisticas.promedio_simulacros ? Math.round(estadisticas.promedio_simulacros) : 0}%
-                                </p>
-                                <p className="text-gray-600">Promedio Simulacros</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Lista de Cursos */}
-                <div className="bg-white rounded-lg shadow border">
-                    <div className="p-6 border-b border-gray-200">
-                        <h2 className="text-xl font-semibold text-gray-900">Progreso por Curso</h2>
-                    </div>
-
-                    <div className="divide-y divide-gray-200">
-                        {cursos.map((curso) => {
-                            const stats = getProgressStats(curso.porcentaje_progreso)
-
-                            return (
-                                <div key={curso.curso_id} className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-4">
-                                            {curso.miniatura_url && (
-                                                <img
-                                                    src={curso.miniatura_url}
-                                                    alt={curso.titulo}
-                                                    className="w-16 h-16 rounded-lg object-cover"
-                                                />
-                                            )}
-                                            <div>
-                                                <h3 className="text-lg font-medium text-gray-900">
-                                                    {curso.titulo}
-                                                </h3>
-                                                <div className="flex items-center space-x-4 mt-1">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${stats.bgColor} ${stats.textColor}`}>
-                                                        {stats.nivel}
-                                                    </span>
-                                                    <span className="text-sm text-gray-500">
-                                                        {curso.clases_completadas}/{curso.total_clases} clases
-                                                    </span>
-                                                    {curso.ultima_actividad && (
-                                                        <span className="text-sm text-gray-500">
-                                                            Última vez: {new Date(curso.ultima_actividad).toLocaleDateString()}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center space-x-4">
-                                            <div className="text-right">
-                                                <div className="text-2xl font-bold text-gray-900">
-                                                    {Math.round(curso.porcentaje_progreso)}%
-                                                </div>
-                                                <div className="w-32 bg-gray-200 rounded-full h-2 mt-1">
-                                                    <div
-                                                        className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(curso.porcentaje_progreso)}`}
-                                                        style={{ width: `${curso.porcentaje_progreso}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex space-x-2">
-                                                <button
-                                                    onClick={() => loadCourseDetail(curso.curso_id)}
-                                                    className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
-                                                >
-                                                    Ver Detalle
-                                                </button>
-                                                <button
-                                                    onClick={() => handleContinueCourse(curso)}
-                                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                                                >
-                                                    Continuar
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-
-                    {cursos.length === 0 && (
-                        <div className="p-12 text-center">
-                            <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                No tienes cursos en progreso
-                            </h3>
-                            <p className="text-gray-500 mb-4">
-                                Inscríbete a un curso para comenzar tu aprendizaje
-                            </p>
-                            <button
-                                onClick={() => navigate('/cursos')}
-                                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
-                            >
-                                Explorar Cursos
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Modal de Detalle del Curso */}
-                {selectedCourse && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-bold text-gray-900">
-                                        Detalle del Progreso
-                                    </h3>
-                                    <button
-                                        onClick={() => {setSelectedCourse(null); setDetalleCurso(null)}}
-                                        className="text-gray-400 hover:text-gray-600"
-                                    >
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {loadingDetalle ? (
-                                    <div className="flex items-center justify-center py-12">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                    </div>
-                                ) : detalleCurso ? (
-                                    <div>
-                                        {/* Resumen del curso */}
-                                        <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                                            <h4 className="font-semibold text-gray-900 mb-2">
-                                                {detalleCurso.curso.titulo}
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                                <div>
-                                                    <span className="text-gray-600">Progreso Total:</span>
-                                                    <span className="font-medium ml-2">
-                                                        {detalleCurso.resumen.porcentaje_progreso}%
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-gray-600">Clases:</span>
-                                                    <span className="font-medium ml-2">
-                                                        {detalleCurso.resumen.clases_completadas}/{detalleCurso.resumen.total_clases}
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-gray-600">Módulos:</span>
-                                                    <span className="font-medium ml-2">
-                                                        {detalleCurso.resumen.total_modulos}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Módulos y clases */}
-                                        <div className="space-y-4">
-                                            {detalleCurso.modulos?.map((modulo) => {
-                                                const moduloProgress = progressService.calculateModuleProgress(modulo)
-
-                                                return (
-                                                    <div key={modulo.modulo_id} className="border border-gray-200 rounded-lg">
-                                                        <div className="p-4 bg-gray-50 border-b border-gray-200">
-                                                            <div className="flex items-center justify-between">
-                                                                <h5 className="font-medium text-gray-900">
-                                                                    {modulo.modulo_titulo}
-                                                                </h5>
-                                                                <div className="flex items-center space-x-2">
-                                                                    <span className="text-sm text-gray-600">
-                                                                        {moduloProgress.completadas}/{moduloProgress.total}
-                                                                    </span>
-                                                                    <div className="w-20 bg-gray-200 rounded-full h-2">
-                                                                        <div
-                                                                            className={`h-2 rounded-full ${getProgressColor(moduloProgress.porcentaje)}`}
-                                                                            style={{ width: `${moduloProgress.porcentaje}%` }}
-                                                                        ></div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                        {/* Progreso por curso */}
+                        <section>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Progreso por curso</h2>
+                            {cursos.length === 0 ? (
+                                <Card className="p-8 text-center">
+                                    <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                                    <p className="font-semibold text-gray-900">No tienes cursos en progreso</p>
+                                    <p className="text-sm text-medico-gray mt-1 mb-4">Inscríbete a un curso para comenzar tu aprendizaje.</p>
+                                    <Link to="/cursos" className="inline-flex px-5 py-2.5 rounded-full bg-medico-blue text-white text-sm font-medium">Explorar cursos</Link>
+                                </Card>
+                            ) : (
+                                <div className="space-y-3">
+                                    {cursos.map(c => {
+                                        const pct = Math.round(c.porcentaje_progreso || 0)
+                                        const stats = progressService.getProgressStats({ porcentaje_progreso: pct })
+                                        return (
+                                            <Card key={c.curso_id} className="p-4 sm:p-5">
+                                                <div className="flex items-center gap-4">
+                                                    {c.miniatura_url && <img src={c.miniatura_url} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0 hidden sm:block" />}
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="font-semibold text-gray-900 truncate">{limpiarTitulo(c.titulo)}</h3>
+                                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-medico-gray">
+                                                            <Pill className={`${stats.bgColor} ${stats.textColor}`}>{stats.nivel}</Pill>
+                                                            <span>{c.clases_completadas}/{c.total_clases} clases</span>
+                                                            {c.ultima_actividad && <span>Última vez {hace(c.ultima_actividad)}</span>}
                                                         </div>
-
-                                                        <div className="p-4">
-                                                            <div className="space-y-3">
-                                                                {modulo.clases?.map((clase) => (
-                                                                    <div key={clase.id} className="flex items-center justify-between">
-                                                                        <div className="flex items-center space-x-3">
-                                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                                                                                clase.completada ? 'bg-green-500' : 'bg-gray-300'
-                                                                            }`}>
-                                                                                {clase.completada ? (
-                                                                                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                                                    </svg>
-                                                                                ) : (
-                                                                                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                                                                                )}
-                                                                            </div>
-                                                                            <span className={`${clase.completada ? 'text-gray-900' : 'text-gray-600'}`}>
-                                                                                {clase.titulo}
-                                                                            </span>
-                                                                        </div>
-
-                                                                        <div className="flex items-center space-x-2">
-                                                                            <span className="text-sm text-gray-500">
-                                                                                {clase.porcentaje_visto}%
-                                                                            </span>
-                                                                            {clase.duracion_minutos && (
-                                                                                <span className="text-sm text-gray-500">
-                                                                                    {progressService.formatDuration(clase.duracion_minutos)}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
+                                                        <div className="flex items-center gap-3 mt-2">
+                                                            <ProgressBar value={pct} className="flex-1" color={pct >= 70 ? 'bg-medico-green' : pct >= 30 ? 'bg-medico-blue' : 'bg-medico-orange'} />
+                                                            <span className="text-sm font-semibold text-gray-900 tabular-nums w-10 text-right">{pct}%</span>
                                                         </div>
                                                     </div>
-                                                )
-                                            })}
+                                                    <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+                                                        <Link to={`/biblioteca?curso=${c.curso_id}`} className="hidden sm:inline-flex items-center gap-1 px-3 py-2 rounded-full border border-gray-200 text-xs font-medium text-gray-700 hover:border-medico-blue"><BookOpen className="w-3.5 h-3.5" /> Manuales</Link>
+                                                        <button onClick={() => navigate(`/estudiar/${c.curso_id}`)} className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-medico-blue text-white text-xs font-medium"><Play className="w-3.5 h-3.5" /> Continuar</button>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        )
+                                    })}
+                                </div>
+                            )}
+                        </section>
+
+                        {/* Últimos simulacros */}
+                        <section>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-semibold text-gray-900">Últimos simulacros</h2>
+                                <Link to="/simulacros" className="text-sm text-medico-blue hover:underline inline-flex items-center gap-1">Ver todos <ChevronRight className="w-4 h-4" /></Link>
+                            </div>
+                            {intentos.length === 0 ? (
+                                <Card className="p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+                                    <ClipboardList className="w-8 h-8 text-gray-300 flex-shrink-0" />
+                                    <div className="flex-1"><p className="font-medium text-gray-900">Aún no has hecho simulacros</p><p className="text-sm text-medico-gray">Mide tu nivel con un simulacro completo de tu curso.</p></div>
+                                    <Link to="/simulacros" className="inline-flex items-center gap-1 px-4 py-2 rounded-full bg-medico-blue text-white text-sm font-medium">Ir a simulacros</Link>
+                                </Card>
+                            ) : (
+                                <Card className="divide-y divide-gray-100 p-0 overflow-hidden">
+                                    {intentos.map(i => {
+                                        const p = Math.round(parseFloat(i.puntaje) || 0)
+                                        return (
+                                            <Link key={i.id} to={`/simulacros/resultado?intento=${i.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+                                                <span className={`w-12 text-center text-lg font-bold tabular-nums ${colorPuntaje(p)}`}>{p}%</span>
+                                                <span className="flex-1 min-w-0"><span className="block text-sm font-medium text-gray-900 truncate">{limpiarTitulo(i.simulacro_titulo)}</span><span className="block text-xs text-medico-gray">{new Date(i.fecha_intento).toLocaleDateString('es-EC', { day: 'numeric', month: 'short' })} · {i.respuestas_correctas}/{i.total_preguntas} correctas</span></span>
+                                                <ChevronRight className="w-4 h-4 text-gray-300" />
+                                            </Link>
+                                        )
+                                    })}
+                                </Card>
+                            )}
+                        </section>
+                    </div>
+
+                    {/* ===== Columna lateral ===== */}
+                    <div className="space-y-6">
+                        {/* Entrenador */}
+                        <Card className="p-5">
+                            <div className="flex items-center justify-between mb-3">
+                                <h2 className="text-base font-semibold text-gray-900 inline-flex items-center gap-2"><Zap className="w-5 h-5 text-medico-blue" /> Entrenador CACES</h2>
+                                {mapa && <Link to="/simulador" className="text-xs text-medico-blue hover:underline">Ver mapa</Link>}
+                            </div>
+                            {!carrera ? (
+                                <p className="text-sm text-medico-gray">Cuando estés inscrito en un curso, aquí verás tu mapa de dominio por especialidad.</p>
+                            ) : !mapa ? <Loading text="Cargando…" /> : (
+                                <>
+                                    <div className="flex items-center gap-4">
+                                        <Ring value={mapa.resumen?.preparacion || 0} size={84} stroke={9} color="#1e40af" label={`${Math.round(mapa.resumen?.preparacion || 0)}%`} sub="preparación" />
+                                        <div className="flex-1 grid grid-cols-3 gap-1.5 text-center">
+                                            <Mini n={mapa.resumen?.dominadas || 0} l="dominadas" c="text-medico-green" />
+                                            <Mini n={mapa.resumen?.debiles || 0} l="débiles" c="text-medico-red" />
+                                            <Mini n={sinExplorar} l="sin explorar" c="text-gray-500" />
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="text-center py-8">
-                                        <p className="text-gray-500">No se pudo cargar el detalle del curso</p>
+                                    {debiles.length > 0 ? (
+                                        <div className="mt-4">
+                                            <p className="text-[11px] font-semibold uppercase tracking-wide text-medico-gray mb-2">Donde más fallas</p>
+                                            <ul className="space-y-1.5">
+                                                {debiles.map(a => (
+                                                    <li key={a.id} className="flex items-center gap-2 text-sm">
+                                                        <span className="flex-1 truncate text-gray-900">{a.nombre}</span>
+                                                        <span className="text-xs font-semibold text-medico-red tabular-nums">{Math.round(a.acierto ?? 0)}%</span>
+                                                        <Link to="/simulador" className="inline-flex items-center gap-1 text-xs font-medium text-medico-blue hover:underline"><Dumbbell className="w-3.5 h-3.5" /> Entrenar</Link>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ) : (
+                                        <p className="mt-4 text-sm text-medico-gray">{mapa.diagnostico ? 'Sin áreas débiles por ahora. Sigue con tus repasos.' : 'Haz el diagnóstico para descubrir tus áreas débiles.'}</p>
+                                    )}
+                                    <Link to="/simulador" className="mt-4 w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-full bg-medico-blue text-white text-sm font-medium"><Sparkles className="w-4 h-4" /> {mapa.hoy?.cumplida ? 'Sesión extra' : 'Mi sesión de hoy'}</Link>
+                                </>
+                            )}
+                        </Card>
+
+                        {/* Para hoy (plan) */}
+                        {ph && (
+                            <Card className="p-5">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h2 className="text-base font-semibold text-gray-900 inline-flex items-center gap-2"><Target className="w-5 h-5 text-medico-blue" /> Para hoy</h2>
+                                    <Link to="/simulador/plan" className="text-xs text-medico-blue hover:underline">Mi plan</Link>
+                                </div>
+                                <ul className="space-y-2 text-sm">
+                                    <Tarea icon={RotateCcw} ok={ph.repasosVencidos === 0} texto={ph.repasosVencidos > 0 ? `${ph.repasosVencidos} repasos vencidos` : 'Repasos al día'} to="/simulador" />
+                                    <Tarea icon={CalendarClock} ok={(ph.clasesAtrasadas || 0) === 0} texto={ph.clasesAtrasadas > 0 ? `${ph.clasesAtrasadas} clases atrasadas del cronograma` : 'Cronograma al día'} to="/cronograma" />
+                                    <Tarea icon={CheckCircle2} ok={(plan.objetivos || []).filter(o => !o.hecho).length === 0} texto={(() => { const n = (plan.objetivos || []).filter(o => !o.hecho).length; return n === 1 ? "1 objetivo pendiente" : `${n} objetivos pendientes` })()} to="/simulador/plan" />
+                                </ul>
+                            </Card>
+                        )}
+
+                        {/* Lecturas en curso */}
+                        {lecturas.length > 0 && (
+                            <Card className="p-5">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h2 className="text-base font-semibold text-gray-900 inline-flex items-center gap-2"><BookOpen className="w-5 h-5 text-amber-600" /> Sigue leyendo</h2>
+                                    <Link to="/biblioteca" className="text-xs text-medico-blue hover:underline">Biblioteca</Link>
+                                </div>
+                                <ul className="space-y-2">
+                                    {lecturas.map(m => (
+                                        <li key={m.id}>
+                                            <Link to={`/biblioteca/leer/${m.id}`} className="flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-gray-50">
+                                                <span className="w-9 h-9 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center flex-shrink-0"><BookOpen className="w-4 h-4" /></span>
+                                                <span className="flex-1 min-w-0"><span className="block text-sm font-medium text-gray-900 truncate">{limpiarTitulo(m.titulo)}</span><span className="block text-xs text-medico-gray">Página {m.lectura.ultimaPagina}{m.lectura.totalPaginas ? ` de ${m.lectura.totalPaginas}` : ''} · {m.lectura.porcentaje}%</span></span>
+                                                <ChevronRight className="w-4 h-4 text-gray-300" />
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Card>
+                        )}
+
+                        {/* Logro */}
+                        {mapa?.stats && (
+                            <Card className="p-5 bg-gradient-to-br from-medico-blue to-blue-900 text-white">
+                                <div className="flex items-center gap-3">
+                                    <span className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center"><Trophy className="w-6 h-6" /></span>
+                                    <div className="flex-1">
+                                        <p className="text-[11px] uppercase tracking-[0.18em] text-blue-100">Nivel {mapa.stats.nivel}</p>
+                                        <p className="font-semibold">{mapa.stats.xp} XP · {mapa.stats.xpSiguienteNivel - mapa.stats.xp} para el siguiente</p>
                                     </div>
-                                )}
-                            </div>
-                        </div>
+                                </div>
+                                <div className="mt-3 h-1.5 bg-white/20 rounded-full overflow-hidden"><div className="h-full bg-emerald-300" style={{ width: `${Math.min(100, Math.round((100 * (mapa.stats.xp - mapa.stats.xpNivelActual)) / Math.max(1, mapa.stats.xpSiguienteNivel - mapa.stats.xpNivelActual)))}%` }} /></div>
+                            </Card>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </Layout>
     )
 }
+
+const Indicador = ({ icon: Icon, tint, valor, label, sub }) => (
+    <Card className="p-4 flex items-center gap-3">
+        <span className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 ${tint}`}><Icon className="w-5 h-5" /></span>
+        <div className="min-w-0">
+            <p className="text-2xl font-bold text-gray-900 tabular-nums leading-none">{valor}</p>
+            <p className="text-xs text-gray-700 mt-1">{label}</p>
+            {sub && <p className="text-[11px] text-medico-gray truncate">{sub}</p>}
+        </div>
+    </Card>
+)
+const Mini = ({ n, l, c }) => <div className="rounded-xl bg-gray-50 p-2"><p className={`text-lg font-semibold leading-none ${c}`}>{n}</p><p className="text-[10px] text-medico-gray mt-1">{l}</p></div>
+const Tarea = ({ icon: Icon, ok, texto, to }) => (
+    <li>
+        <Link to={to} className="flex items-center gap-2 p-2 -mx-2 rounded-xl hover:bg-gray-50">
+            <span className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${ok ? 'bg-emerald-50 text-medico-green' : 'bg-orange-50 text-medico-orange'}`}><Icon className="w-3.5 h-3.5" /></span>
+            <span className={`flex-1 ${ok ? 'text-medico-gray' : 'text-gray-900 font-medium'}`}>{texto}</span>
+            <ChevronRight className="w-4 h-4 text-gray-300" />
+        </Link>
+    </li>
+)
 
 export default MyProgress

@@ -183,7 +183,7 @@ const LandingPage = () => {
                             </motion.div>
 
                             {/* Heading */}
-                            <motion.h1 variants={fadeUp} className="font-bold tracking-tight mb-4">
+                            <motion.h1 variants={fadeUp} className="font-russo tracking-tight mb-4">
                                 <span className="block text-3xl md:text-4xl lg:text-5xl text-gray-900 mb-1">
                                     Domina tu examen del
                                 </span>

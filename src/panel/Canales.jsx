@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
+import { PageHeader } from '../simulador/ui'
 import { useAuth } from '../utils/AuthContext'
 import materialServices from '../services/materiales'
 
@@ -110,22 +111,17 @@ const Canales = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
+                <PageHeader
+                    eyebrow="Comunicación"
+                    title="Canales de Comunicación"
+                    subtitle="Accede a los canales de comunicación de tus cursos y mantente conectado con instructores y compañeros"
+                />
                 <div className="mb-8">
-                    <div className="flex items-center space-x-3 mb-4">
-                        <svg className="w-8 h-8 text-medico-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8z" />
-                        </svg>
-                        <h1 className="text-3xl font-bold text-medico-blue">Canales de Comunicación</h1>
-                    </div>
-                    <p className="text-gray-600 mb-4">
-                        Accede a los canales de comunicación de tus cursos y mantente conectado con instructores y compañeros
-                    </p>
-
                     {/* Estadísticas */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <div className="bg-white p-4 rounded-2xl border border-gray-100">
                             <div className="flex items-center space-x-3">
                                 <div className="p-2 bg-blue-100 rounded-lg">
                                     <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +135,7 @@ const Canales = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <div className="bg-white p-4 rounded-2xl border border-gray-100">
                             <div className="flex items-center space-x-3">
                                 <div className="p-2 bg-green-100 rounded-lg">
                                     <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +149,7 @@ const Canales = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                        <div className="bg-white p-4 rounded-2xl border border-gray-100">
                             <div className="flex items-center space-x-3">
                                 <div className="p-2 bg-purple-100 rounded-lg">
                                     <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -183,7 +179,7 @@ const Canales = () => {
 
                 {/* ========== FILTROS ========== */}
                 {canales.length > 0 && (
-                    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+                    <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-6">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                             <h3 className="text-lg font-medium text-gray-900">
                                 Mis Canales ({canalesFiltrados.length})
@@ -194,7 +190,7 @@ const Canales = () => {
                                 <select
                                     value={filtroTipo}
                                     onChange={(e) => setFiltroTipo(e.target.value)}
-                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent text-sm"
+                                    className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent text-sm"
                                 >
                                     <option value="">Todos los tipos</option>
                                     {getTiposDisponibles().map(tipo => {
@@ -218,7 +214,7 @@ const Canales = () => {
                         const estadoBadge = getEstadoBadge(canal.estado_acceso)
 
                         return (
-                            <div key={canal.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
+                            <div key={canal.id} className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-all duration-200">
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center space-x-3 mb-3">
@@ -258,7 +254,7 @@ const Canales = () => {
                                         {canal.puede_acceder ? (
                                             <button
                                                 onClick={() => handleAccederCanal(canal)}
-                                                className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                                className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2 font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -300,7 +296,7 @@ const Canales = () => {
                         </p>
                         <button
                             onClick={() => navigate('/cursos')}
-                            className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                            className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                         >
                             Explorar Cursos
                         </button>

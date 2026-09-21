@@ -1,4 +1,3 @@
-
 // ============================================
 // src/services/userManagement.js - CORREGIDO Y SIMPLIFICADO
 // ============================================
@@ -7,28 +6,6 @@ import apiService from './api'
 class UserManagementService {
 
     // ==================== USUARIOS BÁSICOS ====================
-    // async getAllUsers(filters = {}) {
-    //     try {
-    //         console.log('Obteniendo usuarios con filtros:', filters)
-    //         const response = await apiService.get('/users', filters) // CORREGIDO: /admin/users -> /users
-    //
-    //         if (response.success && response.data) {
-    //             return {
-    //                 success: true,
-    //                 data: {
-    //                     usuarios: response.data.usuarios || [],
-    //                     pagination: response.data.pagination || {}
-    //                 }
-    //             }
-    //         }
-    //
-    //         return { success: false, error: 'No se pudieron cargar los usuarios' }
-    //     } catch (error) {
-    //         console.error('Error obteniendo usuarios:', error)
-    //         return { success: false, error: error.message }
-    //     }
-    // }
-
     async getAllUsers(filters = {}) {
         try {
             console.log('Obteniendo usuarios con filtros:', filters)

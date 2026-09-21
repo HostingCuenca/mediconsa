@@ -104,7 +104,7 @@ const SimulacrosMantenimiento = () => {
 
             if (result.success) {
                 setEstadisticasCompletas(result.data)
-                setSuccess('✅ Estadísticas completas cargadas correctamente')
+                setSuccess('Estadísticas completas cargadas correctamente')
                 setTimeout(() => setSuccess(''), 3000)
             } else {
                 setError(result.error || 'Error cargando estadísticas completas')
@@ -151,7 +151,7 @@ const SimulacrosMantenimiento = () => {
             const result = await simulacrosAdminService.eliminarIntentos(selectedIntentos)
 
             if (result.success) {
-                setSuccess(`✅ ${result.data.intentos_eliminados} intentos y ${result.data.respuestas_eliminadas} respuestas eliminadas correctamente`)
+                setSuccess(`${result.data.intentos_eliminados} intentos y ${result.data.respuestas_eliminadas} respuestas eliminadas correctamente`)
                 setSelectedIntentos([])
                 setShowDeleteModal(false)
 
@@ -184,18 +184,19 @@ const SimulacrosMantenimiento = () => {
                     <div className="mb-8">
                         <div className="flex items-center justify-between">
                             <div className="flex-1">
-                                <h1 className="text-3xl font-bold text-gray-900">
-                                    🗑️ Mantenimiento de Simulacros
+                                <span className="inline-block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Contenido · Admin</span>
+                                <h1 className="text-3xl text-gray-900 tracking-tight">
+                                    Mantenimiento de Simulacros
                                 </h1>
                                 <p className="text-gray-600 mt-2">
                                     Purificación de intentos antiguos para optimizar la base de datos
                                 </p>
                                 <div className="mt-3 space-y-1">
                                     <p className="text-sm text-amber-600">
-                                        ⚠️ Esta sección NO permite crear/editar simulacros. Solo purificar intentos viejos.
+                                        Esta sección NO permite crear/editar simulacros. Solo purificar intentos viejos.
                                     </p>
                                     <p className="text-sm text-blue-600">
-                                        ℹ️ Por motivos de optimización, solo se muestran los últimos 100 intentos más recientes.
+                                        Por motivos de optimización, solo se muestran los últimos 100 intentos más recientes.
                                     </p>
                                 </div>
                             </div>
@@ -203,7 +204,7 @@ const SimulacrosMantenimiento = () => {
                                 <button
                                     onClick={loadCompleteStats}
                                     disabled={loadingStats || !selectedCurso}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                     title={!selectedCurso ? 'Selecciona un curso primero' : 'Ver estadísticas completas de la base de datos'}
                                 >
                                     {loadingStats ? (
@@ -253,7 +254,7 @@ const SimulacrosMantenimiento = () => {
                         <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 mb-8 text-white">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <h2 className="text-2xl font-bold">📊 Estadísticas Completas de Base de Datos</h2>
+                                    <h2 className="text-2xl font-bold">Estadísticas completas de la base de datos</h2>
                                     {estadisticasCompletas.curso && (
                                         <p className="text-purple-100 text-sm mt-1">
                                             Curso: {estadisticasCompletas.curso.titulo}
@@ -292,7 +293,7 @@ const SimulacrosMantenimiento = () => {
                                 </div>
                             </div>
                             <p className="text-purple-100 text-sm mt-4">
-                                ℹ️ Estas son las estadísticas totales de TODA la base de datos{selectedCurso ? ' para este curso' : ''}, no solo los 100 registros mostrados.
+                                Estas son las estadísticas totales de TODA la base de datos{selectedCurso ? ' para este curso' : ''}, no solo los 100 registros mostrados.
                             </p>
                         </div>
                     )}
@@ -304,7 +305,7 @@ const SimulacrosMantenimiento = () => {
                         </h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white rounded-lg shadow p-6">
+                        <div className="bg-white rounded-2xl shadow-sm p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 bg-blue-100 rounded-lg p-3">
                                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -318,7 +319,7 @@ const SimulacrosMantenimiento = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg shadow p-6">
+                        <div className="bg-white rounded-2xl shadow-sm p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 bg-purple-100 rounded-lg p-3">
                                     <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -332,7 +333,7 @@ const SimulacrosMantenimiento = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg shadow p-6">
+                        <div className="bg-white rounded-2xl shadow-sm p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 bg-amber-100 rounded-lg p-3">
                                     <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -346,7 +347,7 @@ const SimulacrosMantenimiento = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-lg shadow p-6">
+                        <div className="bg-white rounded-2xl shadow-sm p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 bg-green-100 rounded-lg p-3">
                                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -362,7 +363,7 @@ const SimulacrosMantenimiento = () => {
                     </div>
 
                     {/* Filtros y Acciones */}
-                    <div className="bg-white rounded-lg shadow mb-6 p-6">
+                    <div className="bg-white rounded-2xl shadow-sm mb-6 p-6">
                         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                             {/* Selector de Curso */}
                             <div className="flex-1">
@@ -372,7 +373,7 @@ const SimulacrosMantenimiento = () => {
                                 <select
                                     value={selectedCurso}
                                     onChange={(e) => setSelectedCurso(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 >
                                     <option value="">Todos los cursos</option>
                                     {cursos.map(curso => (
@@ -421,14 +422,14 @@ const SimulacrosMantenimiento = () => {
                                     <button
                                         onClick={handleSelectAll}
                                         disabled={intentos.length === 0}
-                                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {selectedIntentos.length === intentos.length ? 'Deseleccionar' : 'Seleccionar'} Todos
                                     </button>
                                     <button
                                         onClick={handleDeleteConfirm}
                                         disabled={selectedIntentos.length === 0}
-                                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                        className="px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -480,7 +481,7 @@ const SimulacrosMantenimiento = () => {
 const VistaPorCurso = ({ grupos, selectedIntentos, onSelectIntento }) => {
     if (Object.keys(grupos).length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
+            <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
                 <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -492,7 +493,7 @@ const VistaPorCurso = ({ grupos, selectedIntentos, onSelectIntento }) => {
     return (
         <div className="space-y-6">
             {Object.entries(grupos).map(([cursoId, grupo]) => (
-                <div key={cursoId} className="bg-white rounded-lg shadow overflow-hidden">
+                <div key={cursoId} className="bg-white rounded-2xl shadow-sm overflow-hidden">
                     <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
                         <div className="flex items-center justify-between">
                             <div>
@@ -581,7 +582,7 @@ const VistaPorCurso = ({ grupos, selectedIntentos, onSelectIntento }) => {
 const VistaPorSimulacro = ({ grupos, selectedIntentos, onSelectIntento }) => {
     if (Object.keys(grupos).length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
+            <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
                 <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -593,7 +594,7 @@ const VistaPorSimulacro = ({ grupos, selectedIntentos, onSelectIntento }) => {
     return (
         <div className="space-y-6">
             {Object.entries(grupos).map(([simulacroId, grupo]) => (
-                <div key={simulacroId} className="bg-white rounded-lg shadow overflow-hidden">
+                <div key={simulacroId} className="bg-white rounded-2xl shadow-sm overflow-hidden">
                     <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4">
                         <div className="flex items-center justify-between">
                             <div>
@@ -684,7 +685,7 @@ const DeleteConfirmModal = ({ selectedCount, estadisticas, intentos, onConfirm, 
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex items-center gap-4 mb-6">
                         <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
@@ -700,7 +701,7 @@ const DeleteConfirmModal = ({ selectedCount, estadisticas, intentos, onConfirm, 
 
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
                         <p className="text-sm text-amber-800">
-                            ⚠️ <strong>IMPORTANTE:</strong> Esta acción eliminará permanentemente los intentos seleccionados y todas sus respuestas asociadas.
+                            <strong>Importante:</strong> Esta acción eliminará permanentemente los intentos seleccionados y todas sus respuestas asociadas.
                             Los simulacros, preguntas y opciones NO serán afectados.
                         </p>
                     </div>
@@ -732,14 +733,14 @@ const DeleteConfirmModal = ({ selectedCount, estadisticas, intentos, onConfirm, 
                         <button
                             onClick={onCancel}
                             disabled={loading}
-                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50 transition-colors disabled:opacity-50"
                         >
                             Cancelar
                         </button>
                         <button
                             onClick={onConfirm}
                             disabled={loading}
-                            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>

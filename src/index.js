@@ -6,6 +6,11 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { GOOGLE_CLIENT_ID } from './config/google';
 
+// En producción no se muestra ningún log en la consola del navegador
+if (process.env.NODE_ENV === 'production') {
+  ['log', 'info', 'debug', 'warn', 'error', 'table', 'group', 'groupEnd', 'trace'].forEach(m => { console[m] = () => {} });
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

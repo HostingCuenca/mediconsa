@@ -1,6 +1,7 @@
 // src/adminpanel/Courses.jsx - REFACTORIZADO Y COMPATIBLE AL 100%
 import React, { useState, useEffect } from 'react'
 import Layout from '../utils/Layout'
+import { PageHeader } from '../simulador/ui'
 import coursesService from '../services/courses'
 
 const AdminCourses = () => {
@@ -271,18 +272,16 @@ const AdminCourses = () => {
     // ========== RENDER ==========
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-medico-blue">Gestión de Cursos</h1>
-                        <p className="text-medico-gray mt-2">Administra todos los cursos de la plataforma</p>
-                    </div>
-
-                    {!showCreateForm && !showEditForm && (
+                <PageHeader
+                    eyebrow="Contenido · Admin"
+                    title="Gestión de Cursos"
+                    subtitle="Administra todos los cursos de la plataforma"
+                    actions={!showCreateForm && !showEditForm && (
                         <button
                             onClick={handleCreateCourse}
-                            className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                            className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -290,7 +289,7 @@ const AdminCourses = () => {
                             <span>Crear Curso</span>
                         </button>
                     )}
-                </div>
+                />
 
                 {/* ========== MENSAJES ========== */}
                 {error && (
@@ -323,7 +322,7 @@ const AdminCourses = () => {
 
                 {/* ========== FILTROS ========== */}
                 {!showCreateForm && !showEditForm && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
@@ -333,7 +332,7 @@ const AdminCourses = () => {
                                     value={filters.search}
                                     onChange={handleFilterChange}
                                     placeholder="Título, descripción..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                 />
                             </div>
 
@@ -343,7 +342,7 @@ const AdminCourses = () => {
                                     name="tipo"
                                     value={filters.tipo}
                                     onChange={handleFilterChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                 >
                                     {tiposExamen.map(tipo => (
                                         <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
@@ -357,7 +356,7 @@ const AdminCourses = () => {
                                     name="gratuito"
                                     value={filters.gratuito}
                                     onChange={handleFilterChange}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                 >
                                     <option value="">Todos</option>
                                     <option value="true">Gratuitos</option>
@@ -373,7 +372,7 @@ const AdminCourses = () => {
                                         gratuito: '',
                                         sortBy: 'fecha_creacion'
                                     })}
-                                    className="w-full px-3 py-2 text-medico-blue border border-medico-blue rounded-lg hover:bg-medico-blue hover:text-white transition-colors"
+                                    className="w-full px-3 py-2 text-medico-blue border border-medico-blue rounded-full hover:bg-medico-blue hover:text-white transition-colors"
                                 >
                                     Limpiar Filtros
                                 </button>
@@ -384,7 +383,7 @@ const AdminCourses = () => {
 
                 {/* ========== FORMULARIO ========== */}
                 {(showCreateForm || showEditForm) && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold text-medico-blue">
                                 {showEditForm ? 'Editar Curso' : 'Crear Nuevo Curso'}
@@ -465,7 +464,7 @@ const AdminCourses = () => {
                                         name="miniatura_url"
                                         value={formData.miniatura_url}
                                         onChange={handleFormChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="https://ejemplo.com/imagen.jpg"
                                     />
                                     {formData.miniatura_url && (
@@ -491,7 +490,7 @@ const AdminCourses = () => {
                                         name="tipo_examen"
                                         value={formData.tipo_examen}
                                         onChange={handleFormChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     >
                                         {tiposExamen.map(tipo => (
                                             <option key={tipo.value} value={tipo.value}>{tipo.label}</option>
@@ -532,7 +531,7 @@ const AdminCourses = () => {
                                         onChange={handleFormChange}
                                         min="0"
                                         max="100"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="0"
                                     />
                                 </div>
@@ -568,14 +567,14 @@ const AdminCourses = () => {
                                 <button
                                     type="button"
                                     onClick={handleCancelForm}
-                                    className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="px-6 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={formLoading}
-                                    className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                                    className="px-6 py-2 bg-medico-blue text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                                 >
                                     {formLoading && (
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -602,7 +601,7 @@ const AdminCourses = () => {
                                 {courses.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {courses.map((course) => (
-                                            <div key={course.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                                            <div key={course.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-sm transition-shadow">
                                                 {/* Miniatura */}
                                                 <div className="h-48 bg-gray-200 relative">
                                                     {course.miniatura_url ? (
@@ -656,7 +655,7 @@ const AdminCourses = () => {
                                                     <div className="grid grid-cols-2 gap-2 mb-3">
                                                         <button
                                                             onClick={() => handleEditCourse(course)}
-                                                            className="bg-medico-blue text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center justify-center space-x-1"
+                                                            className="bg-medico-blue text-white py-2 px-3 rounded-full hover:bg-blue-700 transition-colors text-sm flex items-center justify-center space-x-1"
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -666,7 +665,7 @@ const AdminCourses = () => {
 
                                                         <button
                                                             onClick={() => handleManageCourse(course)}
-                                                            className="bg-green-600 text-white py-2 px-3 rounded-lg hover:bg-green-700 transition-colors text-sm flex items-center justify-center space-x-1"
+                                                            className="bg-green-600 text-white py-2 px-3 rounded-full hover:bg-green-700 transition-colors text-sm flex items-center justify-center space-x-1"
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -680,7 +679,7 @@ const AdminCourses = () => {
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <button
                                                             onClick={() => handleViewCourse(course)}
-                                                            className="bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                                            className="bg-gray-100 text-gray-700 py-2 px-3 rounded-full hover:bg-gray-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -691,7 +690,7 @@ const AdminCourses = () => {
 
                                                         <button
                                                             onClick={() => handleDeleteCourse(course)}
-                                                            className="bg-red-100 text-red-700 py-2 px-3 rounded-lg hover:bg-red-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                                            className="bg-red-100 text-red-700 py-2 px-3 rounded-full hover:bg-red-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                                         >
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -717,7 +716,7 @@ const AdminCourses = () => {
                                         </p>
                                         <button
                                             onClick={handleCreateCourse}
-                                            className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
+                                            className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -734,7 +733,7 @@ const AdminCourses = () => {
                 {/* ========== MODAL DE VISUALIZACIÓN ========== */}
                 {showViewModal && selectedCourse && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-90vh overflow-y-auto">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-4xl mx-4 max-h-90vh overflow-y-auto">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-2xl font-bold text-medico-blue">Detalles del Curso</h2>
                                 <button
@@ -813,7 +812,7 @@ const AdminCourses = () => {
                                                 setShowViewModal(false)
                                                 handleEditCourse(selectedCourse)
                                             }}
-                                            className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                            className="bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors"
                                         >
                                             Editar Curso
                                         </button>
@@ -822,7 +821,7 @@ const AdminCourses = () => {
                                                 setShowViewModal(false)
                                                 handleManageCourse(selectedCourse)
                                             }}
-                                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                            className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors"
                                         >
                                             Gestionar Contenido
                                         </button>
@@ -836,7 +835,7 @@ const AdminCourses = () => {
                 {/* ========== MODAL DE CONFIRMACIÓN DE ELIMINACIÓN ========== */}
                 {showDeleteConfirm && selectedCourse && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
                             <div className="mb-4">
                                 <h3 className="text-lg font-semibold text-gray-900">Confirmar Eliminación</h3>
                                 <p className="text-gray-600 mt-2">
@@ -851,14 +850,14 @@ const AdminCourses = () => {
                                         setShowDeleteConfirm(false)
                                         setSelectedCourse(null)
                                     }}
-                                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="px-4 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={confirmDeleteCourse}
                                     disabled={formLoading}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center space-x-2"
+                                    className="px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center space-x-2"
                                 >
                                     {formLoading && (
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

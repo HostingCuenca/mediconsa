@@ -173,11 +173,11 @@ const MaterialManager = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
                 <div className="flex justify-between items-start mb-8">
                     <div>
-                        <div className="flex items-center space-x-4 mb-2">
+                        <div className="flex items-center space-x-4 mb-1">
                             {cursoId && (
                                 <button
                                     onClick={() => navigate(-1)}
@@ -188,9 +188,12 @@ const MaterialManager = () => {
                                     </svg>
                                 </button>
                             )}
-                            <h1 className="text-3xl font-bold text-medico-blue">
-                                📚 {cursoId ? 'Materiales del Curso' : 'Gestión de MyMateriales'}
-                            </h1>
+                            <div>
+                                <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Contenido · Admin</span>
+                                <h1 className="text-3xl text-gray-900 tracking-tight">
+                                    {cursoId ? 'Materiales del Curso' : 'Gestión de Materiales'}
+                                </h1>
+                            </div>
                         </div>
                         {curso && (
                             <h2 className="text-xl text-gray-700 mb-2">{curso.titulo}</h2>
@@ -202,7 +205,7 @@ const MaterialManager = () => {
 
                     <button
                         onClick={() => setShowForm(true)}
-                        className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                        className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -279,7 +282,7 @@ const MaterialManager = () => {
                         const tipoBadge = getTipoMaterialBadge(material.tipo_material)
 
                         return (
-                            <div key={material.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                            <div key={material.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-sm transition-shadow">
                                 {material.imagen_url && (
                                     <div className="h-48 bg-gray-100">
                                         <img
@@ -329,7 +332,7 @@ const MaterialManager = () => {
                                     <div className="flex space-x-2">
                                         <button
                                             onClick={() => window.open(material.archivo_url, '_blank')}
-                                            className="flex-1 bg-blue-50 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                                            className="flex-1 bg-blue-50 text-blue-700 py-2 px-3 rounded-full hover:bg-blue-100 transition-colors text-sm font-medium"
                                         >
                                             👁️ Ver
                                         </button>
@@ -339,7 +342,7 @@ const MaterialManager = () => {
                                                 setEditingMaterial(material.id)
                                                 setShowForm(true)
                                             }}
-                                            className="flex-1 bg-gray-50 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
+                                            className="flex-1 bg-gray-50 text-gray-700 py-2 px-3 rounded-full hover:bg-gray-100 transition-colors text-sm font-medium"
                                         >
                                             ✏️ Editar
                                         </button>
@@ -362,7 +365,7 @@ const MaterialManager = () => {
                         </p>
                         <button
                             onClick={() => setShowForm(true)}
-                            className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                            className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                         >
                             ➕ Crear Material
                         </button>
@@ -372,7 +375,7 @@ const MaterialManager = () => {
                 {/* ========== MODAL FORMULARIO ========== */}
                 {showForm && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg w-full max-w-2xl max-h-90vh overflow-y-auto">
+                        <div className="bg-white rounded-2xl w-full max-w-2xl max-h-90vh overflow-y-auto">
                             <div className="p-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h3 className="text-xl font-semibold text-gray-900">
@@ -401,7 +404,7 @@ const MaterialManager = () => {
                                                 type="text"
                                                 value={materialForm.titulo}
                                                 onChange={(e) => setMaterialForm(prev => ({ ...prev, titulo: e.target.value }))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 required
                                                 placeholder="Ej: Harrison Principios de Medicina Interna"
                                             />
@@ -415,7 +418,7 @@ const MaterialManager = () => {
                                                 value={materialForm.descripcion}
                                                 onChange={(e) => setMaterialForm(prev => ({ ...prev, descripcion: e.target.value }))}
                                                 rows={3}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="Descripción detallada del material..."
                                             />
                                         </div>
@@ -428,7 +431,7 @@ const MaterialManager = () => {
                                                 type="url"
                                                 value={materialForm.archivoUrl}
                                                 onChange={(e) => setMaterialForm(prev => ({ ...prev, archivoUrl: e.target.value }))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 required
                                                 placeholder="https://drive.google.com/file/d/..."
                                             />
@@ -441,7 +444,7 @@ const MaterialManager = () => {
                                             <select
                                                 value={materialForm.tipoMaterial}
                                                 onChange={(e) => setMaterialForm(prev => ({ ...prev, tipoMaterial: e.target.value }))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 disabled={!!cursoId}
                                             >
                                                 <option value="curso">📚 Material de Curso</option>
@@ -457,7 +460,7 @@ const MaterialManager = () => {
                                             <select
                                                 value={materialForm.tipoArchivo}
                                                 onChange={(e) => setMaterialForm(prev => ({ ...prev, tipoArchivo: e.target.value }))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                             >
                                                 <option value="pdf">📄 PDF</option>
                                                 <option value="doc">📝 DOC/DOCX</option>
@@ -479,7 +482,7 @@ const MaterialManager = () => {
                                                 min="0"
                                                 value={materialForm.precio}
                                                 onChange={(e) => setMaterialForm(prev => ({ ...prev, precio: e.target.value }))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 disabled={materialForm.esGratuito}
                                             />
                                         </div>
@@ -492,7 +495,7 @@ const MaterialManager = () => {
                                                 type="text"
                                                 value={materialForm.categoria}
                                                 onChange={(e) => setMaterialForm(prev => ({ ...prev, categoria: e.target.value }))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="medicina, enfermería, odontología..."
                                             />
                                         </div>
@@ -505,7 +508,7 @@ const MaterialManager = () => {
                                                 type="url"
                                                 value={materialForm.imagenUrl}
                                                 onChange={(e) => setMaterialForm(prev => ({ ...prev, imagenUrl: e.target.value }))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="https://ejemplo.com/imagen.jpg"
                                             />
                                         </div>
@@ -546,14 +549,14 @@ const MaterialManager = () => {
                                                 setShowForm(false)
                                                 resetForm()
                                             }}
-                                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                                         >
                                             Cancelar
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={formLoading}
-                                            className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center space-x-2"
+                                            className="px-6 py-2 bg-medico-blue text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center space-x-2"
                                         >
                                             {formLoading && (
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

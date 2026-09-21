@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
+import { PageHeader } from '../simulador/ui'
 import materialServices from '../services/materiales'
 import coursesService from '../services/courses'
 
@@ -647,41 +648,41 @@ const Materiales = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* Header */}
-                <div className="flex justify-between items-start mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-medico-blue mb-2">Gestión de Materiales</h1>
-                        <p className="text-medico-gray">Administra todos los materiales de la plataforma</p>
-                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                            <span>{materiales.length} materiales totales</span>
-                            <span>•</span>
-                            <span>{filteredMateriales.length} mostrados</span>
-                            <span>•</span>
-                            <span>{cursos.length} cursos</span>
-                        </div>
-                    </div>
-
-                    <div className="flex space-x-3">
-                        <button
-                            onClick={openCreateModal}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            <span>Nuevo Material</span>
-                        </button>
-                        <button
-                            onClick={loadData}
-                            className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors flex items-center space-x-2"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            <span>Actualizar</span>
-                        </button>
-                    </div>
+                <PageHeader
+                    eyebrow="Contenido · Admin"
+                    title="Gestión de Materiales"
+                    subtitle="Administra todos los materiales de la plataforma"
+                    actions={(
+                        <>
+                            <button
+                                onClick={openCreateModal}
+                                className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors flex items-center space-x-2"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                <span>Nuevo Material</span>
+                            </button>
+                            <button
+                                onClick={loadData}
+                                className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full hover:bg-blue-200 transition-colors flex items-center space-x-2"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                <span>Actualizar</span>
+                            </button>
+                        </>
+                    )}
+                />
+                <div className="flex items-center space-x-4 -mt-4 mb-6 text-sm text-gray-500">
+                    <span>{materiales.length} materiales totales</span>
+                    <span>•</span>
+                    <span>{filteredMateriales.length} mostrados</span>
+                    <span>•</span>
+                    <span>{cursos.length} cursos</span>
                 </div>
 
                 {/* Mensajes */}
@@ -722,7 +723,7 @@ const Materiales = () => {
                 )}
 
                 {/* Filtros */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
@@ -731,7 +732,7 @@ const Materiales = () => {
                                 name="search"
                                 value={filters.search}
                                 onChange={handleFilterChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                 placeholder="Buscar materiales..."
                             />
                         </div>
@@ -742,7 +743,7 @@ const Materiales = () => {
                                 name="curso"
                                 value={filters.curso}
                                 onChange={handleFilterChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todos los cursos</option>
                                 {cursos.map(curso => (
@@ -758,7 +759,7 @@ const Materiales = () => {
                                 name="tipo"
                                 value={filters.tipo}
                                 onChange={handleFilterChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todos los tipos</option>
                                 <option value="curso">📚 Material de Curso</option>
@@ -773,7 +774,7 @@ const Materiales = () => {
                                 name="categoria"
                                 value={filters.categoria}
                                 onChange={handleFilterChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todas</option>
                                 {getCategorias().map(categoria => (
@@ -788,7 +789,7 @@ const Materiales = () => {
                                 name="precio"
                                 value={filters.precio}
                                 onChange={handleFilterChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todos</option>
                                 <option value="gratis">💚 Gratuitos</option>
@@ -799,7 +800,7 @@ const Materiales = () => {
                         <div className="flex items-end">
                             <button
                                 onClick={resetFilters}
-                                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-200 transition-colors"
                             >
                                 Limpiar filtros
                             </button>
@@ -818,7 +819,7 @@ const Materiales = () => {
                             const archivoBadge = getTipoArchivoBadge(material.tipo_archivo)
 
                             return (
-                                <div key={material.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                                <div key={material.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-sm transition-shadow">
                                     {/* Imagen si existe */}
                                     {material.imagen_url && (
                                         <div className="h-48 bg-gray-100">
@@ -907,21 +908,21 @@ const Materiales = () => {
                                         <div className="grid grid-cols-3 gap-2 mb-3">
                                             <button
                                                 onClick={() => handleViewMaterial(material)}
-                                                className="bg-blue-100 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                                className="bg-blue-100 text-blue-700 py-2 px-3 rounded-full hover:bg-blue-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                             >
                                                 <span>👁️</span>
                                                 <span>Ver</span>
                                             </button>
                                             <button
                                                 onClick={() => openEditModal(material)}
-                                                className="bg-purple-100 text-purple-700 py-2 px-3 rounded-lg hover:bg-purple-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                                className="bg-purple-100 text-purple-700 py-2 px-3 rounded-full hover:bg-purple-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                             >
                                                 <span>✏️</span>
                                                 <span>Editar</span>
                                             </button>
                                             <button
                                                 onClick={() => copyToClipboard(material.archivo_url)}
-                                                className="bg-green-100 text-green-700 py-2 px-3 rounded-lg hover:bg-green-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                                className="bg-green-100 text-green-700 py-2 px-3 rounded-full hover:bg-green-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                                 title="Copiar enlace"
                                             >
                                                 <span>📋</span>
@@ -932,14 +933,14 @@ const Materiales = () => {
                                         <div className="grid grid-cols-2 gap-2">
                                             <button
                                                 onClick={() => handleGoToCourse(material)}
-                                                className="bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                                className="bg-gray-100 text-gray-700 py-2 px-3 rounded-full hover:bg-gray-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                             >
                                                 <span>📚</span>
                                                 <span>Ir al curso</span>
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteMaterial(material)}
-                                                className="bg-red-100 text-red-700 py-2 px-3 rounded-lg hover:bg-red-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                                className="bg-red-100 text-red-700 py-2 px-3 rounded-full hover:bg-red-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                             >
                                                 <span>🗑️</span>
                                                 <span>Eliminar</span>
@@ -974,14 +975,14 @@ const Materiales = () => {
                         {materiales.length === 0 ? (
                             <button
                                 onClick={openCreateModal}
-                                className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                                className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                             >
                                 ➕ Crear Primer Material
                             </button>
                         ) : (
                             <button
                                 onClick={resetFilters}
-                                className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                                className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                             >
                                 Limpiar Filtros
                             </button>
@@ -992,7 +993,7 @@ const Materiales = () => {
                 {/* MODAL DE CREAR MATERIAL */}
                 {showCreateModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                             <div className="p-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-2xl font-bold text-gray-900">
@@ -1037,7 +1038,7 @@ const Materiales = () => {
                                                     />
                                                     <label
                                                         htmlFor="file-upload"
-                                                        className="bg-medico-blue text-white px-6 py-2 rounded-lg hover:bg-blue-700 cursor-pointer inline-block"
+                                                        className="bg-medico-blue text-white px-6 py-2 rounded-full hover:bg-blue-700 cursor-pointer inline-block"
                                                     >
                                                         📤 Seleccionar Archivo
                                                     </label>
@@ -1094,7 +1095,7 @@ const Materiales = () => {
                                                 name="titulo"
                                                 value={createForm.titulo}
                                                 onChange={handleCreateFormChange}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="Título del material"
                                                 disabled={saving || uploading}
                                             />
@@ -1110,7 +1111,7 @@ const Materiales = () => {
                                                 value={createForm.descripcion}
                                                 onChange={handleCreateFormChange}
                                                 rows={3}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="Descripción del material"
                                                 disabled={saving || uploading}
                                             />
@@ -1125,7 +1126,7 @@ const Materiales = () => {
                                                 name="tipoArchivo"
                                                 value={createForm.tipoArchivo}
                                                 onChange={handleCreateFormChange}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 disabled={saving || uploading}
                                             >
                                                 <option value="pdf">📄 PDF</option>
@@ -1147,7 +1148,7 @@ const Materiales = () => {
                                                 name="tipoMaterial"
                                                 value={createForm.tipoMaterial}
                                                 onChange={handleCreateFormChange}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 disabled={saving || uploading}
                                             >
                                                 <option value="libre">🆓 Descarga Gratuita</option>
@@ -1166,7 +1167,7 @@ const Materiales = () => {
                                                     name="cursoId"
                                                     value={createForm.cursoId}
                                                     onChange={handleCreateFormChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                     disabled={saving || uploading}
                                                 >
                                                     <option value="">Seleccionar curso</option>
@@ -1187,7 +1188,7 @@ const Materiales = () => {
                                                 name="categoria"
                                                 value={createForm.categoria}
                                                 onChange={handleCreateFormChange}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="ej: medicina, enfermería"
                                                 disabled={saving || uploading}
                                             />
@@ -1205,7 +1206,7 @@ const Materiales = () => {
                                                 onChange={handleCreateFormChange}
                                                 step="0.01"
                                                 min="0"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 disabled={saving || uploading || createForm.esGratuito}
                                             />
                                         </div>
@@ -1221,7 +1222,7 @@ const Materiales = () => {
                                                 value={createForm.stockDisponible}
                                                 onChange={handleCreateFormChange}
                                                 min="-1"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="-1 = Ilimitado"
                                                 disabled={saving || uploading}
                                             />
@@ -1237,7 +1238,7 @@ const Materiales = () => {
                                                 name="imagenUrl"
                                                 value={createForm.imagenUrl}
                                                 onChange={handleCreateFormChange}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="https://ejemplo.com/imagen.jpg"
                                                 disabled={saving || uploading}
                                             />
@@ -1293,14 +1294,14 @@ const Materiales = () => {
                                     <div className="flex justify-end space-x-3 pt-6 border-t">
                                         <button
                                             onClick={closeCreateModal}
-                                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                                             disabled={saving || uploading}
                                         >
                                             Cancelar
                                         </button>
                                         <button
                                             onClick={handleSaveCreate}
-                                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                                            className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition-colors flex items-center space-x-2"
                                             disabled={saving || uploading || !createForm.titulo.trim() || !selectedFile}
                                         >
                                             {(saving || uploading) ? (
@@ -1327,7 +1328,7 @@ const Materiales = () => {
                 {/* MODAL DE EDITAR MATERIAL */}
                 {showEditModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                             <div className="p-6">
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-2xl font-bold text-gray-900">
@@ -1375,7 +1376,7 @@ const Materiales = () => {
                                                     name="titulo"
                                                     value={editForm.titulo}
                                                     onChange={handleEditFormChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                     disabled={saving}
                                                 />
                                             </div>
@@ -1390,7 +1391,7 @@ const Materiales = () => {
                                                     value={editForm.descripcion}
                                                     onChange={handleEditFormChange}
                                                     rows={3}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                     disabled={saving}
                                                 />
                                             </div>
@@ -1406,7 +1407,7 @@ const Materiales = () => {
                                                     name="tipoMaterial"
                                                     value={editForm.tipoMaterial}
                                                     onChange={handleEditFormChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                     disabled={saving}
                                                 >
                                                     <option value="curso">📚 Material de Curso</option>
@@ -1425,7 +1426,7 @@ const Materiales = () => {
                                                     name="categoria"
                                                     value={editForm.categoria}
                                                     onChange={handleEditFormChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                     disabled={saving}
                                                 />
                                             </div>
@@ -1442,7 +1443,7 @@ const Materiales = () => {
                                                     onChange={handleEditFormChange}
                                                     step="0.01"
                                                     min="0"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                     disabled={saving || editForm.esGratuito}
                                                 />
                                             </div>
@@ -1458,7 +1459,7 @@ const Materiales = () => {
                                                     value={editForm.stockDisponible}
                                                     onChange={handleEditFormChange}
                                                     min="-1"
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                     disabled={saving}
                                                 />
                                             </div>
@@ -1473,7 +1474,7 @@ const Materiales = () => {
                                                     name="imagenUrl"
                                                     value={editForm.imagenUrl}
                                                     onChange={handleEditFormChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                     disabled={saving}
                                                 />
                                             </div>
@@ -1527,14 +1528,14 @@ const Materiales = () => {
                                         <div className="flex justify-end space-x-3 pt-6 border-t">
                                             <button
                                                 onClick={closeEditModal}
-                                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
                                                 disabled={saving}
                                             >
                                                 Cancelar
                                             </button>
                                             <button
                                                 onClick={handleSaveEdit}
-                                                className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                                className="px-6 py-2 bg-medico-blue text-white rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2"
                                                 disabled={saving || !editForm.titulo.trim()}
                                             >
                                                 {saving ? (
@@ -1569,7 +1570,7 @@ const Materiales = () => {
                 {/* ========== MODAL ENLACE CREADO ========== */}
                 {showLinkModal && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg w-full max-w-lg">
+                        <div className="bg-white rounded-2xl w-full max-w-lg">
                             <div className="p-6">
                                 <div className="text-center mb-6">
                                     <div className="text-5xl mb-4">🎉</div>
@@ -1590,11 +1591,11 @@ const Materiales = () => {
                                             type="text"
                                             value={createdMaterialUrl}
                                             readOnly
-                                            className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm"
+                                            className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-2xl text-sm"
                                         />
                                         <button
                                             onClick={() => copyToClipboard(createdMaterialUrl)}
-                                            className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                                            className="bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-1"
                                         >
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1607,7 +1608,7 @@ const Materiales = () => {
                                 <div className="flex space-x-3">
                                     <button
                                         onClick={() => window.open(createdMaterialUrl, '_blank')}
-                                        className="flex-1 bg-green-50 text-green-700 py-2 px-4 rounded-lg hover:bg-green-100 transition-colors font-medium"
+                                        className="flex-1 bg-green-50 text-green-700 py-2 px-4 rounded-full hover:bg-green-100 transition-colors font-medium"
                                     >
                                         👁️ Ver Archivo
                                     </button>
@@ -1616,7 +1617,7 @@ const Materiales = () => {
                                             setShowLinkModal(false)
                                             setCreatedMaterialUrl('')
                                         }}
-                                        className="flex-1 bg-medico-blue text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                        className="flex-1 bg-medico-blue text-white py-2 px-4 rounded-full hover:bg-blue-700 transition-colors font-medium"
                                     >
                                         ✅ Entendido
                                     </button>

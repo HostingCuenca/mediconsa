@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Layout from '../utils/Layout'
+import { PageHeader } from '../simulador/ui'
 import dashboardService from '../services/dashboard'
 
 const AdminDashboard = () => {
@@ -33,7 +34,7 @@ const AdminDashboard = () => {
     if (loading) {
         return (
             <Layout showSidebar={true}>
-                <div className="p-8 flex items-center justify-center">
+                <div className="p-6 md:p-8 flex items-center justify-center">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medico-blue mx-auto"></div>
                         <p className="mt-4 text-medico-gray">Cargando dashboard...</p>
@@ -45,11 +46,12 @@ const AdminDashboard = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-medico-blue">Dashboard Administrativo</h1>
-                    <p className="text-medico-gray mt-2">Resumen general de la plataforma Mediconsa</p>
-                </div>
+            <div className="p-6 md:p-8">
+                <PageHeader
+                    eyebrow="Panel de control"
+                    title="Dashboard Administrativo"
+                    subtitle="Resumen general de la plataforma Mediconsa"
+                />
 
                 {error && (
                     <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
@@ -66,7 +68,7 @@ const AdminDashboard = () => {
                 {stats && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         {/* Usuarios Totales */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
                                     <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -83,7 +85,7 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Cursos Activos */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
                                     <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -100,7 +102,7 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Inscripciones */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
                                     <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -117,7 +119,7 @@ const AdminDashboard = () => {
                         </div>
 
                         {/* Pagos Pendientes */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <div className="flex items-center">
                                 <div className="flex-shrink-0">
                                     <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
@@ -137,7 +139,7 @@ const AdminDashboard = () => {
 
                 {/* Actividad Reciente */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Usuarios Recientes</h3>
                         {stats?.usuariosRecientes?.length > 0 ? (
                             <div className="space-y-3">
@@ -160,7 +162,7 @@ const AdminDashboard = () => {
                         )}
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones Rápidas</h3>
                         <div className="space-y-3">
                             <a href="/admin/cursos" className="block p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">

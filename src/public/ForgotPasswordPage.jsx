@@ -103,7 +103,7 @@ const ForgotPasswordPage = () => {
                                             autoComplete="email"
                                             value={email}
                                             onChange={(e) => { setEmail(e.target.value); setError('') }}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                             placeholder="doctor@ejemplo.com"
                                         />
                                     </div>
@@ -111,7 +111,7 @@ const ForgotPasswordPage = () => {
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="w-full bg-medico-blue text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full bg-medico-blue text-white py-3 px-4 rounded-full font-semibold hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {loading ? (
                                             <div className="flex items-center justify-center space-x-2">

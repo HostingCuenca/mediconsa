@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
+import { PageHeader } from '../simulador/ui'
+import { Settings2, HelpCircle, BookOpen, Trash2, ClipboardList, Tag } from 'lucide-react'
+import simuladorService from '../services/simulador'
 import courseManagementService from '../services/courseManagement'
 import coursesService from '../services/courses'
 
@@ -9,6 +12,43 @@ const Simulacros = () => {
 
     // ========== ESTADOS ==========
     const [simulacros, setSimulacros] = useState([])
+    // Año por bloque (simulacro): etiqueta "Año" del banco que heredan todas sus preguntas
+    const [anios, setAnios] = useState([])                 // etiquetas del grupo Año
+    const [grupoAnioId, setGrupoAnioId] = useState(null)
+    const [anioPorSimulacro, setAnioPorSimulacro] = useState({})   // { simulacroId: etiquetaId }
+    const [otrasEtiquetas, setOtrasEtiquetas] = useState({})       // { simulacroId: [ids de etiquetas que NO son de año] }
+    const [guardandoAnio, setGuardandoAnio] = useState('')
+    useEffect(() => {
+        (async () => {
+            const [e, s] = await Promise.all([simuladorService.etiquetas(true), simuladorService.simulacrosConEtiquetas()])
+            if (e.success) { const g = e.data.grupos.find(x => x.slug === 'anio'); if (g) { setGrupoAnioId(g.id); setAnios(g.etiquetas.filter(x => x.activa).sort((a, b) => b.nombre.localeCompare(a.nombre))) } }
+            if (s.success) {
+                const m = {}, o = {}
+                s.data.simulacros.forEach(x => {
+                    const a = (x.etiquetas || []).find(t => t.grupo === 'anio'); if (a) m[x.id] = a.id
+                    o[x.id] = (x.etiquetas || []).filter(t => t.grupo !== 'anio').map(t => t.id)
+                })
+                setAnioPorSimulacro(m); setOtrasEtiquetas(o)
+            }
+        })()
+    }, [])
+    const cambiarAnio = async (simulacro, valor) => {
+        setGuardandoAnio(simulacro.id)
+        let etiquetaId = valor ? parseInt(valor) : null
+        if (valor === 'nuevo') {
+            const nombre = window.prompt('Año (p. ej. 2027):')
+            if (!nombre || !/^20[2-4][0-9]$/.test(nombre.trim())) { setGuardandoAnio(''); return }
+            const r = await simuladorService.crearEtiqueta({ grupoId: grupoAnioId, nombre: nombre.trim() })
+            if (!r.success) { setGuardandoAnio(''); return }
+            etiquetaId = r.data.etiqueta.id
+            if (!r.data.yaExistia) setAnios(a => [{ ...r.data.etiqueta, preguntas: 0 }, ...a].sort((x, y) => y.nombre.localeCompare(x.nombre)))
+        }
+        // Conserva las etiquetas de otros grupos del bloque; solo cambia el año
+        const otras = otrasEtiquetas[simulacro.id] || []
+        const r = await simuladorService.etiquetasDeSimulacro(simulacro.id, etiquetaId ? [...otras, etiquetaId] : otras)
+        setGuardandoAnio('')
+        if (r.success) setAnioPorSimulacro(m => ({ ...m, [simulacro.id]: etiquetaId }))
+    }
     const [cursos, setCursos] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
@@ -168,13 +208,13 @@ const Simulacros = () => {
     // ========== UTILIDADES ==========
     const getModoLabel = (modo) => {
         const modos = {
-            'estudio': '📚 Estudio',
-            'revision': '🔄 Revisión',
-            'evaluacion': '📝 Evaluación',
-            'examen_real': '🎯 Examen Real',
-            'practica': '📚 Práctica',
-            'realista': '📝 Realista',
-            'examen': '🎯 Examen'
+            'estudio': 'Estudio',
+            'revision': 'Revisión',
+            'evaluacion': 'Evaluación',
+            'examen_real': 'Examen real',
+            'practica': 'Práctica',
+            'realista': 'Realista',
+            'examen': 'Examen'
         }
         return modos[modo] || modo
     }
@@ -258,20 +298,19 @@ const Simulacros = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* Header */}
-                <div className="flex justify-between items-start mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-medico-blue mb-2">Gestión de Simulacros</h1>
-                        <p className="text-medico-gray">Administra todos los simulacros de tus cursos</p>
-                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-                            <span>{simulacros.length} simulacros totales</span>
-                            <span>•</span>
-                            <span>{filteredSimulacros.length} mostrados</span>
-                            <span>•</span>
-                            <span>{cursos.length} cursos</span>
-                        </div>
-                    </div>
+                <PageHeader
+                    eyebrow="Contenido · Admin"
+                    title="Gestión de Simulacros"
+                    subtitle="Administra todos los simulacros de tus cursos"
+                />
+                <div className="flex items-center space-x-4 -mt-4 mb-6 text-sm text-gray-500">
+                    <span>{simulacros.length} simulacros totales</span>
+                    <span>•</span>
+                    <span>{filteredSimulacros.length} mostrados</span>
+                    <span>•</span>
+                    <span>{cursos.length} cursos</span>
                 </div>
 
                 {/* Mensajes */}
@@ -301,7 +340,7 @@ const Simulacros = () => {
                 )}
 
                 {/* Filtros */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
@@ -310,7 +349,7 @@ const Simulacros = () => {
                                 name="search"
                                 value={filters.search}
                                 onChange={handleFilterChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                 placeholder="Buscar simulacros..."
                             />
                         </div>
@@ -321,7 +360,7 @@ const Simulacros = () => {
                                 name="curso"
                                 value={filters.curso}
                                 onChange={handleFilterChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todos los cursos</option>
                                 {cursos.map(curso => (
@@ -336,12 +375,12 @@ const Simulacros = () => {
                                 name="estado"
                                 value={filters.estado}
                                 onChange={handleFilterChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todos</option>
-                                <option value="completo">✅ Completo</option>
-                                <option value="incompleto">⚠️ Incompleto</option>
-                                <option value="sin_preguntas">❌ Sin preguntas</option>
+                                <option value="completo">Completo</option>
+                                <option value="incompleto">Incompleto</option>
+                                <option value="sin_preguntas">Sin preguntas</option>
                             </select>
                         </div>
 
@@ -351,23 +390,23 @@ const Simulacros = () => {
                                 name="modo"
                                 value={filters.modo}
                                 onChange={handleFilterChange}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todos los modos</option>
-                                <option value="estudio">📚 Estudio</option>
-                                <option value="revision">🔄 Revisión</option>
-                                <option value="evaluacion">📝 Evaluación</option>
-                                <option value="examen_real">🎯 Examen Real</option>
-                                <option value="practica">📚 Práctica</option>
-                                <option value="realista">📝 Realista</option>
-                                <option value="examen">🎯 Examen</option>
+                                <option value="estudio">Estudio</option>
+                                <option value="revision">Revisión</option>
+                                <option value="evaluacion">Evaluación</option>
+                                <option value="examen_real">Examen real</option>
+                                <option value="practica">Práctica</option>
+                                <option value="realista">Realista</option>
+                                <option value="examen">Examen</option>
                             </select>
                         </div>
 
                         <div className="flex items-end">
                             <button
                                 onClick={resetFilters}
-                                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                                className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-200 transition-colors"
                             >
                                 Limpiar filtros
                             </button>
@@ -383,7 +422,7 @@ const Simulacros = () => {
                             const modo = simulacro.modo_estudio || simulacro.modo_evaluacion || 'estudio'
 
                             return (
-                                <div key={simulacro.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                                <div key={simulacro.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-sm transition-shadow">
                                     {/* Header de la tarjeta */}
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center space-x-2">
@@ -400,9 +439,20 @@ const Simulacros = () => {
                                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                         {simulacro.titulo}
                                     </h3>
+                                    {grupoAnioId && (
+                                        <label className="flex items-center gap-2 mb-2 text-xs text-medico-gray">
+                                            <Tag className="w-3.5 h-3.5" /> Año del bloque
+                                            <select value={anioPorSimulacro[simulacro.id] || ''} disabled={guardandoAnio === simulacro.id} onChange={e => cambiarAnio(simulacro, e.target.value)}
+                                                    className={`ml-auto rounded-full border px-2.5 py-1 text-xs bg-white ${anioPorSimulacro[simulacro.id] ? 'border-medico-blue text-medico-blue font-medium' : 'border-gray-200 text-gray-600'}`}>
+                                                <option value="">Sin año</option>
+                                                {anios.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                                                <option value="nuevo">+ Otro año…</option>
+                                            </select>
+                                        </label>
+                                    )}
 
                                     <p className="text-sm text-medico-blue mb-3 font-medium">
-                                        📚 {simulacro.curso_titulo}
+                                        {simulacro.curso_titulo}
                                     </p>
 
                                     {simulacro.descripcion && (
@@ -449,16 +499,16 @@ const Simulacros = () => {
                                     <div className="grid grid-cols-2 gap-2 mb-3">
                                         <button
                                             onClick={() => navigate(`/admin/simulacro/${simulacro.id}`)}
-                                            className="bg-purple-100 text-purple-700 py-2 px-3 rounded-lg hover:bg-purple-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                            className="bg-purple-100 text-purple-700 py-2 px-3 rounded-full hover:bg-purple-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                         >
-                                            <span>⚙️</span>
+                                            <Settings2 className="w-4 h-4" />
                                             <span>Configurar</span>
                                         </button>
                                         <button
                                             onClick={() => navigate(`/admin/questions/${simulacro.id}`)}
-                                            className="bg-green-100 text-green-700 py-2 px-3 rounded-lg hover:bg-green-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                            className="bg-green-100 text-green-700 py-2 px-3 rounded-full hover:bg-green-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                         >
-                                            <span>❓</span>
+                                            <HelpCircle className="w-4 h-4" />
                                             <span>Preguntas</span>
                                         </button>
                                     </div>
@@ -466,16 +516,16 @@ const Simulacros = () => {
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
                                             onClick={() => navigate(`/admin/course/${simulacro.curso_id}`)}
-                                            className="bg-blue-100 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                            className="bg-blue-100 text-blue-700 py-2 px-3 rounded-full hover:bg-blue-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                         >
-                                            <span>📚</span>
-                                            <span>Ver Curso</span>
+                                            <BookOpen className="w-4 h-4" />
+                                            <span>Ver curso</span>
                                         </button>
                                         <button
                                             onClick={() => handleDeleteSimulacro(simulacro.id, simulacro.titulo)}
-                                            className="bg-red-100 text-red-700 py-2 px-3 rounded-lg hover:bg-red-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                            className="bg-red-100 text-red-700 py-2 px-3 rounded-full hover:bg-red-200 transition-colors text-sm flex items-center justify-center space-x-1"
                                         >
-                                            <span>🗑️</span>
+                                            <Trash2 className="w-4 h-4" />
                                             <span>Eliminar</span>
                                         </button>
                                     </div>
@@ -485,7 +535,7 @@ const Simulacros = () => {
                     </div>
                 ) : (
                     <div className="text-center py-12">
-                        <div className="text-6xl mb-4">🧪</div>
+                        <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
                             {simulacros.length === 0 ? 'No hay simulacros' : 'No se encontraron simulacros'}
                         </h3>
@@ -498,7 +548,7 @@ const Simulacros = () => {
                         {simulacros.length > 0 && (
                             <button
                                 onClick={resetFilters}
-                                className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                                className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                             >
                                 Limpiar Filtros
                             </button>

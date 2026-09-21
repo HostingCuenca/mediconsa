@@ -6,6 +6,8 @@ import Layout from '../utils/Layout'
 import { useAuth } from '../utils/AuthContext'
 import authService from '../services/auth'
 import { GOOGLE_ENABLED } from '../config/google'
+import { PageHeader, Alert } from '../simulador/ui'
+import MisDispositivos from '../components/MisDispositivos'
 
 const Profile = () => {
     const navigate = useNavigate()
@@ -39,18 +41,6 @@ const Profile = () => {
         }
         loadProfileData()
     }, [isAuthenticated, user, perfil])
-
-    // const loadProfileData = () => {
-    //     const userData = perfil || user
-    //     if (userData) {
-    //         setProfileData({
-    //             nombreCompleto: userData.nombreCompleto || userData.nombre_completo || '',
-    //             nombreUsuario: userData.nombreUsuario || userData.nombre_usuario || '',
-    //             telefono: userData.telefono || '',
-    //             email: userData.email || ''
-    //         })
-    //     }
-    // }
 
     const loadProfileData = () => {
         const userData = perfil || user
@@ -269,70 +259,42 @@ const Profile = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-6 max-w-4xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="flex items-center space-x-4 mb-6">
-                        <div className="w-16 h-16 bg-gradient-to-br from-medico-blue to-blue-700 rounded-full flex items-center justify-center shadow-lg">
-                           <span className="text-white text-xl font-bold">
-                               {getUserInitials()}
-                           </span>
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Mi Perfil</h1>
-                            <p className="text-gray-600">Gestiona tu información personal y configuraciones</p>
-                        </div>
-                    </div>
+            <div className="p-4 sm:p-6 md:p-8">
+                <PageHeader eyebrow="Cuenta" title="Mi perfil" subtitle="Tus datos, tu contraseña y los dispositivos donde usas Mediconsa." />
 
-                    {/* User Info Card */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-gradient-to-br from-medico-blue to-blue-700 rounded-full flex items-center justify-center">
-                                   <span className="text-white font-semibold">
+                <div className="mb-6">
+                    {/* Tarjeta de usuario */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6 mb-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-gradient-to-br from-medico-blue to-blue-700 rounded-full flex items-center justify-center flex-shrink-0">
+                                   <span className="text-white text-lg font-semibold">
                                        {getUserInitials()}
                                    </span>
                                 </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">{getUserDisplayName()}</h3>
-                                    <p className="text-sm text-gray-600">{profileData.email}</p>
-                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1">
+                                <div className="min-w-0">
+                                    <h3 className="font-semibold text-gray-900 truncate">{getUserDisplayName()}</h3>
+                                    <p className="text-sm text-gray-600 truncate">{profileData.email}</p>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1">
                                        {getRoleLabel()}
                                    </span>
                                 </div>
                             </div>
-                            <div className="text-right text-sm text-gray-500">
+                            <div className="sm:text-right text-sm text-gray-500">
                                 <p>Miembro desde</p>
-                                <p className="font-medium">{formatDate(perfil?.fechaRegistro || perfil?.fecha_registro)}</p>
+                                <p className="font-medium text-gray-900">{formatDate(perfil?.fechaRegistro || perfil?.fecha_registro)}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Mensaje de estado */}
-                    {message && (
-                        <div className={`mb-6 p-4 rounded-lg border ${
-                            messageType === 'success'
-                                ? 'bg-green-50 border-green-200 text-green-800'
-                                : 'bg-red-50 border-red-200 text-red-800'
-                        }`}>
-                            <div className="flex items-center">
-                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    {messageType === 'success' ? (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    ) : (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    )}
-                                </svg>
-                                {message}
-                            </div>
-                        </div>
-                    )}
+                    {message && <Alert tone={messageType === 'success' ? 'ok' : 'error'} className="mb-6">{message}</Alert>}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Información Personal */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Información Personal</h2>
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Información personal</h2>
 
                         <form onSubmit={handleProfileSubmit} className="space-y-4">
                             <div>
@@ -343,7 +305,7 @@ const Profile = () => {
                                     type="text"
                                     value={profileData.nombreCompleto}
                                     onChange={(e) => setProfileData({...profileData, nombreCompleto: e.target.value})}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     placeholder="Tu nombre completo"
                                     required
                                 />
@@ -357,7 +319,7 @@ const Profile = () => {
                                     type="text"
                                     value={profileData.nombreUsuario}
                                     onChange={(e) => setProfileData({...profileData, nombreUsuario: e.target.value})}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     placeholder="Tu nombre de usuario"
                                     minLength={3}
                                     required
@@ -385,7 +347,7 @@ const Profile = () => {
                                     type="tel"
                                     value={profileData.telefono}
                                     onChange={(e) => setProfileData({...profileData, telefono: e.target.value})}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     placeholder="Tu número de teléfono"
                                 />
                             </div>
@@ -415,8 +377,8 @@ const Profile = () => {
                     </div>
 
                     {/* Cambiar Contraseña */}
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Cambiar Contraseña</h2>
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-6">Cambiar contraseña</h2>
 
                         <form onSubmit={handlePasswordSubmit} className="space-y-4">
                             <div>
@@ -427,7 +389,7 @@ const Profile = () => {
                                     type="password"
                                     value={passwordData.currentPassword}
                                     onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     placeholder="Tu contraseña actual"
                                     required
                                 />
@@ -441,7 +403,7 @@ const Profile = () => {
                                     type="password"
                                     value={passwordData.newPassword}
                                     onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     placeholder="Tu nueva contraseña"
                                     minLength={6}
                                     required
@@ -456,7 +418,7 @@ const Profile = () => {
                                     type="password"
                                     value={passwordData.confirmPassword}
                                     onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     placeholder="Confirma tu nueva contraseña"
                                     minLength={6}
                                     required
@@ -504,9 +466,12 @@ const Profile = () => {
                     </div>
                 </div>
 
+                {/* Dispositivos y sesiones (control de cuentas compartidas) */}
+                <MisDispositivos />
+
                 {/* Cuenta de Google */}
                 {GOOGLE_ENABLED && (
-                    <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div className="flex items-start space-x-3">
                                 <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
@@ -554,7 +519,7 @@ const Profile = () => {
                                             type="button"
                                             onClick={handleGoogleUnlink}
                                             disabled={googleLoading}
-                                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                            className="px-4 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                                         >
                                             {googleLoading ? 'Procesando...' : 'Desvincular Google'}
                                         </button>

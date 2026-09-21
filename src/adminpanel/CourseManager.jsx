@@ -1,6 +1,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import {
+    BookOpen, FlaskConical, RotateCcw, FileEdit, Target, ClipboardList, Youtube, Trash2, Rocket, Check,
+    BarChart3, GraduationCap, HelpCircle, Clock, Pencil, Settings, Plus, Timer, ArrowRight
+} from 'lucide-react'
 import Layout from '../utils/Layout'
 import courseManagementService from '../services/courseManagement'
 
@@ -323,16 +327,16 @@ const CourseManager = () => {
     // ========== UTILIDADES ==========
     const getModoEstudioLabel = (modo) => {
         const modos = {
-            'estudio': { name: 'Modo Estudio', color: 'bg-green-100 text-green-800', icon: '📚' },
-            'revision': { name: 'Modo Revisión', color: 'bg-blue-100 text-blue-800', icon: '🔄' },
-            'evaluacion': { name: 'Modo Evaluación', color: 'bg-yellow-100 text-yellow-800', icon: '📝' },
-            'examen_real': { name: 'Modo Examen Real', color: 'bg-red-100 text-red-800', icon: '🎯' },
+            'estudio': { name: 'Modo Estudio', color: 'bg-green-100 text-green-800', icon: BookOpen },
+            'revision': { name: 'Modo Revisión', color: 'bg-blue-100 text-blue-800', icon: RotateCcw },
+            'evaluacion': { name: 'Modo Evaluación', color: 'bg-yellow-100 text-yellow-800', icon: FileEdit },
+            'examen_real': { name: 'Modo Examen Real', color: 'bg-red-100 text-red-800', icon: Target },
             // Compatibilidad con modo anterior
-            'practica': { name: 'Práctica', color: 'bg-green-100 text-green-800', icon: '📚' },
-            'realista': { name: 'Realista', color: 'bg-yellow-100 text-yellow-800', icon: '📝' },
-            'examen': { name: 'Examen', color: 'bg-red-100 text-red-800', icon: '🎯' }
+            'practica': { name: 'Práctica', color: 'bg-green-100 text-green-800', icon: BookOpen },
+            'realista': { name: 'Realista', color: 'bg-yellow-100 text-yellow-800', icon: FileEdit },
+            'examen': { name: 'Examen', color: 'bg-red-100 text-red-800', icon: Target }
         }
-        return modos[modo] || { name: modo, color: 'bg-gray-100 text-gray-800', icon: '📋' }
+        return modos[modo] || { name: modo, color: 'bg-gray-100 text-gray-800', icon: ClipboardList }
     }
 
     const getTiempoLabel = (simulacro) => {
@@ -365,12 +369,13 @@ const CourseManager = () => {
     if (!course) {
         return (
             <Layout showSidebar={true}>
-                <div className="p-8">
+                <div className="p-6 md:p-8">
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold text-gray-900">Curso no encontrado</h1>
+                        <span className="inline-block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Contenido · Admin</span>
+                        <h1 className="text-3xl text-gray-900 tracking-tight">Curso no encontrado</h1>
                         <button
                             onClick={() => navigate(-1)}
-                            className="mt-4 bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                            className="mt-4 bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700"
                         >
                             Volver
                         </button>
@@ -382,11 +387,11 @@ const CourseManager = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
                 <div className="flex justify-between items-start mb-8">
                     <div>
-                        <div className="flex items-center space-x-4 mb-2">
+                        <div className="flex items-center space-x-4 mb-1">
                             <button
                                 onClick={() => navigate(-1)}
                                 className="text-medico-blue hover:text-blue-700"
@@ -395,7 +400,10 @@ const CourseManager = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                 </svg>
                             </button>
-                            <h1 className="text-3xl font-bold text-medico-blue">Gestionar Curso</h1>
+                            <div>
+                                <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Contenido · Admin</span>
+                                <h1 className="text-3xl text-gray-900 tracking-tight">Gestionar Curso</h1>
+                            </div>
                         </div>
                         <h2 className="text-xl text-gray-700 mb-2">{course.titulo}</h2>
                         {course.descripcion && (
@@ -445,20 +453,20 @@ const CourseManager = () => {
                 <div className="border-b border-gray-200 mb-6">
                     <nav className="-mb-px flex space-x-8">
                         {[
-                            { id: 'overview', name: 'Resumen', icon: '📊' },
-                            { id: 'modules', name: 'Módulos', icon: '📚' },
-                            { id: 'simulacros', name: 'Simulacros', icon: '🧪' }
+                            { id: 'overview', name: 'Resumen', icon: BarChart3 },
+                            { id: 'modules', name: 'Módulos', icon: BookOpen },
+                            { id: 'simulacros', name: 'Simulacros', icon: FlaskConical }
                         ].map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                className={`inline-flex items-center py-2 px-1 border-b-2 font-medium text-sm ${
                                     activeTab === tab.id
                                         ? 'border-medico-blue text-medico-blue'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                             >
-                                <span className="mr-2">{tab.icon}</span>
+                                <tab.icon className="w-4 h-4 mr-2" />
                                 {tab.name}
                             </button>
                         ))}
@@ -470,34 +478,34 @@ const CourseManager = () => {
                     <div className="space-y-6">
                         {stats && (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                <div className="bg-white rounded-2xl border border-gray-100 p-6">
                                     <div className="flex items-center">
                                         <div className="text-2xl font-bold text-medico-blue">{stats.contenido?.modulos || 0}</div>
-                                        <div className="ml-auto text-blue-500">📚</div>
+                                        <div className="ml-auto text-blue-500"><BookOpen className="w-6 h-6" /></div>
                                     </div>
                                     <div className="text-sm text-gray-500">Módulos</div>
                                 </div>
 
-                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                <div className="bg-white rounded-2xl border border-gray-100 p-6">
                                     <div className="flex items-center">
                                         <div className="text-2xl font-bold text-green-600">{stats.contenido?.clases || 0}</div>
-                                        <div className="ml-auto text-green-500">🎓</div>
+                                        <div className="ml-auto text-green-500"><GraduationCap className="w-6 h-6" /></div>
                                     </div>
                                     <div className="text-sm text-gray-500">Clases</div>
                                 </div>
 
-                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                <div className="bg-white rounded-2xl border border-gray-100 p-6">
                                     <div className="flex items-center">
                                         <div className="text-2xl font-bold text-purple-600">{stats.contenido?.simulacros || 0}</div>
-                                        <div className="ml-auto text-purple-500">🧪</div>
+                                        <div className="ml-auto text-purple-500"><FlaskConical className="w-6 h-6" /></div>
                                     </div>
                                     <div className="text-sm text-gray-500">Simulacros</div>
                                 </div>
 
-                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                <div className="bg-white rounded-2xl border border-gray-100 p-6">
                                     <div className="flex items-center">
                                         <div className="text-2xl font-bold text-orange-600">{stats.contenido?.preguntas || 0}</div>
-                                        <div className="ml-auto text-orange-500">❓</div>
+                                        <div className="ml-auto text-orange-500"><HelpCircle className="w-6 h-6" /></div>
                                     </div>
                                     <div className="text-sm text-gray-500">Preguntas</div>
                                 </div>
@@ -505,7 +513,7 @@ const CourseManager = () => {
                         )}
 
                         {stats?.resumen?.completitud && (
-                            <div className="bg-white rounded-lg border border-gray-200 p-6">
+                            <div className="bg-white rounded-2xl border border-gray-100 p-6">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Estado del Curso</h3>
                                 <div className="space-y-3">
                                     <div className="flex items-center">
@@ -542,7 +550,7 @@ const CourseManager = () => {
                             <h3 className="text-lg font-semibold text-gray-900">Módulos del Curso</h3>
                             <button
                                 onClick={handleCreateModule}
-                                className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                className="bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -554,7 +562,7 @@ const CourseManager = () => {
                         {modules.length > 0 ? (
                             <div className="space-y-4">
                                 {modules.map((module, index) => (
-                                    <div key={module.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                                    <div key={module.id} className="bg-white border border-gray-100 rounded-2xl p-6">
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex-1">
                                                 <div className="flex items-center space-x-3 mb-2">
@@ -607,8 +615,8 @@ const CourseManager = () => {
                                                                 <span className="text-sm text-gray-500 font-medium bg-white px-2 py-1 rounded">#{clase.orden}</span>
                                                                 <span className="font-medium">{clase.titulo}</span>
                                                                 {clase.duracion_minutos && (
-                                                                    <span className="text-sm text-gray-500 bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                                                       🕐 {clase.duracion_minutos} min
+                                                                    <span className="inline-flex items-center gap-1 text-sm text-gray-500 bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                                                       <Clock className="w-3.5 h-3.5" /> {clase.duracion_minutos} min
                                                                    </span>
                                                                 )}
                                                                 {clase.es_gratuita && (
@@ -617,23 +625,23 @@ const CourseManager = () => {
                                                                    </span>
                                                                 )}
                                                                 {clase.video_youtube_url && (
-                                                                    <span className="text-red-500 text-sm">
-                                                                       📹 YouTube
+                                                                    <span className="inline-flex items-center gap-1 text-red-500 text-sm">
+                                                                       <Youtube className="w-4 h-4" /> YouTube
                                                                    </span>
                                                                 )}
                                                             </div>
                                                             <div className="flex items-center space-x-2">
                                                                 <button
                                                                     onClick={() => handleEditClass(clase)}
-                                                                    className="text-blue-600 hover:text-blue-800 text-sm"
+                                                                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm"
                                                                 >
-                                                                    ✏️ Editar
+                                                                    <Pencil className="w-3.5 h-3.5" /> Editar
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteClass(clase.id)}
-                                                                    className="text-red-600 hover:text-red-800 text-sm"
+                                                                    className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 text-sm"
                                                                 >
-                                                                    🗑️ Eliminar
+                                                                    <Trash2 className="w-3.5 h-3.5" /> Eliminar
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -646,12 +654,12 @@ const CourseManager = () => {
                             </div>
                         ) : (
                             <div className="text-center py-12">
-                                <div className="text-6xl mb-4">📚</div>
+                                <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay módulos</h3>
                                 <p className="text-gray-500 mb-4">Comienza creando el primer módulo de tu curso</p>
                                 <button
                                     onClick={handleCreateModule}
-                                    className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                                 >
                                     Crear Primer Módulo
                                 </button>
@@ -666,7 +674,7 @@ const CourseManager = () => {
                             <h3 className="text-lg font-semibold text-gray-900">Simulacros del Curso</h3>
                             <button
                                 onClick={handleCreateSimulacro}
-                                className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                className="bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -680,19 +688,19 @@ const CourseManager = () => {
                                 {simulacros.map((simulacro) => {
                                     const modoInfo = getModoEstudioLabel(simulacro.modo_estudio || simulacro.modo_evaluacion || 'estudio')
                                     return (
-                                        <div key={simulacro.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                                        <div key={simulacro.id} className="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-sm transition-shadow">
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="flex-1">
                                                     <div className="flex items-center space-x-3 mb-3">
-                                                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${modoInfo.color}`}>
-                                                           {modoInfo.icon} {modoInfo.name}
+                                                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${modoInfo.color}`}>
+                                                           <modoInfo.icon className="w-3.5 h-3.5" /> {modoInfo.name}
                                                        </span>
-                                                        <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm">
-                                                           ⏰ {getTiempoLabel(simulacro)}
+                                                        <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm">
+                                                           <Timer className="w-3.5 h-3.5" /> {getTiempoLabel(simulacro)}
                                                        </span>
                                                         {simulacro.tipo_navegacion === 'secuencial' && (
-                                                            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-sm">
-                                                               ➡️ Secuencial
+                                                            <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-2 py-1 rounded text-sm">
+                                                               <ArrowRight className="w-3.5 h-3.5" /> Secuencial
                                                            </span>
                                                         )}
                                                     </div>
@@ -724,21 +732,21 @@ const CourseManager = () => {
                                                 <div className="flex items-center space-x-2">
                                                     <button
                                                         onClick={() => navigate(`/admin/simulacro/${simulacro.id}`)}
-                                                        className="text-purple-600 hover:text-purple-800 text-sm bg-purple-50 px-3 py-1 rounded-md transition-colors"
+                                                        className="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 text-sm bg-purple-50 px-3 py-1 rounded-md transition-colors"
                                                     >
-                                                        ⚙️ Configurar
+                                                        <Settings className="w-3.5 h-3.5" /> Configurar
                                                     </button>
                                                     <button
                                                         onClick={() => navigate(`/admin/questions/${simulacro.id}`)}
-                                                        className="text-green-600 hover:text-green-800 text-sm bg-green-50 px-3 py-1 rounded-md transition-colors"
+                                                        className="inline-flex items-center gap-1 text-green-600 hover:text-green-800 text-sm bg-green-50 px-3 py-1 rounded-md transition-colors"
                                                     >
-                                                        ❓ Preguntas
+                                                        <HelpCircle className="w-3.5 h-3.5" /> Preguntas
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteSimulacro(simulacro.id)}
-                                                        className="text-red-600 hover:text-red-800 text-sm bg-red-50 px-3 py-1 rounded-md transition-colors"
+                                                        className="inline-flex items-center gap-1 text-red-600 hover:text-red-800 text-sm bg-red-50 px-3 py-1 rounded-md transition-colors"
                                                     >
-                                                        🗑️ Eliminar
+                                                        <Trash2 className="w-3.5 h-3.5" /> Eliminar
                                                     </button>
                                                 </div>
                                             </div>
@@ -781,12 +789,12 @@ const CourseManager = () => {
                             </div>
                         ) : (
                             <div className="text-center py-12">
-                                <div className="text-6xl mb-4">🧪</div>
+                                <FlaskConical className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay simulacros</h3>
                                 <p className="text-gray-500 mb-4">Crea simulacros para evaluar a tus estudiantes</p>
                                 <button
                                     onClick={handleCreateSimulacro}
-                                    className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                                 >
                                     Crear Primer Simulacro
                                 </button>
@@ -798,10 +806,11 @@ const CourseManager = () => {
                 {/* ========== MODAL MÓDULO ========== */}
                 {showModuleForm && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-semibold text-gray-900">
-                                    {selectedModule ? '✏️ Editar Módulo' : '➕ Nuevo Módulo'}
+                                <h3 className="inline-flex items-center gap-2 text-xl font-semibold text-gray-900">
+                                    {selectedModule ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                                    {selectedModule ? 'Editar Módulo' : 'Nuevo Módulo'}
                                 </h3>
                                 <button
                                     onClick={() => setShowModuleForm(false)}
@@ -822,7 +831,7 @@ const CourseManager = () => {
                                         type="text"
                                         value={moduleForm.titulo}
                                         onChange={(e) => setModuleForm({ ...moduleForm, titulo: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="Ej: Módulo 1: Anatomía Básica"
                                         required
                                     />
@@ -836,7 +845,7 @@ const CourseManager = () => {
                                         value={moduleForm.descripcion}
                                         onChange={(e) => setModuleForm({ ...moduleForm, descripcion: e.target.value })}
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="Descripción del contenido del módulo..."
                                     />
                                 </div>
@@ -850,7 +859,7 @@ const CourseManager = () => {
                                         value={moduleForm.orden}
                                         onChange={(e) => setModuleForm({ ...moduleForm, orden: parseInt(e.target.value) || 1 })}
                                         min="1"
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     />
                                 </div>
 
@@ -858,14 +867,14 @@ const CourseManager = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowModuleForm(false)}
-                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={formLoading}
-                                        className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                                        className="px-6 py-2 bg-medico-blue text-white rounded-full hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
                                     >
                                         {formLoading && (
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -881,10 +890,11 @@ const CourseManager = () => {
                 {/* ========== MODAL CLASE ========== */}
                 {showClassForm && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-semibold text-gray-900">
-                                    {selectedClass ? '✏️ Editar Clase' : '➕ Nueva Clase'}
+                                <h3 className="inline-flex items-center gap-2 text-xl font-semibold text-gray-900">
+                                    {selectedClass ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                                    {selectedClass ? 'Editar Clase' : 'Nueva Clase'}
                                 </h3>
                                 <button
                                     onClick={() => setShowClassForm(false)}
@@ -905,7 +915,7 @@ const CourseManager = () => {
                                         type="text"
                                         value={classForm.titulo}
                                         onChange={(e) => setClassForm({ ...classForm, titulo: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="Ej: Introducción a la Anatomía"
                                         required
                                     />
@@ -919,7 +929,7 @@ const CourseManager = () => {
                                         value={classForm.descripcion}
                                         onChange={(e) => setClassForm({ ...classForm, descripcion: e.target.value })}
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="Descripción del contenido de la clase..."
                                     />
                                 </div>
@@ -933,7 +943,7 @@ const CourseManager = () => {
                                             type="url"
                                             value={classForm.videoYoutubeUrl}
                                             onChange={(e) => setClassForm({ ...classForm, videoYoutubeUrl: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                             placeholder="https://youtube.com/watch?v=..."
                                         />
                                     </div>
@@ -947,7 +957,7 @@ const CourseManager = () => {
                                             value={classForm.duracionMinutos}
                                             onChange={(e) => setClassForm({ ...classForm, duracionMinutos: parseInt(e.target.value) || 0 })}
                                             min="0"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                             placeholder="60"
                                         />
                                     </div>
@@ -963,7 +973,7 @@ const CourseManager = () => {
                                             value={classForm.orden}
                                             onChange={(e) => setClassForm({ ...classForm, orden: parseInt(e.target.value) || 1 })}
                                             min="1"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         />
                                     </div>
 
@@ -984,14 +994,14 @@ const CourseManager = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowClassForm(false)}
-                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={formLoading}
-                                        className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                                        className="px-6 py-2 bg-medico-blue text-white rounded-full hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
                                     >
                                         {formLoading && (
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -1007,10 +1017,10 @@ const CourseManager = () => {
                 {/* ========== MODAL SIMULACRO BÁSICO ========== */}
                 {showSimulacroForm && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-2xl mx-4 max-h-90vh overflow-y-auto">
                             <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-semibold text-gray-900">
-                                    ➕ Nuevo Simulacro
+                                <h3 className="inline-flex items-center gap-2 text-xl font-semibold text-gray-900">
+                                    <Plus className="w-5 h-5" /> Nuevo Simulacro
                                 </h3>
                                 <button
                                     onClick={() => setShowSimulacroForm(false)}
@@ -1042,7 +1052,7 @@ const CourseManager = () => {
                                         type="text"
                                         value={simulacroForm.titulo}
                                         onChange={(e) => setSimulacroForm({ ...simulacroForm, titulo: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="Ej: Simulacro de Anatomía Básica"
                                         required
                                     />
@@ -1056,7 +1066,7 @@ const CourseManager = () => {
                                         value={simulacroForm.descripcion}
                                         onChange={(e) => setSimulacroForm({ ...simulacroForm, descripcion: e.target.value })}
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="Descripción del simulacro y objetivos..."
                                     />
                                 </div>
@@ -1072,7 +1082,7 @@ const CourseManager = () => {
                                             onChange={(e) => setSimulacroForm({ ...simulacroForm, numeroPreguntas: parseInt(e.target.value) || 10 })}
                                             min="1"
                                             max="200"
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                             placeholder="10"
                                             required
                                         />
@@ -1085,11 +1095,11 @@ const CourseManager = () => {
                                         <select
                                             value={simulacroForm.modoEvaluacion}
                                             onChange={(e) => setSimulacroForm({ ...simulacroForm, modoEvaluacion: e.target.value })}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         >
-                                            <option value="practica">📚 Práctica (sin límites)</option>
-                                            <option value="realista">📝 Realista (con tiempo)</option>
-                                            <option value="examen">🎯 Examen (estricto)</option>
+                                            <option value="practica">Práctica (sin límites)</option>
+                                            <option value="realista">Realista (con tiempo)</option>
+                                            <option value="examen">Examen (estricto)</option>
                                         </select>
                                         <p className="text-xs text-gray-500 mt-1">
                                             Podrás configurar opciones avanzadas después de crearlo
@@ -1098,12 +1108,14 @@ const CourseManager = () => {
                                 </div>
 
                                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                    <h4 className="font-medium text-yellow-900 mb-2">🚀 Próximos pasos:</h4>
+                                    <h4 className="inline-flex items-center gap-1.5 font-medium text-yellow-900 mb-2">
+                                        <Rocket className="w-4 h-4" /> Próximos pasos:
+                                    </h4>
                                     <div className="text-sm text-yellow-800 space-y-1">
-                                        <p>1. ✅ Crear simulacro básico</p>
-                                        <p>2. ⚙️ Configurar opciones avanzadas</p>
-                                        <p>3. ❓ Agregar preguntas</p>
-                                        <p>4. 🎯 ¡Listo para estudiantes!</p>
+                                        <p className="inline-flex items-center gap-1.5 w-full"><Check className="w-3.5 h-3.5 flex-shrink-0" /> 1. Crear simulacro básico</p>
+                                        <p className="inline-flex items-center gap-1.5 w-full"><Settings className="w-3.5 h-3.5 flex-shrink-0" /> 2. Configurar opciones avanzadas</p>
+                                        <p className="inline-flex items-center gap-1.5 w-full"><HelpCircle className="w-3.5 h-3.5 flex-shrink-0" /> 3. Agregar preguntas</p>
+                                        <p className="inline-flex items-center gap-1.5 w-full"><Target className="w-3.5 h-3.5 flex-shrink-0" /> 4. ¡Listo para estudiantes!</p>
                                     </div>
                                 </div>
 
@@ -1111,14 +1123,14 @@ const CourseManager = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowSimulacroForm(false)}
-                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={formLoading}
-                                        className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                                        className="px-6 py-2 bg-medico-blue text-white rounded-full hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
                                     >
                                         {formLoading && (
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

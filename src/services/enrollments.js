@@ -1,4 +1,3 @@
-
 // src/services/enrollments.js - COMPLETO BASADO EN RUTAS REALES
 import apiService from './api'
 
@@ -99,36 +98,6 @@ class EnrollmentsService {
     // =============================================
     // OBTENER TODAS LAS INSCRIPCIONES (ADMIN) - NUEVO
     // =============================================
-    // async getAllEnrollments(filters = {}) {
-    //     try {
-    //         console.log('Obteniendo todas las inscripciones (admin):', filters)
-    //         const response = await apiService.get('/enrollments/admin/all', filters)
-    //         console.log('Respuesta todas las inscripciones:', response)
-    //
-    //         if (response.success && response.data) {
-    //             return {
-    //                 success: true,
-    //                 data: {
-    //                     inscripciones: response.data.inscripciones || [],
-    //                     pagination: response.data.pagination || {}
-    //                 }
-    //             }
-    //         }
-    //
-    //         return {
-    //             success: false,
-    //             error: 'No se pudieron cargar todas las inscripciones'
-    //         }
-    //
-    //     } catch (error) {
-    //         console.error('Error obteniendo todas las inscripciones:', error)
-    //         return {
-    //             success: false,
-    //             error: error.message || 'Error de conexión'
-    //         }
-    //     }
-    // }
-
     async getAllEnrollments(filters = {}) {
         try {
             console.log('🔄 Iniciando carga de inscripciones con lazy loading:', filters)

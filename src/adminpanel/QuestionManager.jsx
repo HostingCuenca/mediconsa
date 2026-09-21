@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
 import courseManagementService from '../services/courseManagement'
+import simuladorService from '../services/simulador'
+import EtiquetasPicker from '../components/EtiquetasPicker'
+import { Pencil, Trash2, Plus, Upload, Image as ImageIcon, HelpCircle, FileText, Braces, ListChecks, BarChart3, Lightbulb } from 'lucide-react'
 
 const QuestionManager = () => {
     const { simulacroId } = useParams()
@@ -24,11 +27,21 @@ const QuestionManager = () => {
     const [formLoading, setFormLoading] = useState(false)
 
     // Estados del formulario de pregunta
+    // Banco del simulador (área + etiquetas por pregunta). Se carga aparte para no tocar el endpoint legacy.
+    const [banco, setBanco] = useState({ carrera: null, areas: [], grupos: [], porPregunta: {} })
+    const cargarBanco = async () => {
+        const r = await simuladorService.bancoDeSimulacro(simulacroId)
+        if (r.success) setBanco(r.data)
+    }
+    const onGrupoActualizado = (grupoId, etiqueta) => setBanco(b => ({ ...b, grupos: b.grupos.map(g => g.id === grupoId ? { ...g, etiquetas: [...g.etiquetas, { ...etiqueta, preguntas: 0 }] } : g) }))
+
     const [questionForm, setQuestionForm] = useState({
         enunciado: '',
         tipoPregunta: 'multiple',
         explicacion: '',
         imagenUrl: '',
+        areaId: '',
+        etiquetaIds: [],
         opciones: [
             { textoOpcion: '', esCorrecta: false },
             { textoOpcion: '', esCorrecta: false },
@@ -73,6 +86,7 @@ const QuestionManager = () => {
             if (result.success) {
                 setSimulacro(result.data.simulacro)
                 setQuestions(result.data.preguntas || [])
+                cargarBanco()
             } else {
                 setError(result.error || 'Error cargando el simulacro')
             }
@@ -147,6 +161,8 @@ const QuestionManager = () => {
             tipoPregunta: 'multiple',
             explicacion: '',
             imagenUrl: '',
+            areaId: '',
+            etiquetaIds: [],
             opciones: [
                 { textoOpcion: '', esCorrecta: false },
                 { textoOpcion: '', esCorrecta: false },
@@ -159,13 +175,16 @@ const QuestionManager = () => {
 
     const handleEditQuestion = (question) => {
         setSelectedQuestion(question)
+        const meta = banco.porPregunta[question.id] || {}
         setQuestionForm({
             enunciado: question.enunciado,
             tipoPregunta: question.tipo_pregunta,
             explicacion: question.explicacion || '',
             imagenUrl: question.imagen_url || '',
+            areaId: meta.areaId || '',
+            etiquetaIds: (meta.etiquetas || []).map(e => e.id),
             opciones: question.opciones && question.opciones.length > 0
-                ? question.opciones
+                ? question.opciones.map(o => ({ id: o.id, textoOpcion: o.textoOpcion ?? o.texto_opcion ?? '', esCorrecta: o.esCorrecta ?? o.es_correcta ?? false }))
                 : [
                     { textoOpcion: '', esCorrecta: false },
                     { textoOpcion: '', esCorrecta: false },
@@ -242,6 +261,7 @@ const QuestionManager = () => {
                 setShowQuestionForm(false)
                 setSelectedQuestion(null)
                 await loadSimulacroData()
+                setTimeout(cargarBanco, 4000)
                 setSuccess(result.message || (selectedQuestion ? 'Pregunta actualizada' : 'Pregunta creada'))
             } else {
                 setError(result.error || 'Error procesando pregunta')
@@ -416,20 +436,8 @@ const QuestionManager = () => {
         return { total, byType }
     }
 
-    const getTypeIcon = (tipo) => {
-        const icons = {
-            'multiple': '📝',
-            'true_false': '✅',
-            'multiple_respuesta': '☑️',
-            'short_answer': '💬',
-            'essay': '📄',
-            'fill_blanks': '📝',
-            'numerical': '🔢',
-            'matching': '🔗',
-            'ordering': '📊'
-        }
-        return icons[tipo] || '❓'
-    }
+    // Sin iconos por tipo: el nombre del tipo es suficiente
+    const getTypeIcon = () => ''
 
     // ========== RENDER ==========
     if (loading) {
@@ -448,12 +456,13 @@ const QuestionManager = () => {
     if (!simulacro) {
         return (
             <Layout showSidebar={true}>
-                <div className="p-8">
+                <div className="p-6 md:p-8">
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold text-gray-900">Simulacro no encontrado</h1>
+                        <span className="inline-block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Contenido · Admin</span>
+                        <h1 className="text-3xl text-gray-900 tracking-tight">Simulacro no encontrado</h1>
                         <button
                             onClick={() => navigate(-1)}
-                            className="mt-4 bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                            className="mt-4 bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700"
                         >
                             Volver
                         </button>
@@ -467,11 +476,11 @@ const QuestionManager = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
                 <div className="flex justify-between items-start mb-8">
                     <div>
-                        <div className="flex items-center space-x-4 mb-2">
+                        <div className="flex items-center space-x-4 mb-1">
                             <button
                                 onClick={() => navigate(-1)}
                                 className="text-medico-blue hover:text-blue-700"
@@ -480,7 +489,10 @@ const QuestionManager = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                 </svg>
                             </button>
-                            <h1 className="text-3xl font-bold text-medico-blue">Gestionar Preguntas</h1>
+                            <div>
+                                <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Contenido · Admin</span>
+                                <h1 className="text-3xl text-gray-900 tracking-tight">Gestionar Preguntas</h1>
+                            </div>
                         </div>
                         <h2 className="text-xl text-gray-700 mb-2">{simulacro.titulo}</h2>
                         {simulacro.descripcion && (
@@ -494,7 +506,7 @@ const QuestionManager = () => {
                             <span>Creadas: {stats.total}</span>
                             <span>•</span>
                             <span className={stats.total >= simulacro.numero_preguntas ? 'text-green-600 font-medium' : 'text-orange-600'}>
-                                {stats.total >= simulacro.numero_preguntas ? 'Completo ✓' : `Faltan ${simulacro.numero_preguntas - stats.total}`}
+                                {stats.total >= simulacro.numero_preguntas ? 'Completo' : `Faltan ${simulacro.numero_preguntas - stats.total}`}
                             </span>
                         </div>
                     </div>
@@ -502,7 +514,7 @@ const QuestionManager = () => {
                     <div className="flex space-x-3">
                         <button
                             onClick={() => navigate(`/admin/simulacro/${simulacroId}`)}
-                            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                            className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 transition-colors flex items-center space-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -512,7 +524,7 @@ const QuestionManager = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab('bulk')}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                            className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors flex items-center space-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
@@ -521,7 +533,7 @@ const QuestionManager = () => {
                         </button>
                         <button
                             onClick={handleCreateQuestion}
-                            className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                            className="bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -563,9 +575,9 @@ const QuestionManager = () => {
                 <div className="border-b border-gray-200 mb-6">
                     <nav className="-mb-px flex space-x-8">
                         {[
-                            { id: 'individual', name: 'Preguntas', icon: '📝' },
-                            { id: 'bulk', name: 'Importación Masiva', icon: '📚' },
-                            { id: 'stats', name: 'Estadísticas', icon: '📊' }
+                            { id: 'individual', name: 'Preguntas', Icon: ListChecks },
+                            { id: 'bulk', name: 'Importación masiva', Icon: Upload },
+                            { id: 'stats', name: 'Estadísticas', Icon: BarChart3 }
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -576,7 +588,7 @@ const QuestionManager = () => {
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                             >
-                                <span className="mr-2">{tab.icon}</span>
+                                <tab.Icon className="w-4 h-4 inline -mt-0.5 mr-1.5" />
                                 {tab.name}
                             </button>
                         ))}
@@ -588,7 +600,7 @@ const QuestionManager = () => {
                     <div>
                         {/* Estadísticas rápidas */}
                         {stats.total > 0 && (
-                            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                            <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen de Preguntas</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div className="text-center">
@@ -633,7 +645,7 @@ const QuestionManager = () => {
                                 {questions.map((question, index) => {
                                     const typeConfig = questionTypes[question.tipo_pregunta] || { name: question.tipo_pregunta, category: 'otros' }
                                     return (
-                                        <div key={question.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                                        <div key={question.id} className="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-sm transition-shadow">
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="flex-1">
                                                     <div className="flex items-center space-x-3 mb-2">
@@ -647,17 +659,27 @@ const QuestionManager = () => {
                                                                         typeConfig.category === 'interactivos' ? 'bg-orange-100 text-orange-800' :
                                                                             'bg-gray-100 text-gray-800'
                                                         }`}>
-                                                           {getTypeIcon(question.tipo_pregunta)} {typeConfig.name}
+                                                           {typeConfig.name}
                                                        </span>
                                                         {question.imagen_url && (
                                                             <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
-                                                               🖼️ Con imagen
+                                                               <ImageIcon className="w-3 h-3 inline -mt-0.5 mr-1" />Con imagen
                                                            </span>
                                                         )}
                                                     </div>
                                                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                                         {question.enunciado}
                                                     </h3>
+                                                    {banco.porPregunta[question.id] && (
+                                                        <div className="flex flex-wrap gap-1 mb-2">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[11px] ${banco.porPregunta[question.id].areaId ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}`}>
+                                                                {banco.porPregunta[question.id].areaNombre || 'Sin área'}
+                                                            </span>
+                                                            {(banco.porPregunta[question.id].etiquetas || []).map(e => (
+                                                                <span key={e.id} className="px-2 py-0.5 rounded-full text-[11px] text-white" style={{ background: e.color }}>{e.nombre}</span>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                     {question.explicacion && (
                                                         <p className="text-gray-600 text-sm mb-3">
                                                             <strong>Explicación:</strong> {question.explicacion}
@@ -669,13 +691,13 @@ const QuestionManager = () => {
                                                         onClick={() => handleEditQuestion(question)}
                                                         className="text-blue-600 hover:text-blue-800 text-sm bg-blue-50 px-3 py-1 rounded-md transition-colors"
                                                     >
-                                                        ✏️ Editar
+                                                        <Pencil className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />Editar
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteQuestion(question.id)}
                                                         className="text-red-600 hover:text-red-800 text-sm bg-red-50 px-3 py-1 rounded-md transition-colors"
                                                     >
-                                                        🗑️ Eliminar
+                                                        <Trash2 className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />Eliminar
                                                     </button>
                                                 </div>
                                             </div>
@@ -725,21 +747,21 @@ const QuestionManager = () => {
                             </div>
                         ) : (
                             <div className="text-center py-12">
-                                <div className="text-6xl mb-4">🤔</div>
+                                <HelpCircle className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">No hay preguntas creadas</h3>
                                 <p className="text-gray-500 mb-6">Comienza creando preguntas para este simulacro</p>
                                 <div className="flex justify-center space-x-3">
                                     <button
                                         onClick={handleCreateQuestion}
-                                        className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                                        className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                                     >
-                                        📝 Crear Primera Pregunta
+                                        <Plus className="w-4 h-4 inline -mt-0.5 mr-1" />Crear primera pregunta
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('bulk')}
-                                        className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                                        className="bg-green-600 text-white px-6 py-3 rounded-full hover:bg-green-700 transition-colors"
                                     >
-                                        📚 Importar Preguntas
+                                        <Upload className="w-4 h-4 inline -mt-0.5 mr-1" />Importar preguntas
                                     </button>
                                 </div>
                             </div>
@@ -748,7 +770,7 @@ const QuestionManager = () => {
                 )}
 
                 {activeTab === 'bulk' && (
-                    <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="bg-white rounded-2xl border border-gray-100 p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-6">Importación Masiva de Preguntas</h3>
 
                         <div className="space-y-6">
@@ -765,7 +787,7 @@ const QuestionManager = () => {
                                             onChange={(e) => setImportFormat(e.target.value)}
                                             className="mr-2"
                                         />
-                                        <span>📝 Texto Simple</span>
+                                        <span><FileText className="w-4 h-4 inline -mt-0.5 mr-1" />Texto simple</span>
                                     </label>
                                     <label className="flex items-center">
                                         <input
@@ -775,14 +797,14 @@ const QuestionManager = () => {
                                             onChange={(e) => setImportFormat(e.target.value)}
                                             className="mr-2"
                                         />
-                                        <span>🔧 JSON</span>
+                                        <span><Braces className="w-4 h-4 inline -mt-0.5 mr-1" />JSON</span>
                                     </label>
                                 </div>
                             </div>
 
                             {importFormat === 'text' && (
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <h4 className="font-medium text-blue-900 mb-3">📋 Formato de Texto Simple:</h4>
+                                    <h4 className="font-medium text-blue-900 mb-3">Formato de texto simple:</h4>
                                     <div className="text-sm text-blue-800 space-y-2">
                                         <p>• <code className="bg-blue-100 px-1 rounded">P:</code> o <code className="bg-blue-100 px-1 rounded">PREGUNTA:</code> para el enunciado</p>
                                         <p>• <code className="bg-blue-100 px-1 rounded">A)</code>, <code className="bg-blue-100 px-1 rounded">B)</code>, <code className="bg-blue-100 px-1 rounded">C)</code>, <code className="bg-blue-100 px-1 rounded">D)</code> para las opciones</p>
@@ -810,7 +832,7 @@ const QuestionManager = () => {
 
                             {importFormat === 'json' && (
                                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                    <h4 className="font-medium text-green-900 mb-3">🔧 Formato JSON:</h4>
+                                    <h4 className="font-medium text-green-900 mb-3">Formato JSON:</h4>
                                     <div className="bg-white border border-green-200 rounded p-3 text-xs font-mono overflow-x-auto">
                                        <pre>{`[
  {
@@ -846,7 +868,7 @@ const QuestionManager = () => {
                                     value={bulkQuestions}
                                     onChange={(e) => setBulkQuestions(e.target.value)}
                                     rows={15}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent font-mono text-sm"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent font-mono text-sm"
                                     placeholder={importFormat === 'json'
                                         ? 'Pega aquí el JSON con las preguntas...'
                                         : 'Pega aquí las preguntas en formato texto...'
@@ -861,19 +883,19 @@ const QuestionManager = () => {
                                         setBulkQuestions('')
                                         setActiveTab('individual')
                                     }}
-                                    className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                    className="px-6 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={handleBulkImport}
                                     disabled={formLoading || !bulkQuestions.trim()}
-                                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+                                    className="px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
                                 >
                                     {formLoading && (
                                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                     )}
-                                    <span>{formLoading ? 'Importando...' : '📚 Importar Preguntas'}</span>
+                                    <span>{formLoading ? 'Importando...' : '<Upload className="w-4 h-4 inline -mt-0.5 mr-1" />Importar preguntas'}</span>
                                 </button>
                             </div>
                         </div>
@@ -883,7 +905,7 @@ const QuestionManager = () => {
                 {activeTab === 'stats' && (
                     <div className="space-y-6">
                         {/* Estadísticas por tipo */}
-                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Distribución por Tipos</h3>
                             {Object.keys(questionTypes).length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -895,7 +917,7 @@ const QuestionManager = () => {
                                             <div key={key} className="border border-gray-200 rounded-lg p-4">
                                                 <div className="flex items-center justify-between mb-2">
                                                    <span className="font-medium text-gray-900">
-                                                       {getTypeIcon(key)} {type.name}
+                                                       {type.name}
                                                    </span>
                                                     <span className="text-lg font-bold text-medico-blue">{count}</span>
                                                 </div>
@@ -918,7 +940,7 @@ const QuestionManager = () => {
                         </div>
 
                         {/* Estadísticas generales */}
-                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Estadísticas Generales</h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="text-center">
@@ -940,7 +962,7 @@ const QuestionManager = () => {
 
                         {/* Consejos */}
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                            <h3 className="text-lg font-semibold text-yellow-900 mb-3">💡 Consejos para Preguntas</h3>
+                            <h3 className="text-lg font-semibold text-yellow-900 mb-3"><Lightbulb className="w-5 h-5 inline -mt-1 mr-1" />Consejos para las preguntas</h3>
                             <div className="space-y-2 text-sm text-yellow-800">
                                 <p>• <strong>Variedad:</strong> Usa diferentes tipos de preguntas para mantener el interés</p>
                                 <p>• <strong>Dificultad:</strong> Mezcla preguntas fáciles, medias y difíciles</p>
@@ -955,10 +977,10 @@ const QuestionManager = () => {
                 {/* ========== MODAL PREGUNTA ========== */}
                 {showQuestionForm && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-90vh overflow-y-auto">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-4xl mx-4 max-h-90vh overflow-y-auto">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-semibold text-gray-900">
-                                    {selectedQuestion ? '✏️ Editar Pregunta' : '➕ Nueva Pregunta'}
+                                    {selectedQuestion ? 'Editar pregunta' : 'Nueva pregunta'}
                                 </h3>
                                 <button
                                     onClick={() => setShowQuestionForm(false)}
@@ -979,7 +1001,7 @@ const QuestionManager = () => {
                                         value={questionForm.enunciado}
                                         onChange={(e) => handleFormChange('enunciado', e.target.value)}
                                         rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="Escribe aquí la pregunta..."
                                         required
                                     />
@@ -993,11 +1015,11 @@ const QuestionManager = () => {
                                         <select
                                             value={questionForm.tipoPregunta}
                                             onChange={(e) => handleFormChange('tipoPregunta', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         >
                                             {Object.entries(questionTypes).map(([key, type]) => (
                                                 <option key={key} value={key}>
-                                                    {getTypeIcon(key)} {type.name} {type.category && `(${type.category})`}
+                                                    {type.name} {type.category && `(${type.category})`}
                                                 </option>
                                             ))}
                                         </select>
@@ -1016,9 +1038,27 @@ const QuestionManager = () => {
                                             type="url"
                                             value={questionForm.imagenUrl}
                                             onChange={(e) => handleFormChange('imagenUrl', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                             placeholder="https://ejemplo.com/imagen.jpg"
                                         />
+                                    </div>
+                                </div>
+
+                                {/* Clasificación para el simulador interactivo (banco de preguntas) */}
+                                <div className="rounded-xl border border-blue-100 bg-blue-50/40 p-3 space-y-3">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Área de conocimiento <span className="text-xs text-medico-gray font-normal">· mueve el mapa de dominio del alumno</span></label>
+                                        {banco.carrera ? (
+                                            <select value={questionForm.areaId} onChange={(e) => handleFormChange('areaId', e.target.value)}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent bg-white">
+                                                <option value="">Sin asignar (queda en "Por categorizar")</option>
+                                                {banco.areas.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                                            </select>
+                                        ) : <p className="text-xs text-medico-gray">Este curso no está vinculado a una carrera del simulador; la pregunta no entrará al entrenador.</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Etiquetas <span className="text-xs text-medico-gray font-normal">· institución, año, tipo de examen… (opcionales, sirven de filtro)</span></label>
+                                        <EtiquetasPicker grupos={banco.grupos} value={questionForm.etiquetaIds} onChange={(ids) => handleFormChange('etiquetaIds', ids)} onGrupoActualizado={onGrupoActualizado} compact />
                                     </div>
                                 </div>
 
@@ -1030,7 +1070,7 @@ const QuestionManager = () => {
                                         value={questionForm.explicacion}
                                         onChange={(e) => handleFormChange('explicacion', e.target.value)}
                                         rows={2}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         placeholder="Explicación de por qué esta es la respuesta correcta..."
                                     />
                                 </div>
@@ -1058,7 +1098,7 @@ const QuestionManager = () => {
                                                 <div key={index} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg">
                                                    <span className="font-medium text-gray-600 min-w-[30px]">
                                                        {questionForm.tipoPregunta === 'true_false'
-                                                           ? (index === 0 ? '✅' : '❌')
+                                                           ? (index === 0 ? 'V' : 'F')
                                                            : String.fromCharCode(65 + index) + ')'
                                                        }
                                                    </span>
@@ -1170,14 +1210,14 @@ const QuestionManager = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowQuestionForm(false)}
-                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                        className="px-6 py-2 text-gray-700 border border-gray-300 rounded-full hover:bg-gray-50"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={formLoading}
-                                        className="px-6 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
+                                        className="px-6 py-2 bg-medico-blue text-white rounded-full hover:bg-blue-700 disabled:opacity-50 flex items-center space-x-2"
                                     >
                                         {formLoading && (
                                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

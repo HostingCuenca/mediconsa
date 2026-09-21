@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
+import { PageHeader } from '../simulador/ui'
 import materialServices from '../services/materiales'
 
 const MyMateriales = () => {
@@ -126,36 +127,15 @@ const MyMateriales = () => {
     }
 
     // ========== FUNCIONES DE ACCIONES ==========
+    // Los PDF se leen dentro de la plataforma (Biblioteca): el archivo llega por el API, sin URL que compartir.
     const handleViewMaterial = (material) => {
-        if (material.archivo_url) {
+        if ((material.tipo_archivo || '').toLowerCase() === 'pdf') {
+            navigate(`/biblioteca/leer/${material.id}`)
+        } else if (material.archivo_url) {
             window.open(material.archivo_url, '_blank')
         } else {
-            setError('URL del archivo no disponible')
+            setError('Archivo no disponible')
         }
-    }
-
-    const handleDownloadMaterial = (material) => {
-        if (material.puede_descargar || material.tipo_material === 'libre') {
-            window.open(material.archivo_url, '_blank')
-            setSuccess(`Descargando: ${material.titulo}`)
-        } else {
-            setError('Material no disponible para descarga directa')
-        }
-    }
-
-    const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text).then(() => {
-            setSuccess('¡Enlace copiado al portapapeles!')
-        }).catch(() => {
-            // Fallback
-            const textArea = document.createElement('textarea')
-            textArea.value = text
-            document.body.appendChild(textArea)
-            textArea.select()
-            document.execCommand('copy')
-            document.body.removeChild(textArea)
-            setSuccess('¡Enlace copiado al portapapeles!')
-        })
     }
 
     // ========== UTILIDADES ==========
@@ -205,7 +185,7 @@ const MyMateriales = () => {
         const archivoBadge = getTipoArchivoBadge(material.tipo_archivo)
 
         return (
-            <div key={material.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            <div key={material.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-sm transition-shadow">
                 {/* Imagen */}
                 {material.imagen_url && (
                     <div className="h-48 bg-gray-100 relative overflow-hidden">
@@ -286,40 +266,23 @@ const MyMateriales = () => {
 
                     {/* Acciones */}
                     <div className="space-y-2">
-                        <div className="grid grid-cols-2 gap-2">
+                        {(material.puede_acceder || material.puede_descargar || material.tipo_material === 'libre') ? (
                             <button
                                 onClick={() => handleViewMaterial(material)}
-                                className="bg-blue-100 text-blue-700 py-2 px-3 rounded-lg hover:bg-blue-200 transition-colors text-sm flex items-center justify-center space-x-1"
+                                className="w-full bg-medico-blue text-white py-2 px-3 rounded-full hover:bg-blue-800 transition-colors text-sm flex items-center justify-center space-x-1"
                             >
-                                <span>👁️</span>
-                                <span>Ver</span>
+                                <span>📖</span>
+                                <span>Leer en la plataforma</span>
                             </button>
-                            {(material.puede_descargar || material.tipo_material === 'libre') ? (
-                                <button
-                                    onClick={() => handleDownloadMaterial(material)}
-                                    className="bg-green-100 text-green-700 py-2 px-3 rounded-lg hover:bg-green-200 transition-colors text-sm flex items-center justify-center space-x-1"
-                                >
-                                    <span>⬇️</span>
-                                    <span>Descargar</span>
-                                </button>
-                            ) : (
-                                <button
-                                    className="bg-yellow-100 text-yellow-700 py-2 px-3 rounded-lg cursor-not-allowed text-sm flex items-center justify-center space-x-1"
-                                    disabled
-                                >
-                                    <span>🔒</span>
-                                    <span>Premium</span>
-                                </button>
-                            )}
-                        </div>
-
-                        <button
-                            onClick={() => copyToClipboard(material.archivo_url)}
-                            className="w-full bg-gray-100 text-gray-700 py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors text-sm flex items-center justify-center space-x-1"
-                        >
-                            <span>📋</span>
-                            <span>Copiar Enlace</span>
-                        </button>
+                        ) : (
+                            <button
+                                className="w-full bg-yellow-100 text-yellow-700 py-2 px-3 rounded-full cursor-not-allowed text-sm flex items-center justify-center space-x-1"
+                                disabled
+                            >
+                                <span>🔒</span>
+                                <span>{material.tipo_material === 'premium' ? 'Premium' : 'Requiere inscripción'}</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -342,12 +305,13 @@ const MyMateriales = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-medico-blue mb-2">📚 Mis Materiales</h1>
-                    <p className="text-medico-gray">Accede a todos tus materiales de cursos y explora contenido adicional</p>
-                </div>
+                <PageHeader
+                    eyebrow="Mi aprendizaje"
+                    title="Mis Materiales"
+                    subtitle="Accede a todos tus materiales de cursos y explora contenido adicional"
+                />
 
                 {/* Mensajes */}
                 {error && (
@@ -422,19 +386,19 @@ const MyMateriales = () => {
                         {/* Estadísticas */}
                         {estadisticasMias.total > 0 && (
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                <div className="bg-white rounded-2xl p-4 border border-gray-100">
                                     <div className="text-2xl font-bold text-medico-blue">{estadisticasMias.total}</div>
                                     <div className="text-gray-600 text-sm">Total Materiales</div>
                                 </div>
-                                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                <div className="bg-white rounded-2xl p-4 border border-gray-100">
                                     <div className="text-2xl font-bold text-green-600">{estadisticasMias.accesibles}</div>
                                     <div className="text-gray-600 text-sm">Accesibles</div>
                                 </div>
-                                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                <div className="bg-white rounded-2xl p-4 border border-gray-100">
                                     <div className="text-2xl font-bold text-purple-600">{Object.keys(estadisticasMias.por_curso || {}).length}</div>
                                     <div className="text-gray-600 text-sm">Cursos</div>
                                 </div>
-                                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                <div className="bg-white rounded-2xl p-4 border border-gray-100">
                                     <div className="text-2xl font-bold text-orange-600">
                                         {Math.round((estadisticasMias.accesibles / estadisticasMias.total) * 100) || 0}%
                                     </div>
@@ -449,7 +413,7 @@ const MyMateriales = () => {
                                 {misMateriales.map((material) => renderMaterialCard(material, 'curso'))}
                             </div>
                         ) : (
-                            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                            <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
                                 <div className="text-6xl mb-4">📚</div>
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                                     No tienes materiales disponibles
@@ -459,7 +423,7 @@ const MyMateriales = () => {
                                 </p>
                                 <button
                                     onClick={() => navigate('/panel/cursos')}
-                                    className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                                 >
                                     Explorar Cursos
                                 </button>
@@ -471,7 +435,7 @@ const MyMateriales = () => {
                 {activeTab === 'marketplace' && (
                     <div>
                         {/* Filtros del marketplace */}
-                        <div className="bg-white rounded-lg p-6 border border-gray-200 mb-6">
+                        <div className="bg-white rounded-2xl p-6 border border-gray-100 mb-6">
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
@@ -480,7 +444,7 @@ const MyMateriales = () => {
                                         placeholder="Buscar materiales..."
                                         value={filters.search}
                                         onChange={(e) => handleFilterChange('search', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     />
                                 </div>
 
@@ -489,7 +453,7 @@ const MyMateriales = () => {
                                     <select
                                         value={filters.categoria}
                                         onChange={(e) => handleFilterChange('categoria', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     >
                                         <option value="">Todas las categorías</option>
                                         {categorias.map(cat => (
@@ -505,7 +469,7 @@ const MyMateriales = () => {
                                     <select
                                         value={filters.tipo}
                                         onChange={(e) => handleFilterChange('tipo', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     >
                                         <option value="">Todos los tipos</option>
                                         <option value="libre">🆓 Gratuitos</option>
@@ -516,7 +480,7 @@ const MyMateriales = () => {
                                 <div className="flex items-end">
                                     <button
                                         onClick={resetFilters}
-                                        className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                                        className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-full hover:bg-gray-200 transition-colors"
                                     >
                                         Limpiar Filtros
                                     </button>
@@ -557,7 +521,7 @@ const MyMateriales = () => {
                                 )}
                             </>
                         ) : (
-                            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                            <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
                                 <div className="text-6xl mb-4">🔍</div>
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                                     No se encontraron materiales
@@ -567,7 +531,7 @@ const MyMateriales = () => {
                                 </p>
                                 <button
                                     onClick={resetFilters}
-                                    className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                                    className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                                 >
                                     Limpiar Filtros
                                 </button>

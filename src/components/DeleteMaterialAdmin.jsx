@@ -179,14 +179,14 @@ const DeleteMaterialAdmin = ({
                     <div className="flex space-x-3">
                         <button
                             onClick={handleClose}
-                            className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                            className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors font-medium"
                             disabled={deleting}
                         >
                             Cancelar
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center space-x-2"
+                            className="flex-1 px-4 py-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors font-medium flex items-center justify-center space-x-2"
                             disabled={deleting}
                         >
                             {deleting ? (

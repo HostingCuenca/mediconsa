@@ -90,7 +90,7 @@ const VerifyEmailPage = () => {
                                 <p className="text-sm text-medico-gray">{message}</p>
                                 <Link
                                     to={isAuthenticated ? '/dashboard' : '/login'}
-                                    className="inline-block bg-medico-blue text-white py-2 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-all"
+                                    className="inline-block bg-medico-blue text-white py-2 px-6 rounded-full font-semibold hover:bg-blue-700 transition-all"
                                 >
                                     {isAuthenticated ? 'Ir a mi panel' : 'Iniciar sesión'}
                                 </Link>
@@ -118,13 +118,13 @@ const VerifyEmailPage = () => {
                                         required
                                         value={resendEmail}
                                         onChange={(e) => setResendEmail(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                         placeholder="doctor@ejemplo.com"
                                     />
                                     <button
                                         type="submit"
                                         disabled={resendLoading}
-                                        className="w-full bg-medico-blue text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-all disabled:opacity-50"
+                                        className="w-full bg-medico-blue text-white py-2 px-4 rounded-full font-semibold hover:bg-blue-700 transition-all disabled:opacity-50"
                                     >
                                         {resendLoading ? 'Enviando...' : 'Reenviar correo de verificación'}
                                     </button>

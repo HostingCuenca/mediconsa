@@ -1,4 +1,6 @@
 // src/services/auth.js - Servicio de autenticación CORREGIDO
+import { limpiarCacheApi } from './api'
+import { headersDispositivo } from '../utils/dispositivo'
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/med-api'
 
 class AuthService {
@@ -14,6 +16,7 @@ class AuthService {
         const token = this.getToken()
         return {
             'Content-Type': 'application/json',
+            ...headersDispositivo(),
             ...(token && { 'Authorization': `Bearer ${token}` })
         }
     }
@@ -114,7 +117,7 @@ class AuthService {
 
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...headersDispositivo() },
                 body: JSON.stringify({ email, password })
             })
 
@@ -134,12 +137,14 @@ class AuthService {
                 // console.log('Usuario normalizado (login):', normalizedUser)
 
                 this.setAuthData(data.data.token, normalizedUser)
+                this.guardarAvisoSesion(data.data.sesion)
 
                 return {
                     success: true,
                     data: {
                         user: normalizedUser,
-                        token: data.data.token
+                        token: data.data.token,
+                        sesion: data.data.sesion || null
                     }
                 }
             }
@@ -166,7 +171,7 @@ class AuthService {
         try {
             const response = await fetch(`${API_BASE_URL}/auth/google`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...headersDispositivo() },
                 body: JSON.stringify({ credential })
             })
 
@@ -182,6 +187,7 @@ class AuthService {
             if (data.success && data.data?.token) {
                 const normalizedUser = this.normalizeUser(data.data.user)
                 this.setAuthData(data.data.token, normalizedUser)
+                this.guardarAvisoSesion(data.data.sesion)
 
                 return {
                     success: true,
@@ -320,15 +326,41 @@ class AuthService {
     // =============================================
     // LOGOUT
     // =============================================
-    logout() {
+    logout(motivo = null) {
         console.log('Cerrando sesión y limpiando localStorage')
+        const token = this.getToken()
         localStorage.removeItem(this.tokenKey)
         localStorage.removeItem(this.userKey)
+        try { sessionStorage.removeItem('mediconsa_aviso_sesion') } catch { /* noop */ }
+        limpiarCacheApi()
 
-        // Opcional: Notificar al backend (si implementas blacklist de tokens)
-        // this.notifyLogout()
+        // Revoca la sesión en el servidor (el token deja de valer aunque alguien lo haya copiado)
+        if (token) {
+            try {
+                fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'POST', keepalive: true,
+                    headers: { 'Content-Type': 'application/json', ...headersDispositivo(), Authorization: `Bearer ${token}` }
+                }).catch(() => {})
+            } catch { /* noop */ }
+        }
 
-        window.location.href = '/login'
+        window.location.href = motivo ? `/login?motivo=${encodeURIComponent(motivo)}` : '/login'
+    }
+
+    // Aviso de "se cerró tu sesión en X" / "reemplazaste el dispositivo Y" que devuelve el login; se muestra una vez en el panel
+    guardarAvisoSesion(sesion) {
+        try {
+            if (!sesion) return
+            const partes = []
+            if (sesion.expulsadas?.length) partes.push(`Se cerró tu sesión en ${sesion.expulsadas.map(e => e.dispositivo || 'otro dispositivo').join(', ')}: tu cuenta es personal y solo puede usarla una persona a la vez.`)
+            if (sesion.dispositivoReemplazado) partes.push(`El dispositivo "${sesion.dispositivoReemplazado.nombre}" quedó fuera de tu cuenta al entrar desde este.`)
+            if (sesion.aviso) {
+                const a = sesion.aviso
+                const desde = a.desde ? ` a partir del ${new Date(a.desde + 'T12:00:00').toLocaleDateString('es-EC', { day: 'numeric', month: 'long' })}` : ' próximamente'
+                partes.push(`Tu cuenta está abierta en varios dispositivos a la vez. Es una cuenta personal, de una sola persona:${desde} las sesiones de más se cerrarán automáticamente.`)
+            }
+            if (partes.length) sessionStorage.setItem('mediconsa_aviso_sesion', partes.join(' '))
+        } catch { /* noop */ }
     }
 
     // =============================================
@@ -349,8 +381,8 @@ class AuthService {
             if (!response.ok) {
                 // Si es error de autenticación, hacer logout
                 if (response.status === 401 || response.status === 403) {
-                    // console.log('Token inválido, haciendo logout')
-                    this.logout()
+                    // Sesión expulsada/revocada/caducada: se explica el motivo en /login
+                    this.logout(data.code && data.code !== 'TOKEN_INVALIDO' ? data.code : null)
                 }
 
                 return {
@@ -397,13 +429,8 @@ class AuthService {
         }
 
         // Usar getProfile para verificar token
-        const result = await this.getProfile()
-
-        if (!result.success) {
-            this.logout()
-        }
-
-        return result
+        // getProfile ya cierra la sesión (con motivo) si el token no vale
+        return await this.getProfile()
     }
 
     // =============================================
@@ -413,6 +440,7 @@ class AuthService {
         // console.log('Guardando en localStorage:', { token: !!token, user })
         localStorage.setItem(this.tokenKey, token)
         localStorage.setItem(this.userKey, JSON.stringify(user))
+        limpiarCacheApi()   // sesión nueva: nada de datos de un usuario anterior
     }
 
     setUserData(user) {

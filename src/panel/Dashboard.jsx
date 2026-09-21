@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
+import { PageHeader } from '../simulador/ui'
 import { useAuth } from '../utils/AuthContext'
 import dashboardService from '../services/dashboard'
 
@@ -130,14 +131,13 @@ const StudentDashboard = () => {
     // ========== RENDER PRINCIPAL (SOLO PARA ESTUDIANTES) ==========
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-medico-blue">
-                        ¡Hola, {perfil?.nombre_completo?.split(' ')[0] || 'Estudiante'}! 👋
-                    </h1>
-                    <p className="text-medico-gray mt-2">Aquí tienes un resumen de tu progreso académico</p>
-                </div>
+                <PageHeader
+                    eyebrow="Tu panel"
+                    title={`¡Hola, ${(perfil?.nombreCompleto || perfil?.nombre_completo)?.split(' ')[0] || 'Estudiante'}!`}
+                    subtitle="Aquí tienes un resumen de tu progreso académico"
+                />
 
                 {/* ========== MENSAJES ========== */}
                 {error && (
@@ -159,7 +159,7 @@ const StudentDashboard = () => {
 
                 {/* ========== ESTADÍSTICAS GENERALES ========== */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900">Cursos Inscritos</h3>
@@ -173,7 +173,7 @@ const StudentDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900">Clases Completadas</h3>
@@ -187,7 +187,7 @@ const StudentDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900">Simulacros Realizados</h3>
@@ -201,7 +201,7 @@ const StudentDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900">Promedio Simulacros</h3>
@@ -222,7 +222,7 @@ const StudentDashboard = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* ========== CURSOS RECIENTES ========== */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-xl font-semibold text-gray-900">Mis Cursos</h2>
                                 <button
@@ -275,7 +275,7 @@ const StudentDashboard = () => {
                                                     </div>
                                                     <button
                                                         onClick={() => navigate(`/estudiar/${curso.id}`)}
-                                                        className="bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                                                        className="bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-colors text-sm"
                                                     >
                                                         Continuar
                                                     </button>
@@ -293,7 +293,7 @@ const StudentDashboard = () => {
                                     <p className="text-gray-500 mb-4">Explora nuestro catálogo y encuentra el curso perfecto para ti</p>
                                     <button
                                         onClick={() => navigate('/mis-cursos')}
-                                        className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                                        className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                                     >
                                         Explorar Cursos
                                     </button>
@@ -304,7 +304,7 @@ const StudentDashboard = () => {
 
                     {/* ========== ACTIVIDAD RECIENTE ========== */}
                     <div>
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-6">Actividad Reciente</h2>
 
                             {dashboardData.actividadReciente.length > 0 ? (
@@ -337,7 +337,7 @@ const StudentDashboard = () => {
                         </div>
 
                         {/* ========== ACCESOS RÁPIDOS ========== */}
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mt-6">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-6">
                             <h2 className="text-xl font-semibold text-gray-900 mb-6">Accesos Rápidos</h2>
                             <div className="space-y-3">
                                 <button

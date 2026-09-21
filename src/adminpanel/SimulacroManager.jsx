@@ -154,12 +154,12 @@ const SimulacroManager = () => {
     // ========== UTILIDADES ==========
     const getModoEstudioLabel = (modo) => {
         const modos = {
-            'estudio': { name: 'Modo Estudio', color: 'bg-green-100 text-green-800', icon: '📚' },
-            'revision': { name: 'Modo Revisión', color: 'bg-blue-100 text-blue-800', icon: '🔄' },
-            'evaluacion': { name: 'Modo Evaluación', color: 'bg-yellow-100 text-yellow-800', icon: '📝' },
-            'examen_real': { name: 'Modo Examen Real', color: 'bg-red-100 text-red-800', icon: '🎯' }
+            'estudio': { name: 'Modo Estudio', color: 'bg-green-100 text-green-800', icon: '' },
+            'revision': { name: 'Modo Revisión', color: 'bg-blue-100 text-blue-800', icon: '' },
+            'evaluacion': { name: 'Modo Evaluación', color: 'bg-yellow-100 text-yellow-800', icon: '' },
+            'examen_real': { name: 'Modo Examen Real', color: 'bg-red-100 text-red-800', icon: '' }
         }
-        return modos[modo] || { name: modo, color: 'bg-gray-100 text-gray-800', icon: '📋' }
+        return modos[modo] || { name: modo, color: 'bg-gray-100 text-gray-800', icon: '' }
     }
 
     const getTiempoLabel = (tipo) => {
@@ -209,12 +209,13 @@ const SimulacroManager = () => {
     if (!simulacro) {
         return (
             <Layout showSidebar={true}>
-                <div className="p-8">
+                <div className="p-6 md:p-8">
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold text-gray-900">Simulacro no encontrado</h1>
+                        <span className="inline-block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Contenido · Admin</span>
+                        <h1 className="text-3xl text-gray-900 tracking-tight">Simulacro no encontrado</h1>
                         <button
                             onClick={() => navigate(-1)}
-                            className="mt-4 bg-medico-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                            className="mt-4 bg-medico-blue text-white px-4 py-2 rounded-full hover:bg-blue-700"
                         >
                             Volver
                         </button>
@@ -228,11 +229,11 @@ const SimulacroManager = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
                 <div className="flex justify-between items-start mb-8">
                     <div>
-                        <div className="flex items-center space-x-4 mb-2">
+                        <div className="flex items-center space-x-4 mb-1">
                             <button
                                 onClick={() => navigate(-1)}
                                 className="text-medico-blue hover:text-blue-700"
@@ -241,12 +242,15 @@ const SimulacroManager = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                 </svg>
                             </button>
-                            <h1 className="text-3xl font-bold text-medico-blue">Configuración Avanzada</h1>
+                            <div>
+                                <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Contenido · Admin</span>
+                                <h1 className="text-3xl text-gray-900 tracking-tight">Configuración Avanzada</h1>
+                            </div>
                         </div>
                         <h2 className="text-xl text-gray-700 mb-2">{simulacro.titulo}</h2>
                         <div className="flex items-center space-x-3">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${modeInfo.color}`}>
-                                {modeInfo.icon} {modeInfo.name}
+                                {modeInfo.name}
                             </span>
                             <span className="text-gray-500">•</span>
                             <span className="text-gray-600">{course?.titulo}</span>
@@ -256,7 +260,7 @@ const SimulacroManager = () => {
                     <div className="flex space-x-3">
                         <button
                             onClick={() => setShowTemplates(true)}
-                            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                            className="bg-purple-600 text-white px-4 py-2 rounded-full hover:bg-purple-700 transition-colors flex items-center space-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -265,7 +269,7 @@ const SimulacroManager = () => {
                         </button>
                         <button
                             onClick={() => setShowPreview(!showPreview)}
-                            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                            className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition-colors flex items-center space-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -275,7 +279,7 @@ const SimulacroManager = () => {
                         </button>
                         <button
                             onClick={() => navigate(`/admin/questions/${simulacroId}`)}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                            className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors flex items-center space-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -314,7 +318,7 @@ const SimulacroManager = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* ========== FORMULARIO PRINCIPAL ========== */}
                     <div className="lg:col-span-2">
-                        <form onSubmit={handleSubmitSimulacro} className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+                        <form onSubmit={handleSubmitSimulacro} className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
                             <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-3">
                                 Configuración del Simulacro
                             </h3>
@@ -329,7 +333,7 @@ const SimulacroManager = () => {
                                         type="text"
                                         value={simulacroForm.titulo}
                                         onChange={(e) => setSimulacroForm(prev => ({ ...prev, titulo: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         required
                                     />
                                 </div>
@@ -344,7 +348,7 @@ const SimulacroManager = () => {
                                         max="200"
                                         value={simulacroForm.numeroPreguntas}
                                         onChange={(e) => setSimulacroForm(prev => ({ ...prev, numeroPreguntas: parseInt(e.target.value) || 1 }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                         required
                                     />
                                 </div>
@@ -358,7 +362,7 @@ const SimulacroManager = () => {
                                     value={simulacroForm.descripcion}
                                     onChange={(e) => setSimulacroForm(prev => ({ ...prev, descripcion: e.target.value }))}
                                     rows={3}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     placeholder="Descripción opcional del simulacro..."
                                 />
                             </div>
@@ -372,12 +376,12 @@ const SimulacroManager = () => {
                                     <select
                                         value={simulacroForm.modoEstudio}
                                         onChange={(e) => setSimulacroForm(prev => ({ ...prev, modoEstudio: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     >
-                                        <option value="estudio">📚 Modo Estudio</option>
-                                        <option value="revision">🔄 Modo Revisión</option>
-                                        <option value="evaluacion">📝 Modo Evaluación</option>
-                                        <option value="examen_real">🎯 Examen Real</option>
+                                        <option value="estudio">Modo estudio</option>
+                                        <option value="revision">Modo revisión</option>
+                                        <option value="evaluacion">Modo evaluación</option>
+                                        <option value="examen_real">Examen real</option>
                                     </select>
                                 </div>
 
@@ -388,11 +392,11 @@ const SimulacroManager = () => {
                                     <select
                                         value={simulacroForm.tipoTiempo}
                                         onChange={(e) => setSimulacroForm(prev => ({ ...prev, tipoTiempo: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     >
                                         <option value="sin_limite">⏰ Sin límite</option>
-                                        <option value="global">🕐 Tiempo global</option>
-                                        <option value="por_pregunta">⏱️ Por pregunta</option>
+                                        <option value="global">Tiempo global</option>
+                                        <option value="por_pregunta">Por pregunta</option>
                                     </select>
                                 </div>
 
@@ -403,10 +407,10 @@ const SimulacroManager = () => {
                                     <select
                                         value={simulacroForm.tipoNavegacion}
                                         onChange={(e) => setSimulacroForm(prev => ({ ...prev, tipoNavegacion: e.target.value }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     >
-                                        <option value="libre">🔄 Navegación libre</option>
-                                        <option value="secuencial">➡️ Navegación secuencial</option>
+                                        <option value="libre">Navegación libre</option>
+                                        <option value="secuencial">Navegación secuencial</option>
                                     </select>
                                 </div>
                             </div>
@@ -424,7 +428,7 @@ const SimulacroManager = () => {
                                                 min="1"
                                                 value={simulacroForm.tiempoLimiteMinutos}
                                                 onChange={(e) => setSimulacroForm(prev => ({ ...prev, tiempoLimiteMinutos: parseInt(e.target.value) || '' }))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="Ej: 90"
                                                 disabled={simulacroForm.tipoTiempo === 'por_pregunta'}
                                             />
@@ -441,7 +445,7 @@ const SimulacroManager = () => {
                                                 min="10"
                                                 value={simulacroForm.tiempoPorPreguntaSegundos}
                                                 onChange={(e) => setSimulacroForm(prev => ({ ...prev, tiempoPorPreguntaSegundos: parseInt(e.target.value) || '' }))}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                                 placeholder="Ej: 120"
                                                 disabled={simulacroForm.tipoTiempo === 'global'}
                                             />
@@ -459,7 +463,7 @@ const SimulacroManager = () => {
                                     <select
                                         value={simulacroForm.intentosPermitidos}
                                         onChange={(e) => setSimulacroForm(prev => ({ ...prev, intentosPermitidos: parseInt(e.target.value) }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     >
                                         <option value={-1}>Ilimitados</option>
                                         <option value={1}>1 intento</option>
@@ -476,7 +480,7 @@ const SimulacroManager = () => {
                                     <select
                                         value={simulacroForm.mostrarRespuestasDespues}
                                         onChange={(e) => setSimulacroForm(prev => ({ ...prev, mostrarRespuestasDespues: parseInt(e.target.value) }))}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                                     >
                                         <option value={0}>No mostrar</option>
                                         <option value={1}>Inmediatamente</option>
@@ -515,7 +519,7 @@ const SimulacroManager = () => {
                                 <button
                                     type="submit"
                                     disabled={formLoading}
-                                    className="w-full bg-medico-blue text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
+                                    className="w-full bg-medico-blue text-white py-3 px-6 rounded-full hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center space-x-2"
                                 >
                                     {formLoading && (
                                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -530,7 +534,7 @@ const SimulacroManager = () => {
                     <div className="space-y-6">
                         {/* Preview de configuración */}
                         {showPreview && (
-                            <div className="bg-white rounded-lg border border-gray-200 p-6">
+                            <div className="bg-white rounded-2xl border border-gray-100 p-6">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Preview</h3>
                                 <div className="space-y-3 text-sm">
                                     <div className="flex justify-between">
@@ -566,7 +570,7 @@ const SimulacroManager = () => {
                         )}
 
                         {/* Estadísticas del simulacro */}
-                        <div className="bg-white rounded-lg border border-gray-200 p-6">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">Estadísticas</h3>
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center">
@@ -593,7 +597,7 @@ const SimulacroManager = () => {
 
                         {/* Consejos según el modo */}
                         <div className="bg-blue-50 rounded-lg border border-blue-200 p-6">
-                            <h3 className="text-lg font-semibold text-blue-900 mb-3">💡 Consejo</h3>
+                            <h3 className="text-lg font-semibold text-blue-900 mb-3">Consejo</h3>
                             <div className="text-sm text-blue-800">
                                 {simulacroForm.modoEstudio === 'estudio' && (
                                     <p>En modo estudio, los estudiantes pueden ver respuestas inmediatamente y repetir sin límites. Ideal para aprendizaje.</p>
@@ -615,7 +619,7 @@ const SimulacroManager = () => {
                 {/* ========== MODAL TEMPLATES ========== */}
                 {showTemplates && simulacroConfigs?.ejemplos && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-90vh overflow-y-auto">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-4xl mx-4 max-h-90vh overflow-y-auto">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-semibold text-gray-900">Templates Predefinidos</h3>
                                 <button
@@ -665,7 +669,7 @@ const SimulacroManager = () => {
                             <div className="mt-6 pt-6 border-t border-gray-200 flex justify-end">
                                 <button
                                     onClick={() => setShowTemplates(false)}
-                                    className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700"
+                                    className="bg-gray-600 text-white px-6 py-2 rounded-full hover:bg-gray-700"
                                 >
                                     Cerrar
                                 </button>

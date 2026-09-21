@@ -217,11 +217,11 @@ const CanalesManager = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
                 <div className="flex justify-between items-start mb-8">
                     <div>
-                        <div className="flex items-center space-x-4 mb-2">
+                        <div className="flex items-center space-x-4 mb-1">
                             {selectedCurso && (
                                 <button
                                     onClick={handleBackToCursos}
@@ -232,12 +232,10 @@ const CanalesManager = () => {
                                     </svg>
                                 </button>
                             )}
-                            <h1 className="text-3xl font-bold text-medico-blue flex items-center space-x-2">
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8z" />
-                                </svg>
-                                <span>Canales de Comunicación</span>
-                            </h1>
+                            <div>
+                                <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-medico-blue mb-1">Comunicación · Admin</span>
+                                <h1 className="text-3xl text-gray-900 tracking-tight">Canales de Comunicación</h1>
+                            </div>
                         </div>
 
                         {selectedCurso ? (
@@ -260,7 +258,7 @@ const CanalesManager = () => {
                     {selectedCurso && (
                         <button
                             onClick={() => setShowForm(true)}
-                            className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                            className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -315,7 +313,7 @@ const CanalesManager = () => {
                             <div
                                 key={curso.id}
                                 onClick={() => handleSelectCurso(curso)}
-                                className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 cursor-pointer hover:border-medico-blue"
+                                className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-all duration-200 cursor-pointer hover:border-medico-blue"
                             >
                                 <div className="flex items-center space-x-4">
                                     {curso.miniatura_url && (
@@ -372,7 +370,7 @@ const CanalesManager = () => {
                                     const tipoDisplay = getTipoDisplay(canal.tipo_canal)
 
                                     return (
-                                        <div key={canal.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-all duration-200">
+                                        <div key={canal.id} className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-all duration-200">
                                             <div className="flex justify-between items-start">
                                                 <div className="flex-1">
                                                     <div className="flex items-center space-x-3 mb-3">
@@ -407,7 +405,7 @@ const CanalesManager = () => {
                                                 <div className="flex flex-col space-y-2 ml-6">
                                                     <button
                                                         onClick={() => window.open(canal.link_acceso, '_blank')}
-                                                        className="bg-green-50 text-green-700 py-2 px-4 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium flex items-center space-x-2"
+                                                        className="bg-green-50 text-green-700 py-2 px-4 rounded-full hover:bg-green-100 transition-colors text-sm font-medium flex items-center space-x-2"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -417,7 +415,7 @@ const CanalesManager = () => {
 
                                                     <button
                                                         onClick={() => handleEditCanal(canal)}
-                                                        className="bg-blue-50 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium flex items-center space-x-2"
+                                                        className="bg-blue-50 text-blue-700 py-2 px-4 rounded-full hover:bg-blue-100 transition-colors text-sm font-medium flex items-center space-x-2"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -442,7 +440,7 @@ const CanalesManager = () => {
                                         </p>
                                         <button
                                             onClick={() => setShowForm(true)}
-                                            className="bg-medico-blue text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 mx-auto"
+                                            className="bg-medico-blue text-white px-8 py-3 rounded-full hover:bg-blue-700 transition-colors flex items-center space-x-2 mx-auto"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -502,7 +500,7 @@ const CanalesManager = () => {
                                             type="text"
                                             value={canalForm.nombre}
                                             onChange={(e) => setCanalForm(prev => ({ ...prev, nombre: e.target.value }))}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                             required
                                             placeholder="Ej: Grupo Medicina 2025"
                                         />
@@ -516,7 +514,7 @@ const CanalesManager = () => {
                                             value={canalForm.descripcion}
                                             onChange={(e) => setCanalForm(prev => ({ ...prev, descripcion: e.target.value }))}
                                             rows={3}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                             placeholder="Descripción del propósito del canal..."
                                         />
                                     </div>
@@ -528,7 +526,7 @@ const CanalesManager = () => {
                                         <select
                                             value={canalForm.tipoCanal}
                                             onChange={(e) => setCanalForm(prev => ({ ...prev, tipoCanal: e.target.value }))}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                             required
                                         >
                                             <option value="whatsapp">📱 WhatsApp</option>
@@ -546,7 +544,7 @@ const CanalesManager = () => {
                                             type="url"
                                             value={canalForm.linkAcceso}
                                             onChange={(e) => setCanalForm(prev => ({ ...prev, linkAcceso: e.target.value }))}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent transition-colors"
                                             required
                                             placeholder="https://chat.whatsapp.com/... o https://t.me/..."
                                         />
@@ -574,14 +572,14 @@ const CanalesManager = () => {
                                                 setShowForm(false)
                                                 resetForm()
                                             }}
-                                            className="px-6 py-3 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                            className="px-6 py-3 text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors font-medium"
                                         >
                                             Cancelar
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={formLoading}
-                                            className="px-8 py-3 bg-medico-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 font-medium"
+                                            className="px-8 py-3 bg-medico-blue text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2 font-medium"
                                         >
                                             {formLoading && (
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

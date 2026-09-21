@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { Check, Rocket, BookOpen, Video as VideoIcon, ArrowLeft, PanelLeftClose, PanelLeftOpen, ChevronDown, ChevronLeft, ChevronRight, Lock, CheckCircle2, PlayCircle, Clock, AlertCircle, MessageCircle } from 'lucide-react'
+import { Card, Button, Pill, ProgressBar, EmptyState, Modal } from '../simulador/ui'
 import Layout from '../utils/Layout'
 import { useAuth } from '../utils/AuthContext'
 import VideoPlayer from '../components/VideoPlayer'
@@ -10,7 +12,7 @@ import enrollmentsService from '../services/enrollments'
 const CourseView = () => {
     const { cursoId } = useParams()
     const navigate = useNavigate()
-    const { isAuthenticated, perfil } = useAuth()
+    const { isAuthenticated } = useAuth()
     const [searchParams, setSearchParams] = useSearchParams()
 
     // ========== ESTADOS PRINCIPALES ==========
@@ -35,7 +37,10 @@ const CourseView = () => {
 
     // ========== ESTADOS DEL VIDEO PLAYER ==========
     const [videoProgress, setVideoProgress] = useState(0)
-    const [lastReportedProgress, setLastReportedProgress] = useState(0)
+    // Último avance guardado en el servidor (ref: el reproductor llama con closures que no ven el estado)
+    const ultimoGuardadoRef = useRef({ claseId: null, pct: 0, t: 0, enviando: false })
+    const completadaEnviadaRef = useRef(null)
+    const videoProgressRef = useRef(0)
 
     // ========== EFECTOS ==========
     useEffect(() => {
@@ -166,7 +171,40 @@ const CourseView = () => {
     const loadVideoProgress = (claseId) => {
         const progress = getClassProgress(claseId)
         setVideoProgress(progress.porcentaje)
-        setLastReportedProgress(progress.porcentaje)
+        ultimoGuardadoRef.current = { claseId, pct: progress.porcentaje, t: Date.now(), enviando: false }
+    }
+
+    // Aplica un avance al estado local (sin volver a pedir todo el progreso del curso al servidor)
+    const aplicarProgresoLocal = (claseId, porcentaje, completada) => {
+        setProgressData(prev => {
+            if (!prev?.modulos) return prev
+            let total = 0, hechas = 0
+            const modulos = prev.modulos.map(m => ({
+                ...m,
+                clases: (m.clases || []).map(c => {
+                    const upd = c.id === claseId
+                        ? { ...c, porcentaje_visto: Math.max(c.porcentaje_visto || 0, porcentaje), completada: !!(c.completada || completada) }
+                        : c
+                    total++; if (upd.completada) hechas++
+                    return upd
+                })
+            }))
+            const resumen = { ...(prev.resumen || {}), total_clases: total, clases_completadas: hechas, porcentaje_progreso: total ? Math.round((100 * hechas) / total) : 0 }
+            return { ...prev, modulos, resumen }
+        })
+    }
+
+    // Guardado con keepalive para cuando el alumno cierra o cambia de página (fetch normal se cancela)
+    const guardarKeepalive = (claseId, porcentaje) => {
+        try {
+            const token = localStorage.getItem('mediconsa_token')
+            const base = process.env.REACT_APP_API_URL || 'http://localhost:5001/med-api'
+            fetch(`${base}/progress/class/${claseId}`, {
+                method: 'PATCH', keepalive: true,
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ porcentajeVisto: porcentaje, completada: porcentaje >= 95 })
+            }).catch(() => {})
+        } catch (_) { /* noop */ }
     }
 
     // ========== FUNCIONES DE UTILIDAD ==========
@@ -254,35 +292,29 @@ const CourseView = () => {
     }
 
     // ========== PROGRESO DEL VIDEO - CONECTADO CON API ==========
-    const handleVideoProgress = async (porcentajeVisto) => {
+    // Guarda como máximo una vez cada 30 s o cada 10 % de avance (y siempre al pausar/terminar: flush).
+    // Antes se enviaba cada segundo a partir del 5 % y además se recargaba todo el progreso del curso.
+    const handleVideoProgress = async (porcentajeVisto, { flush = false } = {}) => {
         if (!currentClass) return
-
-        // Solo actualizar si hay un cambio significativo (5% o más)
-        if (Math.abs(porcentajeVisto - lastReportedProgress) >= 5) {
-            try {
-                console.log('Actualizando progreso del video:', {
-                    claseId: currentClass.id,
-                    porcentajeVisto
-                })
-
-                const result = await progressService.updateClassProgress(
-                    currentClass.id,
-                    porcentajeVisto,
-                    porcentajeVisto >= 95
-                )
-
-                if (result.success) {
-                    setLastReportedProgress(porcentajeVisto)
-                    setVideoProgress(porcentajeVisto)
-                    // Recargar progreso general
-                    await loadProgressData()
-                    console.log('✅ Progreso actualizado:', result.message)
-                } else {
-                    console.error('❌ Error actualizando progreso:', result.error)
-                }
-            } catch (error) {
-                console.error('❌ Error actualizando progreso del video:', error)
+        const u = ultimoGuardadoRef.current
+        if (u.claseId !== currentClass.id) ultimoGuardadoRef.current = { claseId: currentClass.id, pct: 0, t: 0, enviando: false }
+        const ahora = Date.now()
+        const salto = porcentajeVisto - ultimoGuardadoRef.current.pct
+        const debe = flush ? salto > 0 : (salto >= 10 || (salto > 0 && ahora - ultimoGuardadoRef.current.t >= 30000))
+        if (!debe || ultimoGuardadoRef.current.enviando) return
+        ultimoGuardadoRef.current.enviando = true
+        try {
+            const result = await progressService.updateClassProgress(currentClass.id, porcentajeVisto, porcentajeVisto >= 95)
+            if (result.success) {
+                ultimoGuardadoRef.current = { claseId: currentClass.id, pct: porcentajeVisto, t: ahora, enviando: false }
+                aplicarProgresoLocal(currentClass.id, porcentajeVisto, porcentajeVisto >= 95)
+            } else {
+                ultimoGuardadoRef.current.enviando = false
+                console.error('❌ Error actualizando progreso:', result.error)
             }
+        } catch (error) {
+            ultimoGuardadoRef.current.enviando = false
+            console.error('❌ Error actualizando progreso del video:', error)
         }
     }
 
@@ -292,13 +324,15 @@ const CourseView = () => {
         try {
             console.log('🎯 Video completado:', currentClass.id)
 
-            // Marcar como completada al 100%
+            // Marcar como completada al 100% (una sola vez por clase: ENDED puede repetirse)
+            if (completadaEnviadaRef.current === currentClass.id) return
+            completadaEnviadaRef.current = currentClass.id
             const result = await progressService.updateClassProgress(currentClass.id, 100, true)
 
             if (result.success) {
                 console.log('✅ Clase marcada como completada')
-                // Recargar progreso
-                await loadProgressData()
+                ultimoGuardadoRef.current = { claseId: currentClass.id, pct: 100, t: Date.now(), enviando: false }
+                aplicarProgresoLocal(currentClass.id, 100, true)
 
                 // Auto-navegar a la siguiente clase después de 2 segundos
                 setTimeout(() => {
@@ -314,6 +348,20 @@ const CourseView = () => {
             console.error('❌ Error completando video:', error)
         }
     }
+
+    useEffect(() => { videoProgressRef.current = videoProgress }, [videoProgress])
+
+    // Al cerrar la pestaña o cambiar de clase se guarda el último avance no enviado
+    useEffect(() => {
+        const flush = () => {
+            const u = ultimoGuardadoRef.current
+            const pct = Math.floor(videoProgressRef.current)
+            if (u.claseId && pct > u.pct) { guardarKeepalive(u.claseId, pct); ultimoGuardadoRef.current = { ...u, pct, t: Date.now() } }
+        }
+        window.addEventListener('pagehide', flush)
+        return () => { window.removeEventListener('pagehide', flush); flush() }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentClass?.id])
 
     const handleVideoTimeUpdate = (currentTime, duration) => {
         // Actualizar información de tiempo en tiempo real
@@ -332,8 +380,9 @@ const CourseView = () => {
 
             if (result.success) {
                 console.log('✅ Clase marcada manualmente como completada')
-                await loadProgressData()
-                loadVideoProgress(currentClass.id)
+                aplicarProgresoLocal(currentClass.id, 100, true)
+                setVideoProgress(100)
+                ultimoGuardadoRef.current = { claseId: currentClass.id, pct: 100, t: Date.now(), enviando: false }
             } else {
                 console.error('❌ Error marcando como completada:', result.error)
             }
@@ -350,8 +399,8 @@ const CourseView = () => {
 
             if (result.success) {
                 console.log('✅ Clase marcada como vista parcialmente')
-                await loadProgressData()
-                loadVideoProgress(currentClass.id)
+                aplicarProgresoLocal(currentClass.id, 50, false)
+                if (videoProgress < 50) setVideoProgress(50)
             } else {
                 console.error('❌ Error marcando como vista parcialmente:', result.error)
             }
@@ -446,64 +495,43 @@ const CourseView = () => {
         return { completadas, total, porcentaje }
     }
 
+
     // ========== RENDER ==========
+    const totalClases = courseData?.modulos?.reduce((t, m) => t + (m.clases?.length || 0), 0) || 0
+
     if (loading) {
         return (
-            <Layout showSidebar={false}>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medico-blue mx-auto"></div>
-                        <p className="mt-4 text-medico-gray">Cargando curso...</p>
+            <Layout showSidebar={true}>
+                <div className="h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-5rem)] supports-[height:100dvh]:h-[calc(100dvh-3.5rem)] lg:supports-[height:100dvh]:h-[calc(100dvh-5rem)] flex flex-col animate-pulse">
+                    <div className="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-4">
+                        <div className="w-9 h-9 rounded-full bg-gray-200" />
+                        <div className="flex-1 max-w-md space-y-2"><div className="h-4 bg-gray-200 rounded w-2/3" /><div className="h-3 bg-gray-100 rounded w-1/3" /></div>
+                        <div className="h-6 w-28 bg-gray-200 rounded-full hidden sm:block" />
                     </div>
-                </div>
-            </Layout>
-        )
-    }
-
-    if (error) {
-        return (
-            <Layout showSidebar={false}>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-center max-w-md">
-                        <svg className="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Error cargando curso</h3>
-                        <p className="text-gray-600 mb-4">{error}</p>
-                        <div className="flex gap-3 justify-center">
-                            <button
-                                onClick={() => navigate('/mis-cursos')}
-                                className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                Volver a Mis Cursos
-                            </button>
-                            <button
-                                onClick={loadCourseData}
-                                className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
-                            >
-                                Reintentar
-                            </button>
+                    <div className="flex-1 flex overflow-hidden">
+                        <div className="hidden md:block w-80 bg-white border-r border-gray-100 p-4 space-y-3">
+                            {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-16 bg-gray-100 rounded-2xl" />)}
                         </div>
+                        <div className="flex-1 p-6"><div className="h-full bg-gray-200 rounded-3xl" /></div>
                     </div>
                 </div>
             </Layout>
         )
     }
 
-    if (!courseData) {
+    if (error || !courseData) {
         return (
-            <Layout showSidebar={false}>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-center">
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Curso no encontrado</h3>
-                        <p className="text-gray-600 mb-4">El curso que buscas no existe o no tienes acceso</p>
-                        <button
-                            onClick={() => navigate('/mis-cursos')}
-                            className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                            Volver a Mis Cursos
-                        </button>
-                    </div>
+            <Layout showSidebar={true}>
+                <div className="p-6 md:p-8">
+                    <EmptyState
+                        icon={AlertCircle}
+                        title={error ? 'No pudimos cargar el curso' : 'Curso no encontrado'}
+                        description={error || 'El curso que buscas no existe o no tienes acceso.'}
+                        action={<div className="flex gap-3 justify-center">
+                            <Button to="/mis-cursos" variant="secondary">Volver a mis cursos</Button>
+                            {error && <Button onClick={loadCourseData}>Reintentar</Button>}
+                        </div>}
+                    />
                 </div>
             </Layout>
         )
@@ -513,263 +541,103 @@ const CourseView = () => {
     const nextClass = getNextClass()
     const prevClass = getPreviousClass()
     const hasAccess = enrollmentStatus.accessStatus === 'habilitado' || courseData.es_gratuito
+    const claseProgreso = currentClass ? getClassProgress(currentClass.id) : null
+
+    const estadoPill = enrollmentStatus.isEnrolled
+        ? (enrollmentStatus.accessStatus === 'habilitado'
+            ? <Pill className="bg-emerald-50 text-medico-green border-emerald-100">Acceso completo</Pill>
+            : <Pill className="bg-orange-50 text-medico-orange border-orange-100">Pago pendiente</Pill>)
+        : courseData.es_gratuito
+            ? <Pill className="bg-blue-50 text-medico-blue border-blue-100">Curso gratuito</Pill>
+            : <Pill className="bg-gray-50 text-gray-600 border-gray-100">No inscrito</Pill>
 
     return (
         <Layout showSidebar={true}>
-            <div className="h-screen flex flex-col">
-                {/* ========== HEADER DEL CURSO ========== */}
-                <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            <button
-                                onClick={() => navigate('/mis-cursos')}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                title="Volver a mis cursos"
-                            >
-                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </button>
-
-                            <div className="min-w-0 flex-1">
-                                <h1 className="text-lg font-semibold text-gray-900 truncate">
-                                    {courseData.titulo}
-                                </h1>
-                                {currentClass && (
-                                    <p className="text-sm text-gray-600 truncate">
-                                        {currentClass.moduloTitulo} - {currentClass.titulo}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex items-center space-x-4">
-                             Estado de inscripción
-                            <div className="flex items-center space-x-3">
-                                {enrollmentStatus.isEnrolled ? (
-                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        enrollmentStatus.accessStatus === 'habilitado'
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'bg-yellow-100 text-yellow-800'
-                                    }`}>
-                                       {enrollmentStatus.accessStatus === 'habilitado' ? 'Acceso Completo' : 'Pago Pendiente'}
-                                   </span>
-                                ) : (
-                                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                       No Inscrito
-                                   </span>
-                                )}
-                            </div>
-
-                            {/* Barra de progreso */}
-                            {hasAccess && (
-                                <div className="flex items-center space-x-3">
-                                   <span className="text-sm text-gray-600 whitespace-nowrap">
-                                       Progreso: {overallProgress}%
-                                   </span>
-                                    <div className="w-32 bg-gray-200 rounded-full h-2">
-                                        <div
-                                            className="bg-medico-blue h-2 rounded-full transition-all duration-300"
-                                            style={{ width: `${overallProgress}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Toggle sidebar */}
-                            <button
-                                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                title={sidebarCollapsed ? 'Mostrar contenido' : 'Ocultar contenido'}
-                            >
-                                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    {sidebarCollapsed ? (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    ) : (
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                    )}
-                                </svg>
-                            </button>
-                        </div>
+            <div className="h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-5rem)] supports-[height:100dvh]:h-[calc(100dvh-3.5rem)] lg:supports-[height:100dvh]:h-[calc(100dvh-5rem)] flex flex-col">
+                {/* ===== Barra superior del curso ===== */}
+                <header className="bg-white border-b border-gray-100 px-4 md:px-6 py-3 flex items-center gap-3 md:gap-4 flex-shrink-0">
+                    <button onClick={() => navigate('/mis-cursos')} className="p-2 rounded-full hover:bg-gray-100 text-gray-500" title="Volver a mis cursos">
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <div className="min-w-0 flex-1">
+                        <h1 className="text-base md:text-lg font-semibold text-gray-900 truncate">{courseData.titulo}</h1>
+                        {currentClass && <p className="text-xs md:text-sm text-medico-gray truncate">{currentClass.moduloTitulo} · {currentClass.titulo}</p>}
                     </div>
-                </div>
+                    <div className="hidden sm:flex items-center gap-3">
+                        {estadoPill}
+                        {hasAccess && (
+                            <div className="flex items-center gap-2" title="Progreso del curso">
+                                <ProgressBar value={overallProgress} className="w-28" />
+                                <span className="text-xs font-semibold text-gray-700 w-9">{overallProgress}%</span>
+                            </div>
+                        )}
+                    </div>
+                    <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="p-2 rounded-full hover:bg-gray-100 text-gray-500" title={sidebarCollapsed ? 'Mostrar contenido' : 'Ocultar contenido'}>
+                        {sidebarCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+                    </button>
+                </header>
 
-                {/* ========== CONTENIDO PRINCIPAL ========== */}
                 <div className="flex-1 flex overflow-hidden">
-                    {/* Sidebar de módulos y clases */}
+                    {/* ===== Contenido del curso (módulos y clases) ===== */}
                     {!sidebarCollapsed && (
-                        <div className="w-96 flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto">
+                        <aside className="w-80 lg:w-96 flex-shrink-0 bg-white border-r border-gray-100 overflow-y-auto">
                             <div className="p-4">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="font-semibold text-gray-900">Contenido del Curso</h3>
-                                    <span className="text-sm text-gray-500">
-                                       {courseData.modulos?.length || 0} módulos
-                                   </span>
+                                <div className="flex items-center justify-between mb-3 px-1">
+                                    <h2 className="font-sans text-sm font-semibold text-gray-900">Contenido del curso</h2>
+                                    <span className="text-xs text-medico-gray">{courseData.modulos?.length || 0} módulos · {totalClases} clases</span>
                                 </div>
 
                                 {courseData.modulos && courseData.modulos.length > 0 ? (
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                         {courseData.modulos.map((modulo, moduloIndex) => {
                                             const moduleProgress = getModuleProgress(modulo.id)
                                             const isExpanded = showModuleContent[modulo.id]
-
+                                            const moduloCompleto = moduleProgress.total > 0 && moduleProgress.porcentaje === 100
                                             return (
-                                                <div key={modulo.id} className="border border-gray-200 rounded-lg overflow-hidden">
-                                                    {/* Header del módulo */}
-                                                    <button
-                                                        onClick={() => toggleModuleContent(modulo.id)}
-                                                        className="w-full bg-gray-50 hover:bg-gray-100 px-4 py-4 border-b border-gray-200 transition-colors"
-                                                    >
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex-1 text-left">
-                                                                <h4 className="font-medium text-gray-900 text-sm">
-                                                                    Módulo {moduloIndex + 1}: {modulo.titulo}
-                                                                </h4>
-                                                                {modulo.descripcion && (
-                                                                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                                                                        {modulo.descripcion}
-                                                                    </p>
-                                                                )}
-
-                                                                {/* Progreso del módulo */}
-                                                                <div className="flex items-center mt-2 space-x-2">
-                                                                    <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                                                                        <div
-                                                                            className="bg-medico-blue h-1.5 rounded-full transition-all duration-300"
-                                                                            style={{ width: `${moduleProgress.porcentaje}%` }}
-                                                                        ></div>
-                                                                    </div>
-                                                                    <span className="text-xs text-gray-500">
-                                                                       {moduleProgress.completadas}/{moduleProgress.total}
-                                                                   </span>
+                                                <div key={modulo.id} className="rounded-2xl border border-gray-100 overflow-hidden">
+                                                    <button onClick={() => toggleModuleContent(modulo.id)} className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors">
+                                                        <div className="flex items-start gap-3">
+                                                            <span className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${moduloCompleto ? 'bg-medico-green text-white' : moduleProgress.porcentaje > 0 ? 'bg-medico-blue text-white' : 'bg-gray-100 text-gray-600'}`}>
+                                                                {moduloCompleto ? <Check className="w-4 h-4" strokeWidth={3} /> : moduloIndex + 1}
+                                                            </span>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-sm font-semibold text-gray-900 leading-snug">{modulo.titulo}</p>
+                                                                <div className="flex items-center gap-2 mt-1.5">
+                                                                    <ProgressBar value={moduleProgress.porcentaje} height="h-1.5" color={moduloCompleto ? 'bg-medico-green' : 'bg-medico-blue'} className="flex-1" />
+                                                                    <span className="text-[11px] text-medico-gray whitespace-nowrap">{moduleProgress.completadas}/{moduleProgress.total}</span>
                                                                 </div>
                                                             </div>
-
-                                                            <div className="flex items-center space-x-2 ml-3">
-                                                                {moduleProgress.porcentaje === 100 ? (
-                                                                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                                                                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                                        </svg>
-                                                                    </div>
-                                                                ) : moduleProgress.porcentaje > 0 ? (
-                                                                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="w-6 h-6 border-2 border-gray-300 rounded-full"></div>
-                                                                )}
-
-                                                                <svg
-                                                                    className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                                                                    fill="none"
-                                                                    stroke="currentColor"
-                                                                    viewBox="0 0 24 24"
-                                                                >
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                                                </svg>
-                                                            </div>
+                                                            <ChevronDown className={`w-4 h-4 text-gray-400 mt-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                                                         </div>
                                                     </button>
 
-                                                    {/* Lista de clases */}
-                                                    {isExpanded && modulo.clases && modulo.clases.length > 0 && (
-                                                        <div className="divide-y divide-gray-100">
-                                                            {modulo.clases.map((clase, claseIndex) => {
+                                                    {isExpanded && (
+                                                        <div className="border-t border-gray-100">
+                                                            {modulo.clases && modulo.clases.length > 0 ? modulo.clases.map((clase, claseIndex) => {
                                                                 const claseConModulo = { ...clase, moduloId: modulo.id, moduloTitulo: modulo.titulo }
                                                                 const canAccess = canAccessClass(clase)
                                                                 const isActive = currentClass?.id === clase.id
                                                                 const progress = getClassProgress(clase.id)
-
+                                                                let Icon = PlayCircle, iconCls = 'text-gray-300'
+                                                                if (!canAccess) { Icon = Lock; iconCls = 'text-gray-300' }
+                                                                else if (progress.completada) { Icon = CheckCircle2; iconCls = 'text-medico-green' }
+                                                                else if (progress.porcentaje > 0) { Icon = PlayCircle; iconCls = 'text-medico-blue' }
                                                                 return (
-                                                                    <button
-                                                                        key={clase.id}
-                                                                        onClick={() => handleClassSelect(claseConModulo)}
-                                                                        disabled={!canAccess}
-                                                                        className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                                                                            isActive ? 'bg-blue-50 border-r-4 border-medico-blue' : ''
-                                                                        }`}
-                                                                    >
-                                                                        <div className="flex items-center justify-between">
-                                                                            <div className="flex-1 min-w-0">
-                                                                                <div className="flex items-center space-x-2 mb-1">
-                                                                                    <p className={`text-sm font-medium truncate ${
-                                                                                        isActive ? 'text-medico-blue' : 'text-gray-900'
-                                                                                    }`}>
-                                                                                        {claseIndex + 1}. {clase.titulo}
-                                                                                    </p>
-
-                                                                                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full flex-shrink-0">
-                                                                                       {clase.duracion_minutos}min
-                                                                                   </span>
-                                                                                </div>
-
-                                                                                {clase.descripcion && (
-                                                                                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                                                                                        {clase.descripcion}
-                                                                                    </p>
-                                                                                )}
-
-
-
-
-
-
-{/* Progreso de la clase */}
-                                                                               {progress.porcentaje > 0 && (
-                                                                                   <div className="flex items-center mt-2 space-x-2">
-                                                                                       <div className="flex-1 bg-gray-200 rounded-full h-1">
-                                                                                           <div
-                                                                                               className={`h-1 rounded-full transition-all duration-300 ${
-                                                                                                   progress.completada ? 'bg-green-500' : 'bg-blue-500'
-                                                                                               }`}
-                                                                                               style={{ width: `${progress.porcentaje}%` }}
-                                                                                           ></div>
-                                                                                       </div>
-                                                                                       <span className="text-xs text-gray-500">
-                                                                                          {progress.porcentaje}%
-                                                                                      </span>
-                                                                                   </div>
-                                                                               )}
-                                                                           </div>
-
-                                                                           <div className="flex items-center space-x-2 ml-3">
-                                                                               {!canAccess ? (
-                                                                                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                                                    </svg>
-                                                                                ) : progress.completada ? (
-                                                                                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                                                                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                                        </svg>
-                                                                    </div>
-                                                                ) : progress.porcentaje > 0 ? (
-                                                                    <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
-                                                                )}
-
-                                                                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                                                </svg>
-                                                            </div>
-                                                            </div>
-                                                            </button>
-                                                            )
-                                                            })}
-                                                        </div>
-                                                    )}
-
-                                                    {/* Estado vacío de clases */}
-                                                    {isExpanded && (!modulo.clases || modulo.clases.length === 0) && (
-                                                        <div className="px-4 py-6 text-center">
-                                                            <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                                            </svg>
-                                                            <p className="text-sm text-gray-500">No hay clases en este módulo</p>
+                                                                    <button key={clase.id} onClick={() => handleClassSelect(claseConModulo)} disabled={!canAccess}
+                                                                            className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${isActive ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+                                                                        <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-medico-blue' : iconCls}`} />
+                                                                        <span className="flex-1 min-w-0">
+                                                                            <span className={`block text-sm truncate ${isActive ? 'font-semibold text-medico-blue' : 'text-gray-800'}`}>{claseIndex + 1}. {clase.titulo}</span>
+                                                                            {progress.porcentaje > 0 && !progress.completada && (
+                                                                                <ProgressBar value={progress.porcentaje} height="h-1" className="mt-1.5 w-24" />
+                                                                            )}
+                                                                        </span>
+                                                                        <span className="text-[11px] text-medico-gray flex-shrink-0">{clase.duracion_minutos ? `${clase.duracion_minutos} min` : ''}</span>
+                                                                    </button>
+                                                                )
+                                                            }) : (
+                                                                <p className="px-4 py-4 text-xs text-medico-gray text-center">No hay clases en este módulo</p>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
@@ -777,53 +645,22 @@ const CourseView = () => {
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-12">
-                                        <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                        </svg>
-                                        <h4 className="text-lg font-medium text-gray-900 mb-2">Sin contenido</h4>
-                                        <p className="text-sm text-gray-500">Este curso aún no tiene módulos disponibles</p>
-                                    </div>
-                                )}
-
-                                {/* Resumen del progreso total */}
-                                {hasAccess && courseData.modulos && courseData.modulos.length > 0 && (
-                                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                                        <h4 className="font-medium text-gray-900 mb-3">Resumen de Progreso</h4>
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-gray-600">Progreso general</span>
-                                                <span className="font-medium">{overallProgress}%</span>
-                                            </div>
-                                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                                <div
-                                                    className="bg-medico-blue h-2 rounded-full transition-all duration-300"
-                                                    style={{ width: `${overallProgress}%` }}
-                                                ></div>
-                                            </div>
-
-                                            {progressData && progressData.modulos && progressData.modulos.map(modulo => {
-                                                const moduleProgress = getModuleProgress(modulo.modulo_id)
-                                                return (
-                                                    <div key={modulo.modulo_id} className="flex justify-between text-xs text-gray-600">
-                                                        <span className="truncate mr-2">{modulo.modulo_titulo}</span>
-                                                        <span>{moduleProgress.completadas}/{moduleProgress.total}</span>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
+                                    <div className="text-center py-12 px-4">
+                                        <VideoIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                                        <p className="text-sm font-medium text-gray-900">Sin contenido</p>
+                                        <p className="text-xs text-medico-gray mt-1">Este curso aún no tiene módulos disponibles</p>
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </aside>
                     )}
 
-                    {/* Área principal del video */}
-                    <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* ===== Área principal ===== */}
+                    <main className="flex-1 flex flex-col overflow-y-auto bg-medico-light">
                         {hasAccess && currentClass ? (
                             <>
-                                {/* VideoPlayer Seguro */}
-                                <div className="flex-1 relative">
+                                <div className="bg-black flex-shrink-0">
+                                    <div className="aspect-video w-full mx-auto max-w-[calc(62vh*16/9)]">
                                     <VideoPlayer
                                         videoUrl={currentClass.video_youtube_url}
                                         title={`${currentClass.moduloTitulo} - ${currentClass.titulo}`}
@@ -834,423 +671,132 @@ const CourseView = () => {
                                         autoplay={false}
                                         className="w-full h-full"
                                     />
+                                    </div>
                                 </div>
 
-                                {/* Controles de navegación */}
-                                <div className="bg-white border-t border-gray-200 px-6 py-4 flex-shrink-0">
-                                    <div className="flex items-center justify-between mb-4">
-                                        {/* Clase anterior */}
-                                        <button
-                                            onClick={handlePreviousClass}
-                                            disabled={!prevClass}
-                                            className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                            </svg>
-                                            <span className="text-sm">Anterior</span>
-                                        </button>
-
-                                        {/* Información de la clase actual */}
-                                        <div className="text-center flex-1 mx-8">
-                                            <p className="text-sm text-gray-600 mb-1">
-                                                {currentClass.moduloTitulo}
-                                            </p>
-                                            <h3 className="font-semibold text-gray-900 text-lg">
-                                                {currentClass.titulo}
-                                            </h3>
-                                            <div className="flex items-center justify-center space-x-4 mt-2 text-xs text-gray-500">
-                                                <span>{currentClass.duracion_minutos} minutos</span>
-                                                {getClassProgress(currentClass.id).completada && (
-                                                    <span className="flex items-center text-green-600">
-                                                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                                      </svg>
-                                                      Completada
-                                                  </span>
-                                                )}
-                                                <span className="flex items-center">
-                                                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                                  </svg>
-                                                    {Math.floor(videoProgress)}% visto
-                                              </span>
+                                <div className="p-4 md:p-6 space-y-4">
+                                    {/* Título de la clase + navegación */}
+                                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-semibold uppercase tracking-wider text-medico-blue">{currentClass.moduloTitulo}</p>
+                                            <h2 className="font-sans text-xl md:text-2xl font-semibold text-gray-900 mt-0.5">{currentClass.titulo}</h2>
+                                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                {currentClass.duracion_minutos && <Pill className="bg-white text-gray-700 border-gray-200"><Clock className="w-3 h-3" /> {currentClass.duracion_minutos} min</Pill>}
+                                                <Pill className="bg-white text-gray-700 border-gray-200">{Math.floor(videoProgress)}% visto</Pill>
+                                                {claseProgreso?.completada && <Pill className="bg-emerald-50 text-medico-green border-emerald-100"><CheckCircle2 className="w-3 h-3" /> Completada</Pill>}
+                                                {currentClass.es_gratuita && <Pill className="bg-blue-50 text-medico-blue border-blue-100">Clase gratuita</Pill>}
                                             </div>
                                         </div>
-
-                                        {/* Siguiente clase */}
-                                        <button
-                                            onClick={handleNextClass}
-                                            disabled={!nextClass}
-                                            className="flex items-center space-x-2 px-4 py-2 bg-medico-blue text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <span className="text-sm">Siguiente</span>
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </button>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <Button variant="secondary" size="sm" onClick={handlePreviousClass} disabled={!prevClass}><ChevronLeft className="w-4 h-4" /> Anterior</Button>
+                                            <Button size="sm" onClick={handleNextClass} disabled={!nextClass}>Siguiente <ChevronRight className="w-4 h-4" /></Button>
+                                        </div>
                                     </div>
 
-                                    {/* Botones de control manual */}
-                                    <div className="flex items-center justify-center space-x-4 mb-4">
-                                        <button
-                                            onClick={handleMarkAsCompleted}
-                                            className="px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                                        >
-                                            ✓ Marcar como completada
-                                        </button>
+                                    {/* Acciones de progreso */}
+                                    <Card className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                                        <p className="text-sm text-medico-gray flex-1">Tu progreso se guarda automáticamente mientras ves el video. También puedes marcarla a mano:</p>
+                                        <div className="flex gap-2">
+                                            <Button variant="ghost" size="sm" onClick={handleMarkAsPartiallyViewed}>Vista parcialmente</Button>
+                                            <Button variant="success" size="sm" onClick={handleMarkAsCompleted} disabled={claseProgreso?.completada}><Check className="w-4 h-4" /> {claseProgreso?.completada ? 'Completada' : 'Marcar como completada'}</Button>
+                                        </div>
+                                    </Card>
 
-                                        <button
-                                            onClick={handleMarkAsPartiallyViewed}
-                                            className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                        >
-                                            📝 Marcar como vista parcialmente
-                                        </button>
-                                    </div>
-
-                                    {/* Descripción de la clase */}
                                     {currentClass.descripcion && (
-                                        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                                            <h4 className="text-sm font-medium text-gray-900 mb-1">Descripción:</h4>
-                                            <p className="text-sm text-gray-600">
-                                                {currentClass.descripcion}
-                                            </p>
-                                        </div>
+                                        <Card className="p-5">
+                                            <h3 className="font-sans text-sm font-semibold text-gray-900 mb-2">Sobre esta clase</h3>
+                                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{currentClass.descripcion}</p>
+                                        </Card>
                                     )}
-
-                                    {/* Información adicional */}
-                                    <div className="mt-4 flex items-center justify-center space-x-6 text-xs text-gray-500">
-                                        <div className="flex items-center">
-                                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Duración: {currentClass.duracion_minutos} min
-                                        </div>
-                                        <div className="flex items-center">
-                                            <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                            Progreso: {Math.floor(videoProgress)}%
-                                        </div>
-                                        {currentClass.es_gratuita && (
-                                            <div className="flex items-center">
-                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                                                </svg>
-                                                Clase Gratuita
-                                            </div>
-                                        )}
-                                    </div>
                                 </div>
                             </>
                         ) : !hasAccess ? (
-                            /* Estado sin acceso */
-                            <div className="flex-1 flex items-center justify-center p-8">
-                                <div className="text-center max-w-lg">
-                                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                        </svg>
-                                    </div>
-
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                                        Acceso Requerido
-                                    </h3>
-                                    <p className="text-gray-600 mb-6 leading-relaxed">
+                            <div className="flex-1 flex items-center justify-center p-6 md:p-10">
+                                <Card className="p-8 max-w-lg w-full text-center">
+                                    <div className="mx-auto w-14 h-14 rounded-2xl bg-blue-50 text-medico-blue flex items-center justify-center mb-4"><Lock className="w-7 h-7" /></div>
+                                    <h2 className="font-sans text-2xl font-semibold text-gray-900">Acceso requerido</h2>
+                                    <p className="text-medico-gray mt-2">
                                         {enrollmentStatus.isEnrolled
-                                            ? 'Tu pago está pendiente de aprobación. Una vez confirmado el pago, tendrás acceso completo al curso.'
-                                            : 'Para acceder a este contenido necesitas inscribirte al curso. ¡Es fácil y rápido!'
-                                        }
+                                            ? 'Tu pago está pendiente de aprobación. Cuando se confirme tendrás acceso completo al curso.'
+                                            : 'Para ver este contenido necesitas inscribirte al curso.'}
                                     </p>
-
-                                    {/* Información del curso */}
-                                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6">
-                                        <div className="flex items-center space-x-4 mb-4">
-                                            {courseData.miniatura_url ? (
-                                                <img
-                                                    src={courseData.miniatura_url}
-                                                    alt={courseData.titulo}
-                                                    className="w-16 h-16 rounded-lg object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-16 h-16 bg-medico-blue rounded-lg flex items-center justify-center">
-                                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253" />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                            <div className="text-left">
-                                                <h4 className="font-bold text-gray-900 text-lg">{courseData.titulo}</h4>
-                                                <p className="text-sm text-gray-600">{courseData.instructor_nombre}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4 text-sm">
-                                            <div className="text-center p-3 bg-white rounded-lg">
-                                                <div className="font-semibold text-gray-900">
-                                                    {courseData.es_gratuito ? 'GRATIS' : `$${courseData.precio}`}
-                                                </div>
-                                                <div className="text-gray-600">Precio</div>
-                                            </div>
-                                            <div className="text-center p-3 bg-white rounded-lg">
-                                                <div className="font-semibold text-gray-900">
-                                                    {courseData.modulos?.length || 0}
-                                                </div>
-                                                <div className="text-gray-600">Módulos</div>
-                                            </div>
+                                    <div className="mt-6 flex items-center gap-4 text-left rounded-2xl border border-gray-100 p-4">
+                                        {courseData.miniatura_url
+                                            ? <img src={courseData.miniatura_url} alt="" className="w-14 h-14 rounded-xl object-cover" />
+                                            : <div className="w-14 h-14 rounded-xl bg-medico-blue text-white flex items-center justify-center"><BookOpen className="w-6 h-6" /></div>}
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-semibold text-gray-900 truncate">{courseData.titulo}</p>
+                                            <p className="text-xs text-medico-gray">{courseData.modulos?.length || 0} módulos · {totalClases} clases · {courseData.es_gratuito ? 'Gratis' : `$${courseData.precio}`}</p>
                                         </div>
                                     </div>
-                                    {/*${perfil?.nombre_usuario}*/}
-                                    <div className="flex gap-4">
+                                    <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                                         {enrollmentStatus.isEnrolled ? (
-<a
-                                            href={`https://wa.me/+593985036066?text=${encodeURIComponent(`Hola, soy estudiante y quiero que aprueben mi acceso al curso "${courseData.titulo}". Ya me inscribí pero el pago está pendiente.`)}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-center flex items-center justify-center"
-                                            >
-                                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                            </svg>
-                                            Contactar por WhatsApp
-                                            </a>
-                                            ) : (
-                                            <button
-                                            onClick={() => setShowAccessModal(true)}
-                                         className="flex-1 bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                                    >
-                                        🚀 Inscribirse al Curso
-                                    </button>
-                                    )}
-                                    <button
-                                        onClick={() => navigate('/mis-cursos')}
-                                        className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                                    >
-                                        ← Volver
-                                    </button>
-                                </div>
-                            </div>
-                            </div>
-                            ) : (
-                            /* Estado sin clase seleccionada */
-                            <div className="flex-1 flex items-center justify-center p-8">
-                            <div className="text-center max-w-md">
-                            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                ¡Bienvenido al curso!
-            </h3>
-            <p className="text-gray-600 mb-6">
-                {courseData.modulos && courseData.modulos.length > 0
-                    ? 'Selecciona una clase del menú lateral para comenzar tu aprendizaje.'
-                    : 'Este curso aún no tiene contenido disponible. Mantente atento a las actualizaciones.'
-                }
-            </p>
-
-            {courseData.modulos && courseData.modulos.length === 0 && (
-                <button
-                    onClick={() => navigate('/mis-cursos')}
-                    className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                    Volver a Mis Cursos
-                </button>
-            )}
-        </div>
-</div>
-)}
-</div>
-</div>
-
-{/* Modal de inscripción */}
-{showAccessModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">
-                        Inscribirse al Curso
-                    </h3>
-
-                    <div className="mb-6">
-                        <div className="flex items-center space-x-4 mb-4">
-                            {courseData.miniatura_url ? (
-                                <img
-                                    src={courseData.miniatura_url}
-                                    alt={courseData.titulo}
-                                    className="w-16 h-16 rounded-lg object-cover"
-                                />
-                            ) : (
-                                <div className="w-16 h-16 bg-medico-blue rounded-lg flex items-center justify-center">
-                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253" />
-                                    </svg>
-                                </div>
-                            )}
-                            <div>
-                                <h4 className="font-semibold text-gray-900">{courseData.titulo}</h4>
-                                <p className="text-sm text-gray-600">
-                                    {courseData.instructor_nombre}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                            {courseData.es_gratuito ? (
-                                <div className="text-center">
-                                    <div className="text-green-600 mb-2">
-                                        <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
+                                            <Button variant="success" href={`https://wa.me/+593985036066?text=${encodeURIComponent(`Hola, soy estudiante y quiero que aprueben mi acceso al curso "${courseData.titulo}". Ya me inscribí pero el pago está pendiente.`)}`} target="_blank" rel="noopener noreferrer">
+                                                <MessageCircle className="w-4 h-4" /> Contactar por WhatsApp
+                                            </Button>
+                                        ) : (
+                                            <Button onClick={() => setShowAccessModal(true)}><Rocket className="w-4 h-4" /> Inscribirse al curso</Button>
+                                        )}
+                                        <Button variant="secondary" to="/mis-cursos">Volver</Button>
                                     </div>
-                                    <p className="text-lg font-bold text-gray-900">¡Curso Gratuito!</p>
-                                    <p className="text-sm text-gray-600">Tendrás acceso inmediato</p>
-                                </div>
-                            ) : (
-                                <div className="text-center">
-                                    <p className="text-2xl font-bold text-gray-900 mb-1">
-                                        ${courseData.precio}
-                                    </p>
-                                    {courseData.descuento > 0 && (
-                                        <p className="text-sm text-green-600 mb-2">
-                                            🎉 {courseData.descuento}% de descuento aplicado
-                                        </p>
-                                    )}
-                                    <p className="text-sm text-gray-600 mb-2">Curso de pago</p>
-                                    <p className="text-xs text-gray-500">
-                                        Completa el pago por WhatsApp para obtener acceso
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Información adicional del curso */}
-                        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-2 text-sm text-gray-600">
-                            <div className="flex justify-between">
-                                <span>📚 Módulos:</span>
-                                <span className="font-medium">{courseData.modulos?.length || 0}</span>
+                                </Card>
                             </div>
-                            <div className="flex justify-between">
-                                <span>🎥 Clases:</span>
-                                <span className="font-medium">
-                                               {courseData.modulos?.reduce((total, modulo) =>
-                                                   total + (modulo.clases?.length || 0), 0
-                                               ) || 0}
-                                           </span>
+                        ) : (
+                            <div className="flex-1 flex items-center justify-center p-6 md:p-10">
+                                <EmptyState
+                                    icon={VideoIcon}
+                                    title="¡Bienvenido al curso!"
+                                    description={courseData.modulos && courseData.modulos.length > 0
+                                        ? 'Selecciona una clase del contenido para comenzar.'
+                                        : 'Este curso aún no tiene contenido disponible. Mantente atento a las actualizaciones.'}
+                                    action={(!courseData.modulos || courseData.modulos.length === 0) && <Button to="/mis-cursos">Volver a mis cursos</Button>}
+                                />
                             </div>
-                            {courseData.tipo_examen && (
-                                <div className="flex justify-between">
-                                    <span>🎯 Tipo:</span>
-                                    <span className="font-medium">{courseData.tipo_examen}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between">
-                                <span>👨‍🏫 Instructor:</span>
-                                <span className="font-medium">{courseData.instructor_nombre}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3">
-
-                            <button
-                                onClick={() => setShowAccessModal(false)}
-                                disabled={enrolling}
-                                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={enrollInCourse}
-                                disabled={enrolling}
-                                className="flex-1 bg-medico-blue text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center font-medium"
-                            >
-                                {enrolling ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                        Inscribiendo...
-                                    </>
-                                ) : (
-                                    <>
-                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
-                                        Confirmar Inscripción
-                                    </>
-                                )}
-                            </button>
-                    </div>
+                        )}
+                    </main>
                 </div>
             </div>
-        </div>
-    )}
 
-                {/* Información flotante cuando sidebar está colapsado */}
-                {sidebarCollapsed && hasAccess && currentClass && (
-                    <div className="fixed bottom-6 left-6 bg-white rounded-lg shadow-xl border border-gray-200 p-4 max-w-sm z-40">
-                        <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-semibold text-gray-900 text-sm">Información de la Clase</h4>
-                            <button
-                                onClick={() => setSidebarCollapsed(false)}
-                                className="text-gray-400 hover:text-gray-600 p-1"
-                                title="Mostrar contenido completo"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between text-gray-600">
-                                <span>Módulo:</span>
-                                <span className="font-medium text-gray-900 truncate ml-2">
-                                   {currentClass.moduloTitulo}
-                               </span>
-                            </div>
-                            <div className="flex justify-between text-gray-600">
-                                <span>Clase:</span>
-                                <span className="font-medium text-gray-900 truncate ml-2">
-                                   {currentClass.titulo}
-                               </span>
-                            </div>
-                            <div className="flex justify-between text-gray-600">
-                                <span>Duración:</span>
-                                <span className="font-medium text-gray-900">
-                                   {currentClass.duracion_minutos} min
-                               </span>
-                            </div>
-                            <div className="flex justify-between text-gray-600">
-                                <span>Progreso:</span>
-                                <span className="font-medium text-gray-900">
-                                   {Math.floor(videoProgress)}%
-                               </span>
-                            </div>
-                        </div>
-
-                        {/* Mini controles */}
-                        <div className="flex gap-2 mt-4">
-                            <button
-                                onClick={handlePreviousClass}
-                                disabled={!prevClass}
-                                className="flex-1 px-3 py-2 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-colors disabled:opacity-50"
-                            >
-                                ← Anterior
-                            </button>
-                            <button
-                                onClick={handleNextClass}
-                                disabled={!nextClass}
-                                className="flex-1 px-3 py-2 text-xs bg-medico-blue text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
-                            >
-                                Siguiente →
-                            </button>
+            {/* ===== Modal de inscripción ===== */}
+            <Modal open={showAccessModal} title="Inscribirse al curso" onClose={() => !enrolling && setShowAccessModal(false)}
+                   footer={<>
+                       <Button variant="secondary" onClick={() => setShowAccessModal(false)} disabled={enrolling}>Cancelar</Button>
+                       <Button onClick={enrollInCourse} loading={enrolling}>Confirmar inscripción</Button>
+                   </>}>
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        {courseData.miniatura_url
+                            ? <img src={courseData.miniatura_url} alt="" className="w-14 h-14 rounded-xl object-cover" />
+                            : <div className="w-14 h-14 rounded-xl bg-medico-blue text-white flex items-center justify-center"><BookOpen className="w-6 h-6" /></div>}
+                        <div className="min-w-0">
+                            <p className="font-semibold text-gray-900">{courseData.titulo}</p>
+                            {courseData.instructor_nombre && <p className="text-xs text-medico-gray">{courseData.instructor_nombre}</p>}
                         </div>
                     </div>
-                )}
-            </div>
+                    <div className="rounded-2xl bg-gray-50 p-4 text-center">
+                        {courseData.es_gratuito ? (
+                            <>
+                                <p className="text-lg font-semibold text-gray-900">Curso gratuito</p>
+                                <p className="text-sm text-medico-gray">Tendrás acceso inmediato</p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-2xl font-semibold text-gray-900">${courseData.precio}</p>
+                                {courseData.descuento > 0 && <p className="text-sm text-medico-green">{courseData.descuento}% de descuento aplicado</p>}
+                                <p className="text-xs text-medico-gray mt-1">Completa el pago por WhatsApp para obtener acceso</p>
+                            </>
+                        )}
+                    </div>
+                    <dl className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="rounded-xl border border-gray-100 p-3"><dt className="text-xs text-medico-gray">Módulos</dt><dd className="font-semibold text-gray-900">{courseData.modulos?.length || 0}</dd></div>
+                        <div className="rounded-xl border border-gray-100 p-3"><dt className="text-xs text-medico-gray">Clases</dt><dd className="font-semibold text-gray-900">{totalClases}</dd></div>
+                        {courseData.tipo_examen && <div className="rounded-xl border border-gray-100 p-3"><dt className="text-xs text-medico-gray">Tipo</dt><dd className="font-semibold text-gray-900">{courseData.tipo_examen}</dd></div>}
+                        {courseData.instructor_nombre && <div className="rounded-xl border border-gray-100 p-3"><dt className="text-xs text-medico-gray">Instructor</dt><dd className="font-semibold text-gray-900 truncate">{courseData.instructor_nombre}</dd></div>}
+                    </dl>
+                </div>
+            </Modal>
         </Layout>
-)
+    )
 }
 
 export default CourseView

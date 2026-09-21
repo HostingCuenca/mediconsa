@@ -39,10 +39,8 @@ export const AuthProvider = ({ children }) => {
                         // console.log('✅ Usuario autenticado desde backend:', data.user)
                         setUser({ id: data.user.id, email: data.user.email })
                         setPerfil(data.user)
-                    } else {
-                        // console.log('❌ Token inválido, limpiando sesión')
-                        authService.logout()
                     }
+                    // Si falló: getProfile ya limpió el token y redirigió a /login?motivo=… (no repetir logout, perdería el motivo)
                 } else {
                     // console.log('ℹ️ No hay sesión previa')
                 }
@@ -128,16 +126,6 @@ export const AuthProvider = ({ children }) => {
     const isAdmin = perfil?.tipoUsuario === 'admin'
     const isInstructor = perfil?.tipoUsuario === 'instructor'
     const isEstudiante = perfil?.tipoUsuario === 'estudiante'
-
-    // Debug de estados
-    console.log('🏷️ Estados Auth:', {
-        isAuthenticated,
-        isAdmin,
-        isInstructor,
-        isEstudiante,
-        userEmail: user?.email,
-        perfilTipo: perfil?.tipoUsuario
-    })
 
     // =============================================
     // FUNCIONES DE AUTH ACTIONS

@@ -1,5 +1,6 @@
 // components/QuestionRenderer.jsx - COMPONENTE FRAGMENTADO
 import React, { useState, useEffect } from 'react'
+import { Lightbulb, Info, CheckCircle2, AlertTriangle, ArrowUp, ArrowDown, ListChecks, ToggleLeft, CheckSquare, PenLine, Hash, FileText, TextCursorInput, Link2, ArrowUpDown } from 'lucide-react'
 
 const QuestionRenderer = ({
                               pregunta,
@@ -146,10 +147,10 @@ const QuestionRenderer = ({
                     return (
                         <label
                             key={opcion.id}
-                            className={`flex items-start p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                            className={`ent-opcion ent-entrada ent-retraso-${Math.min(4, index + 1)} flex items-start gap-3 md:gap-4 p-3 sm:p-4 md:p-5 border-2 rounded-2xl cursor-pointer transition-colors select-none ${
                                 isSelected
-                                    ? 'border-blue-500 bg-blue-50 shadow-sm'
-                                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                    ? 'border-medico-blue bg-blue-50 ring-2 ring-medico-blue/30'
+                                    : 'border-gray-200 bg-white hover:border-blue-300'
                             }`}
                         >
                             <input
@@ -157,14 +158,12 @@ const QuestionRenderer = ({
                                 name={permitirMultiples ? undefined : `pregunta-${pregunta.id}`}
                                 checked={isSelected}
                                 onChange={() => handleSimpleResponse(opcion.id, permitirMultiples)}
-                                className="mt-1 mr-3 text-blue-600"
+                                className="sr-only"
                             />
-                            <div className="flex-1">
-                                <span className="text-sm font-medium text-gray-500 mr-3">
-                                    {String.fromCharCode(65 + index)}.
-                                </span>
-                                <span className="text-gray-900">{opcion.texto_opcion}</span>
-                            </div>
+                            <span className={`flex-shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-lg text-xs md:text-sm font-bold flex items-center justify-center transition-colors ${isSelected ? 'bg-medico-blue text-white' : 'bg-gray-100 text-gray-600'}`}>
+                                {String.fromCharCode(65 + index)}
+                            </span>
+                            <span className="flex-1 text-[15px] sm:text-base md:text-lg leading-snug md:leading-normal text-gray-900 pt-0.5">{opcion.texto_opcion}</span>
                         </label>
                     )
                 })}
@@ -172,8 +171,8 @@ const QuestionRenderer = ({
                 {permitirMultiples && (
                     <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="flex items-center text-sm text-blue-800">
-                            <span className="mr-2">ℹ️</span>
-                            <span>Puedes seleccionar múltiples respuestas correctas</span>
+                            <Info className="w-4 h-4 mr-2 flex-shrink-0" />
+                            <span>Puedes seleccionar varias respuestas</span>
                         </div>
                     </div>
                 )}
@@ -190,7 +189,7 @@ const QuestionRenderer = ({
                     type="text"
                     value={respuestaTexto}
                     onChange={(e) => handleTextResponse(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Escribe tu respuesta aquí..."
                     maxLength={200}
                 />
@@ -203,7 +202,7 @@ const QuestionRenderer = ({
                 {modoSimulacro === 'estudio' && pregunta.opciones && (
                     <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="text-sm text-green-800">
-                            <span className="font-medium">💡 Respuestas válidas:</span>
+                            <span className="font-medium inline-flex items-center gap-1"><Lightbulb className="w-4 h-4" /> Respuestas válidas:</span>
                             <div className="mt-1">
                                 {pregunta.opciones.map((opcion, index) => (
                                     <span key={opcion.id} className="inline-block mr-2 px-2 py-1 bg-green-100 rounded text-xs">
@@ -233,19 +232,19 @@ const QuestionRenderer = ({
                     type="text"
                     value={respuestaTexto}
                     onChange={(e) => handleNumericInput(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-mono text-lg"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-mono text-lg"
                     placeholder="Ingresa el valor numérico..."
                     inputMode="decimal"
                 />
                 <div className="text-sm text-gray-500 text-center">
-                    <span className="font-medium">💡 Tip:</span> Usa punto (.) para decimales. Ejemplo: 1050 o 15.5
+                    <span className="font-medium inline-flex items-center gap-1"><Lightbulb className="w-4 h-4" /> Consejo:</span> Usa punto (.) para decimales. Ejemplo: 1050 o 15.5
                 </div>
 
                 {/* Mostrar respuesta correcta en modo estudio */}
                 {modoSimulacro === 'estudio' && pregunta.opciones?.[0] && (
                     <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                         <div className="text-sm text-green-800 text-center">
-                            <span className="font-medium">✅ Respuesta correcta:</span> {pregunta.opciones[0].texto_opcion}
+                            <span className="font-medium inline-flex items-center gap-1"><CheckCircle2 className="w-4 h-4" /> Respuesta correcta:</span> {pregunta.opciones[0].texto_opcion}
                         </div>
                     </div>
                 )}
@@ -262,7 +261,7 @@ const QuestionRenderer = ({
                     value={respuestaTexto}
                     onChange={(e) => handleTextResponse(e.target.value)}
                     rows={8}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
                     placeholder="Desarrolla tu respuesta de manera detallada..."
                 />
                 <div className="flex justify-between text-sm text-gray-500">
@@ -273,7 +272,7 @@ const QuestionRenderer = ({
                 {modoSimulacro === 'estudio' && (
                     <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div className="text-sm text-yellow-800">
-                            <span className="font-medium">📝 Nota:</span> Las preguntas de ensayo son evaluadas manualmente por el instructor.
+                            <span className="font-medium inline-flex items-center gap-1"><Info className="w-4 h-4" /> Nota:</span> Las preguntas de ensayo son evaluadas manualmente por el instructor.
                         </div>
                     </div>
                 )}
@@ -360,7 +359,7 @@ const QuestionRenderer = ({
                     {orderingItems.map((item, index) => (
                         <div
                             key={item.id}
-                            className="flex items-center p-3 bg-white border border-gray-200 rounded-lg hover:border-gray-300"
+                            className="flex items-center p-3 bg-white border border-gray-100 rounded-2xl hover:border-gray-300"
                         >
                             <div className="flex flex-col mr-3">
                                 <button
@@ -368,14 +367,14 @@ const QuestionRenderer = ({
                                     disabled={index === 0}
                                     className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded disabled:opacity-50 mb-1"
                                 >
-                                    ↑
+                                    <ArrowUp className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => index < orderingItems.length - 1 && handleOrderingChange(index, index + 1)}
                                     disabled={index === orderingItems.length - 1}
                                     className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded disabled:opacity-50"
                                 >
-                                    ↓
+                                    <ArrowDown className="w-4 h-4" />
                                 </button>
                             </div>
 
@@ -427,15 +426,15 @@ const QuestionRenderer = ({
 
     const getTipoPreguntaInfo = () => {
         const tipos = {
-            'multiple': { nombre: 'Opción Múltiple', icono: '📝', color: 'bg-blue-100 text-blue-700' },
-            'true_false': { nombre: 'Verdadero/Falso', icono: '✓✗', color: 'bg-green-100 text-green-700' },
-            'multiple_respuesta': { nombre: 'Respuesta Múltiple', icono: '☑️', color: 'bg-purple-100 text-purple-700' },
-            'short_answer': { nombre: 'Respuesta Corta', icono: '✏️', color: 'bg-yellow-100 text-yellow-700' },
-            'numerical': { nombre: 'Numérica', icono: '🔢', color: 'bg-indigo-100 text-indigo-700' },
-            'essay': { nombre: 'Ensayo', icono: '📄', color: 'bg-gray-100 text-gray-700' },
-            'fill_blanks': { nombre: 'Completar Espacios', icono: '📝', color: 'bg-orange-100 text-orange-700' },
-            'matching': { nombre: 'Emparejamiento', icono: '🔗', color: 'bg-pink-100 text-pink-700' },
-            'ordering': { nombre: 'Ordenamiento', icono: '📊', color: 'bg-cyan-100 text-cyan-700' }
+            'multiple': { nombre: 'Opción múltiple', Icono: ListChecks, color: 'bg-blue-100 text-blue-700' },
+            'true_false': { nombre: 'Verdadero / falso', Icono: ToggleLeft, color: 'bg-green-100 text-green-700' },
+            'multiple_respuesta': { nombre: 'Respuesta múltiple', Icono: CheckSquare, color: 'bg-purple-100 text-purple-700' },
+            'short_answer': { nombre: 'Respuesta corta', Icono: PenLine, color: 'bg-yellow-100 text-yellow-700' },
+            'numerical': { nombre: 'Numérica', Icono: Hash, color: 'bg-indigo-100 text-indigo-700' },
+            'essay': { nombre: 'Ensayo', Icono: FileText, color: 'bg-gray-100 text-gray-700' },
+            'fill_blanks': { nombre: 'Completar espacios', Icono: TextCursorInput, color: 'bg-orange-100 text-orange-700' },
+            'matching': { nombre: 'Emparejamiento', Icono: Link2, color: 'bg-pink-100 text-pink-700' },
+            'ordering': { nombre: 'Ordenamiento', Icono: ArrowUpDown, color: 'bg-cyan-100 text-cyan-700' }
         }
         return tipos[pregunta.tipo_pregunta] || tipos['multiple']
     }
@@ -461,10 +460,8 @@ const QuestionRenderer = ({
                 return renderOrdering()
             default:
                 return (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <span className="text-red-800">
-                            ⚠️ Tipo de pregunta no soportado: {pregunta.tipo_pregunta}
-                        </span>
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-800 text-sm">
+                        <AlertTriangle className="w-4 h-4" /> Tipo de pregunta no soportado: {pregunta.tipo_pregunta}
                     </div>
                 )
         }
@@ -473,26 +470,22 @@ const QuestionRenderer = ({
     const tipoInfo = getTipoPreguntaInfo()
 
     return (
-        <div className="space-y-6">
-            {/* Header de la pregunta */}
-            <div className="flex items-center justify-between">
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${tipoInfo.color}`}>
-                    {tipoInfo.icono} {tipoInfo.nombre}
-                </span>
-
-                {respuestaActual && (
-                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded border border-green-200">
-                        ✓ Respondida
+        <div className="space-y-5">
+            {/* Tipo de pregunta (solo si no es la opción múltiple habitual, para no repetir ruido) */}
+            {pregunta.tipo_pregunta !== 'multiple' && (
+                <div className="flex items-center justify-between">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${tipoInfo.color}`}>
+                        <tipoInfo.Icono className="w-3.5 h-3.5" /> {tipoInfo.nombre}
                     </span>
-                )}
-            </div>
+                </div>
+            )}
 
             {/* Enunciado */}
             <div className="space-y-4">
                 <div className="prose max-w-none">
-                    <p className="text-gray-900 text-base leading-relaxed">
+                    <h2 className="font-sans text-[15px] sm:text-base md:text-[21px] font-medium md:font-semibold text-gray-900 leading-relaxed whitespace-pre-line">
                         {pregunta.enunciado}
-                    </p>
+                    </h2>
                 </div>
 
                 {/* Imagen si existe */}
@@ -519,7 +512,7 @@ const QuestionRenderer = ({
             {mostrarExplicacion && pregunta.explicacion && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-start">
-                        <span className="text-blue-500 mr-2 mt-1">💡</span>
+                        <Lightbulb className="w-5 h-5 text-medico-blue mr-2 mt-0.5 flex-shrink-0" />
                         <div>
                             <div className="font-medium text-blue-900 mb-1">Explicación:</div>
                             <div className="text-blue-800 text-sm leading-relaxed">

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../utils/Layout'
+import { PageHeader } from '../simulador/ui'
 import materialServices from '../services/materiales'
 import courseManagementService from '../services/courseManagement'
 
@@ -152,26 +153,24 @@ const ClasesVirtualesGlobal = () => {
 
     return (
         <Layout showSidebar={true}>
-            <div className="p-8">
+            <div className="p-6 md:p-8">
                 {/* ========== HEADER ========== */}
-                <div className="flex justify-between items-start mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-medico-blue">🎥 Todas las Clases Virtuales</h1>
-                        <p className="text-gray-600 mt-2">Gestión global de clases virtuales de todos los cursos</p>
-                    </div>
-
-                    <div className="flex space-x-3">
+                <PageHeader
+                    eyebrow="Comunicación · Admin"
+                    title="Todas las Clases Virtuales"
+                    subtitle="Gestión global de clases virtuales de todos los cursos"
+                    actions={(
                         <button
                             onClick={() => loadAllData()}
-                            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
+                            className="bg-gray-600 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition-colors flex items-center space-x-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                             <span>Actualizar</span>
                         </button>
-                    </div>
-                </div>
+                    )}
+                />
 
                 {/* ========== MENSAJES ========== */}
                 {error && (
@@ -201,30 +200,30 @@ const ClasesVirtualesGlobal = () => {
 
                 {/* ========== ESTADÍSTICAS ========== */}
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-100">
                         <div className="text-2xl font-bold text-medico-blue">{estadisticas.total}</div>
                         <div className="text-sm text-gray-600">Total Clases</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-100">
                         <div className="text-2xl font-bold text-blue-600">{estadisticas.programadas}</div>
                         <div className="text-sm text-gray-600">Programadas</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-100">
                         <div className="text-2xl font-bold text-yellow-600">{estadisticas.proximamente}</div>
                         <div className="text-sm text-gray-600">Próximamente</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-100">
                         <div className="text-2xl font-bold text-green-600">{estadisticas.hoy}</div>
                         <div className="text-sm text-gray-600">Hoy</div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="bg-white p-4 rounded-2xl border border-gray-100">
                         <div className="text-2xl font-bold text-gray-600">{estadisticas.finalizadas}</div>
                         <div className="text-sm text-gray-600">Finalizadas</div>
                     </div>
                 </div>
 
                 {/* ========== FILTROS ========== */}
-                <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">🔍 Filtros</h3>
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
@@ -232,7 +231,7 @@ const ClasesVirtualesGlobal = () => {
                             <select
                                 value={filtros.curso}
                                 onChange={(e) => setFiltros(prev => ({ ...prev, curso: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todos los cursos</option>
                                 {cursos.map(curso => (
@@ -246,7 +245,7 @@ const ClasesVirtualesGlobal = () => {
                             <select
                                 value={filtros.estado}
                                 onChange={(e) => setFiltros(prev => ({ ...prev, estado: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todos</option>
                                 <option value="programada">Programadas</option>
@@ -260,7 +259,7 @@ const ClasesVirtualesGlobal = () => {
                             <select
                                 value={filtros.plataforma}
                                 onChange={(e) => setFiltros(prev => ({ ...prev, plataforma: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             >
                                 <option value="">Todas</option>
                                 <option value="meet">Google Meet</option>
@@ -275,7 +274,7 @@ const ClasesVirtualesGlobal = () => {
                                 type="date"
                                 value={filtros.fechaDesde}
                                 onChange={(e) => setFiltros(prev => ({ ...prev, fechaDesde: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             />
                         </div>
 
@@ -285,7 +284,7 @@ const ClasesVirtualesGlobal = () => {
                                 type="date"
                                 value={filtros.fechaHasta}
                                 onChange={(e) => setFiltros(prev => ({ ...prev, fechaHasta: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medico-blue focus:border-transparent"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-medico-blue focus:border-transparent"
                             />
                         </div>
                     </div>
@@ -310,7 +309,7 @@ const ClasesVirtualesGlobal = () => {
                         const plataformaBadge = getPlataformaBadge(clase.plataforma)
 
                         return (
-                            <div key={clase.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+                            <div key={clase.id} className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-shadow">
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
                                         <div className="flex items-center space-x-3 mb-2">
@@ -348,13 +347,13 @@ const ClasesVirtualesGlobal = () => {
                                     <div className="flex space-x-2 ml-4">
                                         <button
                                             onClick={() => window.open(clase.link_reunion, '_blank')}
-                                            className="bg-green-50 text-green-700 py-2 px-4 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium"
+                                            className="bg-green-50 text-green-700 py-2 px-4 rounded-full hover:bg-green-100 transition-colors text-sm font-medium"
                                         >
                                             🔗 Reunión
                                         </button>
                                         <button
                                             onClick={() => navigate(`/admin/clases-virtuales/${clase.curso_id}`)}
-                                            className="bg-blue-50 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                                            className="bg-blue-50 text-blue-700 py-2 px-4 rounded-full hover:bg-blue-100 transition-colors text-sm font-medium"
                                         >
                                             ⚙️ Gestionar
                                         </button>
@@ -373,7 +372,7 @@ const ClasesVirtualesGlobal = () => {
                         <p className="text-gray-500 mb-6">Intenta ajustar los criterios de búsqueda</p>
                         <button
                             onClick={() => setFiltros({ curso: '', estado: '', plataforma: '', fechaDesde: '', fechaHasta: '' })}
-                            className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                            className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                         >
                             🔄 Limpiar Filtros
                         </button>
@@ -387,7 +386,7 @@ const ClasesVirtualesGlobal = () => {
                         <p className="text-gray-500 mb-6">Las clases aparecerán aquí cuando se programen en los cursos</p>
                         <button
                             onClick={() => navigate('/admin/cursos')}
-                            className="bg-medico-blue text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                            className="bg-medico-blue text-white px-6 py-3 rounded-full hover:bg-blue-700 transition-colors"
                         >
                             📚 Gestionar Cursos
                         </button>
