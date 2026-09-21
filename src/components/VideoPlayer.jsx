@@ -6,6 +6,7 @@ import React, { useState, useRef, useEffect } from 'react'
 // si el callback se define después (p. ej. en script.onload) y el script viene de caché,
 // el aviso se pierde y el player nunca se inicializa. Por eso: callback ANTES de insertar
 // el script, una sola promesa compartida y un sondeo de respaldo.
+const VELOCIDADES = [0.75, 1, 1.25, 1.5, 1.75, 2]
 let youtubeApiPromise = null
 const loadYouTubeApi = () => {
     if (window.YT && window.YT.Player) return Promise.resolve(window.YT)
@@ -54,6 +55,11 @@ const VideoPlayer = ({
     const [showControls, setShowControls] = useState(true)
     const [volume, setVolume] = useState(1)
     const [muted, setMuted] = useState(false)
+    // Velocidad de reproducción (se recuerda entre clases): los alumnos la pedían para repasar más rápido
+    const [velocidad, setVelocidad] = useState(() => { try { const v = parseFloat(localStorage.getItem('video_velocidad')); return VELOCIDADES.includes(v) ? v : 1 } catch { return 1 } })
+    const [menuVelocidad, setMenuVelocidad] = useState(false)
+    // Subtítulos (CC) de YouTube: se recuerdan; al activarlos el video se reduce un poco para que queden por encima de la barra
+    const [subtitulos, setSubtitulos] = useState(() => { try { return localStorage.getItem('video_subtitulos') === '1' } catch { return false } })
 
     // ========== ESTADOS PARA RESETEO ==========
     const [playerInitialized, setPlayerInitialized] = useState(false)
@@ -215,7 +221,10 @@ const VideoPlayer = ({
                     enablejsapi: 1,        // Habilitar API JS
                     origin: window.location.origin,
                     playsinline: 1,        // Para móviles
-                    autoplay: autoplay ? 1 : 0
+                    autoplay: autoplay ? 1 : 0,
+                    cc_lang_pref: 'es',
+                    hl: 'es',
+                    cc_load_policy: subtitulos ? 1 : 0   // 1 = mostrar subtítulos desde el inicio
                 },
                 events: {
                     onReady: handlePlayerReady,
@@ -279,6 +288,11 @@ const VideoPlayer = ({
             const videoDuration = event.target.getDuration()
             setDuration(videoDuration)
             console.log('⏱️ Duración del video:', videoDuration, 'segundos')
+
+            // Velocidad recordada
+            if (velocidad !== 1) { try { event.target.setPlaybackRate(velocidad) } catch { /* noop */ } }
+            // Subtítulos recordados
+            try { if (subtitulos) { event.target.loadModule('captions'); event.target.setOption('captions', 'track', { languageCode: 'es' }) } else { event.target.unloadModule('captions') } } catch { /* noop */ }
 
             // Configurar volumen inicial
             if (muted) {
@@ -418,6 +432,28 @@ const VideoPlayer = ({
         }
     }
 
+    const cambiarVelocidad = (v) => {
+        setMenuVelocidad(false)
+        if (!VELOCIDADES.includes(v)) return
+        setVelocidad(v)
+        try { localStorage.setItem('video_velocidad', String(v)) } catch { /* noop */ }
+        if (playerRef.current && playerInitialized) {
+            try { playerRef.current.setPlaybackRate(v) } catch { /* noop */ }
+        }
+    }
+
+    const toggleSubtitulos = () => {
+        const on = !subtitulos
+        setSubtitulos(on)
+        try { localStorage.setItem('video_subtitulos', on ? '1' : '0') } catch { /* noop */ }
+        const p = playerRef.current
+        if (!p || !playerInitialized) return
+        try {
+            if (on) { p.loadModule('captions'); p.setOption('captions', 'track', { languageCode: 'es' }); p.setOption('captions', 'reload', true) }
+            else p.unloadModule('captions')
+        } catch { /* noop */ }
+    }
+
     const toggleMute = () => {
         if (!playerRef.current || !playerInitialized) return
 
@@ -521,7 +557,7 @@ const VideoPlayer = ({
         <div
             className={`relative bg-black group ${className} rounded-xl overflow-hidden`}
             onMouseMove={handleMouseMove}
-            onMouseLeave={() => setShowControls(false)}
+            onMouseLeave={() => { setShowControls(false); setMenuVelocidad(false) }}
             onContextMenu={(e) => e.preventDefault()}
             style={{ userSelect: 'none', minHeight: 240 }}
         >
@@ -541,11 +577,21 @@ const VideoPlayer = ({
                 hacia arriba (-12%): con el visor en 16:9 el video queda exactamente en el
                 área visible y la barra superior de YouTube (título / "Ver en YouTube") y el
                 logo inferior caen fuera del recorte (el wrapper tiene overflow-hidden). */}
+            {/* Con subtítulos activos el video se reduce al 86 % (centrado, 16:9) y deja una franja negra
+                abajo para los controles: así los subtítulos de YouTube, que van pegados al borde inferior
+                del video, quedan más arriba y nunca tapados por la barra. */}
             <div
-                ref={containerRef}
-                className="absolute left-0 w-full"
-                style={{ top: `-${RECORTE_PCT}%`, height: `${100 + RECORTE_PCT * 2}%` }}
-            />
+                className="absolute overflow-hidden bg-black"
+                style={subtitulos
+                    ? { top: 0, left: '50%', transform: 'translateX(-50%)', height: '86%', aspectRatio: '16 / 9' }
+                    : { inset: 0 }}
+            >
+                <div
+                    ref={containerRef}
+                    className="absolute left-0 w-full"
+                    style={{ top: `-${RECORTE_PCT}%`, height: `${100 + RECORTE_PCT * 2}%` }}
+                />
+            </div>
 
             {/* Overlay de protección: SIEMPRE captura el puntero (incluso con los
                 controles visibles) para que el mouse nunca llegue al iframe real de
@@ -577,7 +623,7 @@ const VideoPlayer = ({
 
                 {/* Botón de play grande cuando está pausado */}
                 {!isPlaying && !loading && playerInitialized && (
-                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-auto">
+                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-auto" style={{ bottom: subtitulos ? '14%' : 0 }}>
                         <button
                             onClick={togglePlayPause}
                             className="w-16 h-16 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition-all"
@@ -649,9 +695,41 @@ const VideoPlayer = ({
                             </div>
                         </div>
 
-                        {/* Progreso */}
-                        <div className="bg-red-600/20 text-red-400 px-3 py-1 rounded-full text-sm">
-                            {Math.floor(getProgressPercentage())}%
+                        <div className="flex items-center gap-2">
+                            {/* Subtítulos */}
+                            <button
+                                onClick={toggleSubtitulos}
+                                disabled={!playerInitialized}
+                                title={subtitulos ? 'Ocultar subtítulos' : 'Mostrar subtítulos'}
+                                className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wide transition-colors disabled:opacity-50 ${subtitulos ? 'bg-white text-gray-900' : 'bg-white/15 hover:bg-white/25 text-white'}`}
+                            >
+                                CC
+                            </button>
+                            {/* Velocidad */}
+                            <div className="relative">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setMenuVelocidad(m => !m) }}
+                                    disabled={!playerInitialized}
+                                    title="Velocidad de reproducción"
+                                    className="px-2.5 py-1 rounded-full text-sm font-semibold tabular-nums bg-white/15 hover:bg-white/25 transition-colors disabled:opacity-50"
+                                >
+                                    {velocidad}x
+                                </button>
+                                {menuVelocidad && (
+                                    <div className="absolute bottom-full right-0 mb-2 bg-gray-900/95 rounded-xl py-1 min-w-[6.5rem] shadow-lg" onClick={(e) => e.stopPropagation()}>
+                                        {VELOCIDADES.map(v => (
+                                            <button key={v} onClick={() => cambiarVelocidad(v)} className={`w-full text-left px-4 py-1.5 text-sm tabular-nums hover:bg-white/10 ${v === velocidad ? 'text-red-400 font-semibold' : 'text-white'}`}>
+                                                {v === 1 ? 'Normal' : `${v}x`}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Progreso */}
+                            <div className="bg-red-600/20 text-red-400 px-3 py-1 rounded-full text-sm">
+                                {Math.floor(getProgressPercentage())}%
+                            </div>
                         </div>
                     </div>
                 </div>
