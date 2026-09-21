@@ -16,7 +16,8 @@ import { Button, Pill, ProgressBar, Card, EmptyState } from '../simulador/ui'
 import { actualizarCache } from '../simulador/useCached'
 import { limpiarTitulo } from './Biblioteca'
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString()
+// El worker se sirve tal cual desde public/ (copiado en postinstall): si pasa por el bundler, Babel le mete require() y falla en producción
+pdfjsLib.GlobalWorkerOptions.workerSrc = process.env.PUBLIC_URL + '/pdf.worker.min.js'
 
 const ZOOMS = [0.5, 0.65, 0.8, 0.9, 1, 1.15, 1.3, 1.5, 1.75, 2, 2.5]
 const ZOOM_BASE = 4                // índice de ZOOMS que equivale a "ajustar"

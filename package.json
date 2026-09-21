@@ -12,7 +12,7 @@
     "framer-motion": "^12.34.3",
     "lucide": "^0.525.0",
     "lucide-react": "^0.525.0",
-    "pdfjs-dist": "^3.11.174",
+    "pdfjs-dist": "3.11.174",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
@@ -23,7 +23,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall": "node -e \"require('fs').copyFileSync('node_modules/pdfjs-dist/build/pdf.worker.min.js','public/pdf.worker.min.js')\""
   },
   "eslintConfig": {
     "extends": [
