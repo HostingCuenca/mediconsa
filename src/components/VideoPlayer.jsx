@@ -1,4 +1,5 @@
 // src/components/VideoPlayer.jsx - VERSIÓN COMPLETA CORREGIDA 100%
+import { Maximize, Minimize } from 'lucide-react'
 import React, { useState, useRef, useEffect } from 'react'
 
 // ========== CARGADOR ÚNICO DE LA YOUTUBE IFRAME API ==========
@@ -59,6 +60,9 @@ const VideoPlayer = ({
     const [velocidad, setVelocidad] = useState(() => { try { const v = parseFloat(localStorage.getItem('video_velocidad')); return VELOCIDADES.includes(v) ? v : 1 } catch { return 1 } })
     const [menuVelocidad, setMenuVelocidad] = useState(false)
     // Subtítulos (CC) de YouTube: se recuerdan; al activarlos el video se reduce un poco para que queden por encima de la barra
+    // Pantalla completa: API del navegador sobre NUESTRO reproductor (YouTube tiene fs:0); en iPhone no existe → modo "fijo" a toda la ventana
+    const [pantallaCompleta, setPantallaCompleta] = useState(false)
+    const wrapperRef = useRef(null)
     const [subtitulos, setSubtitulos] = useState(() => { try { return localStorage.getItem('video_subtitulos') === '1' } catch { return false } })
 
     // ========== ESTADOS PARA RESETEO ==========
@@ -442,6 +446,38 @@ const VideoPlayer = ({
         }
     }
 
+    useEffect(() => {
+        const onChange = () => { if (!document.fullscreenElement && !document.webkitFullscreenElement) setPantallaCompleta(false) }
+        document.addEventListener('fullscreenchange', onChange)
+        document.addEventListener('webkitfullscreenchange', onChange)
+        return () => { document.removeEventListener('fullscreenchange', onChange); document.removeEventListener('webkitfullscreenchange', onChange) }
+    }, [])
+    useEffect(() => {
+        if (!pantallaCompleta) return
+        const onKey = (e) => { if (e.key === 'Escape') salirPantallaCompleta() }
+        document.addEventListener('keydown', onKey)
+        const prev = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = prev }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pantallaCompleta])
+    const salirPantallaCompleta = () => {
+        setPantallaCompleta(false)
+        try {
+            if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {})
+            else if (document.webkitFullscreenElement && document.webkitExitFullscreen) document.webkitExitFullscreen()
+        } catch { /* noop */ }
+    }
+    const togglePantallaCompleta = () => {
+        if (pantallaCompleta) return salirPantallaCompleta()
+        setPantallaCompleta(true)
+        const el = wrapperRef.current
+        try {
+            if (el?.requestFullscreen) el.requestFullscreen().catch(() => {})       // si falla, queda el modo fijo
+            else if (el?.webkitRequestFullscreen) el.webkitRequestFullscreen()
+        } catch { /* noop */ }
+    }
+
     const toggleSubtitulos = () => {
         const on = !subtitulos
         setSubtitulos(on)
@@ -555,7 +591,8 @@ const VideoPlayer = ({
     // ========== RENDER PRINCIPAL ==========
     return (
         <div
-            className={`relative bg-black group ${className} rounded-xl overflow-hidden`}
+            ref={wrapperRef}
+            className={pantallaCompleta ? 'fixed inset-0 z-[100] bg-black group overflow-hidden' : `relative bg-black group ${className} rounded-xl overflow-hidden`}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => { setShowControls(false); setMenuVelocidad(false) }}
             onContextMenu={(e) => e.preventDefault()}
@@ -582,9 +619,11 @@ const VideoPlayer = ({
                 del video, quedan más arriba y nunca tapados por la barra. */}
             <div
                 className="absolute overflow-hidden bg-black"
-                style={subtitulos
-                    ? { top: 0, left: '50%', transform: 'translateX(-50%)', height: '86%', aspectRatio: '16 / 9' }
-                    : { inset: 0 }}
+                style={pantallaCompleta
+                    ? { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: `min(100%, calc(${subtitulos ? 86 : 100}vh * 16 / 9))`, aspectRatio: '16 / 9' }
+                    : subtitulos
+                        ? { top: 0, left: '50%', transform: 'translateX(-50%)', height: '86%', aspectRatio: '16 / 9' }
+                        : { inset: 0 }}
             >
                 <div
                     ref={containerRef}
@@ -600,6 +639,7 @@ const VideoPlayer = ({
             <div
                 className="absolute inset-0 z-10"
                 onClick={togglePlayPause}
+                onDoubleClick={togglePantallaCompleta}
                 onContextMenu={(e) => e.preventDefault()}
                 style={{ userSelect: 'none', pointerEvents: 'auto' }}
             />
@@ -623,7 +663,7 @@ const VideoPlayer = ({
 
                 {/* Botón de play grande cuando está pausado */}
                 {!isPlaying && !loading && playerInitialized && (
-                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-auto" style={{ bottom: subtitulos ? '14%' : 0 }}>
+                    <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-auto" style={{ bottom: subtitulos && !pantallaCompleta ? '14%' : 0 }}>
                         <button
                             onClick={togglePlayPause}
                             className="w-16 h-16 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center shadow-lg transform hover:scale-105 transition-all"
@@ -730,6 +770,15 @@ const VideoPlayer = ({
                             <div className="bg-red-600/20 text-red-400 px-3 py-1 rounded-full text-sm">
                                 {Math.floor(getProgressPercentage())}%
                             </div>
+
+                            {/* Pantalla completa */}
+                            <button
+                                onClick={togglePantallaCompleta}
+                                title={pantallaCompleta ? 'Salir de pantalla completa' : 'Pantalla completa'}
+                                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                            >
+                                {pantallaCompleta ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                            </button>
                         </div>
                     </div>
                 </div>
